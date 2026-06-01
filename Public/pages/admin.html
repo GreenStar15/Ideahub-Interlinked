@@ -1,0 +1,3172 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IdeaHub - Painel Administrativo</title>
+    <link rel="stylesheet" href="../style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.heat/0.2.0/leaflet-heat.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/1.5.3/jspdf.debug.js"></script>
+    <script>
+    // Verifica se o jsPDF carregou, se não, tenta outra CDN
+    if (typeof jspdf === 'undefined' && typeof window.jspdf === 'undefined') {
+        console.warn('jsPDF não carregou da primeira CDN, carregando fallback...');
+        var fallbackScript = document.createElement('script');
+        fallbackScript.src = 'https://unpkg.com/jspdf@2.5.1/dist/jspdf.umd.min.js';
+        fallbackScript.onload = function() {
+        };
+        document.head.appendChild(fallbackScript);
+    }
+</script>
+<script>
+    // Fallback para garantir que jspdf está disponível
+    if (typeof jspdf === 'undefined' && typeof window.jspdf === 'undefined') {
+        console.warn("jsPDF não carregou, tentando fallback...");
+        var script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js';
+        script.onload = function() {
+        };
+        document.head.appendChild(script);
+    }
+</script>
+    <style>
+        /* Estilos específicos do admin */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .dashboard-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            transition: transform 0.3s;
+        }
+        
+        .dashboard-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .dashboard-card h3 {
+            color: white;
+            margin-bottom: 10px;
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+        
+        .dashboard-card .numero {
+            font-size: 2.5em;
+            font-weight: 700;
+        }
+        
+        .dashboard-card .icone {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+        
+        .painel-section {
+            background: #f8fafc;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .painel-section h2 {
+            margin-bottom: 20px;
+            color: #2d3748;
+            font-size: 1.3em;
+        }
+        
+        .ranking-table, .usuarios-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .ranking-table th, .ranking-table td,
+        .usuarios-table th, .usuarios-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .ranking-table th, .usuarios-table th {
+            background: #f1f5f9;
+            font-weight: 600;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .status-pendente { background: #fef3c7; color: #b45309; }
+        .status-aprovada { background: #dcfce7; color: #166534; }
+        .status-convertida { background: #dbeafe; color: #1e40af; }
+        .status-rejeitada { background: #fee2e2; color: #991b1b; }
+        
+        .btn-aprovar, .btn-converter, .btn-editar {
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            margin: 0 3px;
+            border: none;
+        }
+        
+        .btn-aprovar { background: #28a745; color: white; }
+        .btn-converter { background: #17a2b8; color: white; }
+        .btn-editar { background: #ffc107; color: #333; }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .modal-close {
+            cursor: pointer;
+            font-size: 24px;
+        }
+        
+        .categoria-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            background: #e2e8f0;
+            border-radius: 5px;
+            font-size: 11px;
+        }
+        
+        .chart-container {
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        
+        @media (max-width: 768px) {
+            .dashboard-grid { grid-template-columns: repeat(2, 1fr); }
+            .ranking-table, .usuarios-table { font-size: 12px; }
+            .ranking-table th, .ranking-table td { padding: 8px; }
+        }
+        .btn-limpar {
+    background: #6c757d;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.btn-limpar:hover {
+    background: #5a6268;
+    transform: translateY(-2px);
+}
+/* Tabela de logs */
+.logs-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.logs-table th,
+.logs-table td {
+    padding: 12px 10px;
+    text-align: left;
+    border-bottom: 1px solid #e2e8f0;
+    vertical-align: middle;
+}
+
+.logs-table th {
+    background: #f1f5f9;
+    font-weight: 600;
+    color: #2d3748;
+    border-bottom: 2px solid #e2e8f0;
+}
+
+.logs-table tr:hover {
+    background: #f8fafc;
+}
+
+.logs-table td:first-child {
+    white-space: nowrap;
+}
+
+/* Badge de ação */
+.acao-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.acao-login { background: #dbeafe; color: #1e40af; }
+.acao-cadastro { background: #dcfce7; color: #166534; }
+.acao-criar_ideia { background: #fef3c7; color: #b45309; }
+.acao-votar { background: #e0f2fe; color: #0369a1; }
+.acao-comentar { background: #fce7f3; color: #be185d; }
+.acao-moderar { background: #fee2e2; color: #991b1b; }
+
+/* Responsividade para tabela de logs */
+@media (max-width: 768px) {
+    .logs-table {
+        font-size: 11px;
+    }
+    
+    .logs-table th,
+    .logs-table td {
+        padding: 8px 6px;
+    }
+    
+    .acao-badge {
+        font-size: 10px;
+        padding: 2px 6px;
+    }
+}
+/* Autocomplete - Sugestões de busca */
+.autocomplete-container {
+    position: relative;
+    flex: 1;
+    min-width: 200px;
+}
+
+.autocomplete-sugestoes {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    max-height: 250px;
+    overflow-y: auto;
+    z-index: 1000;
+    display: none;
+}
+
+.autocomplete-sugestoes.show {
+    display: block;
+}
+
+.sugestao-item {
+    padding: 10px 15px;
+    cursor: pointer;
+    transition: background 0.2s;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.sugestao-item:hover {
+    background: #f1f5f9;
+}
+
+.sugestao-nome {
+    font-weight: 500;
+    color: #2d3748;
+}
+
+.sugestao-email {
+    font-size: 11px;
+    color: #a0aec0;
+    margin-left: 8px;
+}
+
+.sugestao-cargo {
+    font-size: 10px;
+    display: inline-block;
+    padding: 2px 6px;
+    border-radius: 10px;
+    background: #e2e8f0;
+    margin-left: 8px;
+}
+/* Mapa de calor */
+.mapa-container {
+    background: #f8fafc;
+    border-radius: 15px;
+    padding: 20px;
+    margin-bottom: 30px;
+}
+.mapa-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+.mapa-filtros {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+.mapa-content {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+#mapa {
+    flex: 2;
+    height: 500px;
+    border-radius: 12px;
+    background: #e2e8f0;
+    z-index: 1;
+}
+.lista-ideias-mapa {
+    flex: 1;
+    background: white;
+    border-radius: 12px;
+    padding: 15px;
+    max-height: 500px;
+    overflow-y: auto;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+.lista-ideias-mapa h4 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    color: #2d3748;
+}
+.ideia-item-mapa {
+    padding: 10px;
+    border-bottom: 1px solid #e2e8f0;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+.ideia-item-mapa:hover {
+    background: #f1f5f9;
+}
+.ideia-item-mapa strong {
+    display: block;
+    color: #2d3748;
+}
+.ideia-item-mapa small {
+    color: #718096;
+    font-size: 11px;
+}
+.btn-exportar-mapa {
+    background: #48bb78;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+.btn-exportar-mapa:hover {
+    background: #38a169;
+}
+.btn-bloco-mapa {
+    background: #f1f5f9;
+    border: none;
+    padding: 10px;
+    border-radius: 8px;
+    text-align: left;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background 0.2s;
+    width: 100%;
+}
+.btn-bloco-mapa:hover {
+    background: #e2e8f0;
+}
+
+/* Link do perfil na tabela de usuários */
+.usuario-link {
+    color: #667eea;
+    text-decoration: none;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+}
+
+.usuario-link:hover {
+    color: #5a67d8;
+    text-decoration: underline;
+    transform: translateX(2px);
+}
+
+.usuario-link i {
+    font-size: 14px;
+}
+
+/* Badge de ideias removidas */
+.removidas-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.removidas-zero {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.removidas-poucas {
+    background: #fef3c7;
+    color: #b45309;
+}
+
+.removidas-muitas {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+/* Tooltip para informações */
+[data-tooltip] {
+    position: relative;
+    cursor: help;
+}
+
+[data-tooltip]:hover::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #2d3748;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 11px;
+    white-space: nowrap;
+    z-index: 10;
+}
+
+/* Melhorias para o gráfico de pizza */
+#graficoCategorias {
+    max-height: 300px;
+    width: 100%;
+}
+
+/* Ajuste da legenda para telas pequenas */
+@media (max-width: 768px) {
+    .chartjs-legend {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+    
+    .chartjs-legend li {
+        margin: 5px !important;
+    }
+}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+    <h1><i class="fas fa-chart-line"></i> Painel Administrativo</h1>
+    <button onclick="window.location.href='../index.html'" class="btn-voltar">
+        <i class="fas fa-arrow-left"></i> Voltar para as Ideias
+    </button>
+</div>
+        
+<!-- Dashboard de Inovação -->
+<div class="dashboard-inovacao">
+    <div class="dashboard-header">
+        <h2><i class="fas fa-chart-line"></i> Métricas Gerais</h2>
+        <div class="dashboard-filtros">
+            <select id="periodoDashboard" class="filter-select" onchange="carregarDashboardInovacao()">
+                <option value="semana">📅 Última Semana</option>
+                <option value="mes" >📅 Último Mês</option>
+                <option value="trimestre">📅 Último Trimestre</option>
+                <option value="ano">📅 Último Ano</option>
+                <option value="todos" selected>📅 Todos os períodos</option>
+            </select>
+            <button onclick="exportarDashboardPDF()" class="btn-exportar"> 📥 Exportar PDF </button>
+        </div>
+    </div>
+</div>
+
+<!-- Dashboard Cards - Todos na mesma div, sem quebras -->
+<div class="dashboard-grid" id="dashboardCards">
+    <div class="dashboard-card">
+        <div class="icone"><i class="fas fa-lightbulb"></i></div>
+        <h3>Total de Ideias</h3>
+        <div class="numero" id="totalIdeias">-</div>
+    </div>
+    <div class="dashboard-card">
+        <div class="icone"><i class="fas fa-users"></i></div>
+        <h3>Usuários Ativos</h3>
+        <div class="numero" id="totalUsuarios">-</div>
+    </div>
+    <div class="dashboard-card">
+        <div class="icone"><i class="fas fa-clock"></i></div>
+        <h3>Ideias Pendentes</h3>
+        <div class="numero" id="ideiasPendentes">-</div>
+    </div>
+    <div class="dashboard-card">
+        <div class="icone"><i class="fas fa-check-circle"></i></div>
+        <h3>Ideias Aprovadas</h3>
+        <div class="numero" id="ideiasAprovadas">-</div>
+    </div>
+    <div class="dashboard-card">
+        <div class="icone"><i class="fas fa-project-diagram"></i></div>
+        <h3>Ideias Convertidas</h3>
+        <div class="numero" id="ideiasConvertidas">-</div>
+    </div>
+    <div class="dashboard-card">
+        <div class="icone"><i class="fas fa-chart-line"></i></div>
+        <h3>Taxa de Conversão</h3>
+        <div class="numero" id="taxaConversao">-</div>
+    </div>
+</div>
+
+<!-- Gráficos -->
+<div class="charts-row">
+    <!-- Gráfico de Linha - Ideias por Período -->
+    <div class="ranking-container">
+        <h3><i class="fas fa-chart-line"></i> Ideias por Período</h3>
+        <canvas id="graficoPeriodo"></canvas>
+    </div>
+    
+    <!-- Gráfico de Pizza - Ideias por Categoria -->
+    <div class="ranking-container">
+        <h3><i class="fas fa-chart-pie"></i> Ideias por Categoria</h3>
+        <canvas id="graficoCategorias"></canvas>
+    </div>
+</div>
+
+<div class="charts-row">
+    <div class="ranking-container">
+        <h3><i class="fas fa-chart-bar"></i> Ideias por Status</h3>
+        <canvas id="graficoStatus"></canvas>
+    </div>
+    <div class="ranking-container">
+        <h3><i class="fas fa-trophy"></i> Ranking de Usuários</h3>
+        <div id="rankingList" class="ranking-lista"></div>
+    </div>
+</div>
+
+<!-- Mapa de Calor -->
+<div class="mapa-container">
+    <div class="mapa-header">
+        <h2><i class="fas fa-map-marked-alt"></i> Mapa de Calor da Inovação</h2>
+        <div class="mapa-filtros">
+            <select id="mapaPeriodo" class="filter-select">
+                <option value="semana">📅 Última Semana</option>
+                <option value="mes">📅 Último Mês</option>
+                <option value="trimestre">📅 Último Trimestre</option>
+                <option value="ano">📅 Último Ano</option>
+                <option value="todos" selected>📅 Todos os períodos</option>
+            </select>
+            <select id="mapaCategoria" class="filter-select">
+                <option value="todos">📌 Todas as categorias</option>
+            </select>
+            <button onclick="carregarMapaCalor()" class="btn-primary">Aplicar filtros</button>
+            <button onclick="exportarMapaImagem()" class="btn-exportar-mapa">
+                <i class="fas fa-camera"></i> Exportar imagem
+            </button>
+        </div>
+    </div>
+    <div class="mapa-content">
+        <div id="mapa"></div>
+        <div class="lista-ideias-mapa">
+            <h4><i class="fas fa-list"></i> Ideias da região selecionada</h4>
+            <div id="listaIdeiasMapa" style="font-size: 14px;">
+                Clique em uma região do mapa para ver as ideias.
+            </div>
+        </div>
+    </div>
+</div>
+
+        <!-- Ranking de Ideias Mais Votadas -->
+<div class="painel-section">
+    <h2><i class="fas fa-trophy"></i> Ranking das Ideias Mais Votadas</h2>
+    <div style="overflow-x: auto;">
+        <table class="ranking-table">
+            <thead>
+                <tr>
+                    <th>Posição</th>
+                    <th>Título</th>
+                    <th>Autor</th>
+                    <th>Votos</th>
+                    <th>Status</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody id="rankingIdeiasList">
+                <tr><td colspan="6">Carregando...</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+        <!-- Gestão de Usuários -->
+        <div class="painel-section">
+            <h2><i class="fas fa-user-cog"></i> Gestão de Usuários</h2>
+            <div style="overflow-x: auto;">
+                <table class="usuarios-table">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Nome</th>
+            <th>Email</th>
+            <th>Cargo</th>
+            <th>Advertências</th>
+            <th>Ideias Removidas</th>
+            <th>Status</th>
+            <th>Ações</th>
+        </tr>
+    </thead>
+    <tbody id="usuariosList">
+        <tr><td colspan="7">Carregando...</tr>
+    </tbody>
+</table>
+            </div>
+        </div>
+
+<!-- Logs de Atividades -->
+<div class="painel-section">
+    <h2><i class="fas fa-history"></i> Logs de Atividades</h2>
+    
+    <!-- Filtros -->
+    <div class="filtros-logs">
+    <div class="autocomplete-container" style="position: relative; flex: 1; min-width: 200px;">
+        <input type="text" id="buscaUsuario" class="filter-select" placeholder="🔍 Buscar por nome do usuário..." autocomplete="off">
+        <div id="sugestoesList" class="autocomplete-sugestoes"></div>
+    </div>
+    <select id="filtroAcao" class="filter-select">
+        <option value="todos">Todas as ações</option>
+        <option value="login">Login</option>
+        <option value="cadastro">Cadastro</option>
+        <option value="criar_ideia">Criar Ideia</option>
+        <option value="votar">Votar</option>
+        <option value="comentar">Comentar</option>
+        <option value="moderar">Moderar</option>
+    </select>
+    <input type="date" id="filtroDataInicio" class="filter-select" placeholder="Data Início">
+    <input type="date" id="filtroDataFim" class="filter-select" placeholder="Data Fim">
+    <button onclick="carregarLogs()" class="btn-primary">Filtrar</button>
+    <button onclick="exportarLogs()" class="btn-exportar">📥 Exportar CSV</button>
+    <button onclick="limparFiltrosLogs()" class="btn-limpar">🗑️ Limpar</button>
+</div>
+    
+    <div style="overflow-x: auto;">
+    <table class="logs-table">
+        <thead>
+            <tr>
+                <th>Data/Hora</th>
+                <th>Usuário</th>
+                <th>Ação</th>
+                <th>Descrição</th>
+            </tr>
+        </thead>
+        <tbody id="logsList">
+            <tr><td colspan="5" style="text-align: center;">Carregando logs...</td></tr>
+        </tbody>
+    </table>
+</div>
+
+<!-- Usuários Inativos -->
+<div class="painel-section">
+    <h2><i class="fas fa-user-clock"></i> Usuários Inativos (+30 dias)</h2>
+    <div id="inativosList">
+        <p>Carregando...</p>
+    </div>
+</div>
+
+<!-- Reports de Ideias Pendentes -->
+<div class="painel-section">
+    <h2><i class="fas fa-flag"></i> Denúncias de Ideias Pendentes</h2>
+    <div id="reportsList">
+        <p>Carregando...</p>
+    </div>
+</div>
+
+<!-- Reports de Comentários Pendentes -->
+<div class="painel-section">
+    <h2><i class="fas fa-flag"></i> Denúncias de Comentários Pendentes</h2>
+    <div id="reportsComentariosList">
+        <p>Carregando...</p>
+    </div>
+</div>
+    </div>
+
+<!-- Gestão de Templates -->
+<div class="painel-section">
+    <h2><i class="fas fa-copy"></i> Gestão de Templates de Ideias</h2>
+    <div style="display: flex; justify-content: flex-end; margin-bottom: 20px;">
+        <button onclick="abrirModalTemplate()" class="btn-primary">
+            <i class="fas fa-plus"></i> Novo Template
+        </button>
+    </div>
+    <div id="templatesList" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 20px;">
+        <div class="empty-state">Carregando templates...</div>
+    </div>
+</div>
+
+<!-- Modal de Template -->
+<div id="modalTemplate" class="modal" style="display: none;">
+    <div class="modal-content" style="max-width: 700px;">
+        <div class="modal-header">
+            <h3 id="modalTemplateTitulo">Novo Template</h3>
+            <span onclick="fecharModal('modalTemplate')" class="modal-close">&times;</span>
+        </div>
+        <form id="formTemplate">
+            <input type="hidden" id="templateId">
+            <div class="form-group">
+                <label>Título *</label>
+                <input type="text" id="templateTitulo" class="input-field" required>
+            </div>
+            <div class="form-group">
+                <label>Descrição</label>
+                <textarea id="templateDescricao" rows="2" class="input-field"></textarea>
+            </div>
+            <div class="form-group">
+                <label>Categoria *</label>
+                <select id="templateCategoria" class="filter-select" required>
+                    <option value="">Selecione...</option>
+                    <option value="Infraestrutura de Rede">📡 Infraestrutura de Rede</option>
+                    <option value="Software Educacional">💻 Software Educacional</option>
+                    <option value="Sustentabilidade">🌱 Sustentabilidade</option>
+                    <option value="Acessibilidade">♿ Acessibilidade</option>
+                    <option value="Melhoria de Processos">⚙️ Melhoria de Processos</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Campos do Template (JSON)</label>
+                <textarea id="templateCampos" rows="6" class="input-field" placeholder='Ex: [{"nome":"Problema identificado","placeholder":"Descreva..."}]'></textarea>
+                <small style="color: #666;">Formato JSON: array de objetos com "nome" e "placeholder"</small>
+            </div>
+            <div class="form-group checkbox-group">
+                <label>
+                    <input type="checkbox" id="templateRecomendado"> Marcar como recomendado
+                </label>
+            </div>
+            <button type="submit" class="btn-primary">Salvar Template</button>
+        </form>
+    </div>
+</div>
+
+    <!-- Modal de Justificativa para Exclusão -->
+<div id="modalJustificativa" class="modal" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3><i class="fas fa-exclamation-triangle"></i> Excluir Ideia com Justificativa</h3>
+            <span onclick="fecharModalJustificativa()" class="modal-close">&times;</span>
+        </div>
+        <form id="formJustificativa">
+            <input type="hidden" id="justificativaReportId">
+            <div class="form-group">
+                <label>Motivo da exclusão</label>
+                <select id="justificativaMotivo" class="filter-select" required>
+                    <option value="">Selecione um motivo</option>
+                    <option value="conteudo_improprio">🔞 Conteúdo impróprio</option>
+                    <option value="discurso_odio">😡 Discurso de ódio</option>
+                    <option value="spam">📧 Spam ou publicidade</option>
+                    <option value="fake_news">❓ Informação falsa</option>
+                    <option value="duplicada">📝 Ideia duplicada</option>
+                    <option value="fora_tema">📌 Fora do tema da plataforma</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Justificativa detalhada (opcional)</label>
+                <textarea id="justificativaTexto" rows="4" placeholder="Explique o motivo da exclusão para o autor..."></textarea>
+            </div>
+            <div class="form-group">
+                <label>Ação adicional</label>
+                <select id="justificativaAcao" class="filter-select">
+                    <option value="excluir">🗑️ Excluir ideia permanentemente</option>
+                    <option value="advertir">⚠️ Apenas advertir o autor</option>
+                </select>
+            </div>
+            <button type="submit" class="btn-primary">Aplicar Moderação</button>
+        </form>
+    </div>
+</div>
+
+    <!-- Modal de Conversão -->
+    <div id="converterModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Converter Ideia em Projeto</h3>
+                <span class="modal-close" onclick="fecharModal('converterModal')">&times;</span>
+            </div>
+            <form id="converterForm">
+                <input type="hidden" id="converterIdeiaId">
+                <div class="form-group">
+                    <label>Nome do Projeto</label>
+                    <input type="text" id="projetoNome" placeholder="Nome do projeto" required>
+                </div>
+                <div class="form-group">
+                    <label>Descrição</label>
+                    <textarea id="projetoDescricao" rows="3" placeholder="Descrição do escopo"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Responsável</label>
+                    <input type="text" id="projetoResponsavel" placeholder="Nome do responsável">
+                </div>
+                <div class="form-group">
+                    <label>Data de Início</label>
+                    <input type="date" id="projetoDataInicio">
+                </div>
+                <div class="form-group">
+                    <label>Prioridade</label>
+                    <select id="projetoPrioridade">
+                        <option value="alta">🔴 Alta</option>
+                        <option value="media">🟡 Média</option>
+                        <option value="baixa">🟢 Baixa</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn-primary">Converter em Projeto</button>
+            </form>
+        </div>
+    </div>
+    
+    <div id="loading" class="loading">
+        <div class="spinner"></div>
+        <p>Carregando...</p>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        let usuarioLogado = null;
+        let categoriasChart = null;
+        let intervaloDashboard = null;
+        
+        // No DOMContentLoaded
+document.addEventListener('DOMContentLoaded', async () => {
+    await verificarLogin();
+    if (usuarioLogado && (usuarioLogado.cargo === 'gestor' || usuarioLogado.cargo === 'ti_staff')) {
+        // Carregar dashboard com período "todos" (padrão)
+        await carregarDashboardInovacao();
+        // Carregar categorias para o filtro do mapa
+        await carregarCategoriasMapa();
+        // Carregar mapa de calor
+        await carregarMapaCalor();
+        // Carregar outros componentes
+        carregarLogs();
+        carregarUsuariosInativos();
+        carregarUsuarios();
+        carregarReports();
+        
+        // ========== CARREGAR DENÚNCIAS DE COMENTÁRIOS ==========
+        // Usar setTimeout para garantir que o DOM está pronto
+        setTimeout(() => {
+            if (typeof carregarReportsComentarios === 'function') {
+                carregarReportsComentarios();
+            } else {
+                console.warn('⚠️ Função carregarReportsComentarios não encontrada');
+            }
+        }, 500);
+        // =======================================================
+        
+        carregarTemplates();
+    } else {
+        alert('Acesso negado. Você não tem permissão.');
+        window.location.href = '../index.html';
+    }
+});
+        
+        async function verificarLogin() {
+    // Tentar recuperar usuário do localStorage
+    const tokenSalvo = localStorage.getItem('ideaHubToken');
+    
+    if (tokenSalvo) {
+        try {
+            const user = JSON.parse(tokenSalvo);
+            usuarioLogado = user;
+            
+            // Verificar permissão
+            if (usuarioLogado.cargo === 'gestor' || usuarioLogado.cargo === 'ti_staff') {
+                return true;
+            } else {
+                alert('Acesso negado. Você não tem permissão para acessar esta página.');
+                window.location.href = '../index.html';
+                return false;
+            }
+        } catch (e) {
+            console.error('Erro ao recuperar usuário:', e);
+        }
+    }
+    
+    // Se não tiver token, tentar buscar do servidor
+    try {
+        const response = await fetch('/validar-sessao', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ token: localStorage.getItem('sessionToken') })
+        });
+        const data = await response.json();
+        
+        if (data.valid && data.usuario) {
+            usuarioLogado = data.usuario;
+            localStorage.setItem('ideaHubToken', JSON.stringify(usuarioLogado));
+            
+            if (usuarioLogado.cargo === 'gestor' || usuarioLogado.cargo === 'ti_staff') {
+                return true;
+            }
+        }
+    } catch (error) {
+        console.error('Erro na verificação:', error);
+    }
+    
+    alert('Acesso negado. Você não tem permissão para acessar esta página.');
+    window.location.href = '../index.html';
+    return false;
+}
+        
+        async function carregarDashboard() {
+    try {
+        const response = await fetch('/admin/dashboard', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ usuarioId: usuarioLogado.id })
+        });
+        const data = await response.json();
+        
+        // ✅ VERIFICAR SE OS ELEMENTOS EXISTEM ANTES DE USAR
+        const totalIdeiasEl = document.getElementById('totalIdeias');
+        const totalUsuariosEl = document.getElementById('totalUsuarios');
+        const ideiasAprovadasEl = document.getElementById('ideiasAprovadas');
+        const ideiasConvertidasEl = document.getElementById('ideiasConvertidas');
+        const ideiasPendentesEl = document.getElementById('ideiasPendentes');
+        
+        if (totalIdeiasEl) totalIdeiasEl.textContent = data.totalIdeias;
+        if (totalUsuariosEl) totalUsuariosEl.textContent = data.totalUsuarios;
+        if (ideiasAprovadasEl) ideiasAprovadasEl.textContent = data.ideiasAprovadas;
+        if (ideiasConvertidasEl) ideiasConvertidasEl.textContent = data.ideiasConvertidas;
+        if (ideiasPendentesEl) ideiasPendentesEl.textContent = data.ideiasPendentes;
+        
+        // ✅ VERIFICAR SE O CANVAS EXISTE
+        const ctx = document.getElementById('categoriasChart')?.getContext('2d');
+        if (!ctx) {
+            console.warn('⚠️ Canvas "categoriasChart" não encontrado');
+            return;
+        }
+        
+        const categorias = data.ideiasPorCategoria || [];
+        
+        if (categoriasChart) categoriasChart.destroy();
+        categoriasChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: categorias.map(c => `${c.icone} ${c.nome}`),
+                datasets: [{
+                    label: 'Número de Ideias',
+                    data: categorias.map(c => c.total),
+                    backgroundColor: 'rgba(102, 126, 234, 0.6)',
+                    borderColor: '#667eea',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                scales: { y: { beginAtZero: true, stepSize: 1 } }
+            }
+        });
+    } catch (error) {
+        console.error('Erro no dashboard:', error);
+    }
+}
+        
+        // ==========================================
+// US18 - MAPA DE CALOR
+// ==========================================
+let mapa = null;
+let camadaCalor = null;
+let marcadores = [];
+
+// ==========================================
+// US18 - MAPA DE CALOR (COM BOTÕES DOS BLOCOS)
+// ==========================================
+
+async function carregarMapaCalor() {
+    const periodo = document.getElementById('mapaPeriodo').value;
+    const categoria = document.getElementById('mapaCategoria').value;
+    
+    showLoading(true);
+    try {
+        const response = await fetch(`/api/mapa/calor?periodo=${periodo}&categoria=${categoria}`);
+        const dados = await response.json();
+        
+        if (!mapa) {
+            const coordenadasUniBrasil = [-25.4263237, -49.2147562];
+            mapa = L.map('mapa').setView(coordenadasUniBrasil, 17);
+            L.tileLayer('https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
+                attribution: '&copy; <a href="https://maps.google.com/">Google Maps</a>',
+                subdomains: ['mt0', 'mt1', 'mt2', 'mt3']
+            }).addTo(mapa);
+        }
+        
+        // Remover camada de calor anterior
+        if (camadaCalor) mapa.removeLayer(camadaCalor);
+        // Remover marcadores antigos
+        marcadores.forEach(m => mapa.removeLayer(m));
+        marcadores = [];
+        
+        // Preparar pontos para o heatmap
+        const pontos = dados.map(item => [parseFloat(item.latitude), parseFloat(item.longitude), item.total_ideias]);
+        if (pontos.length > 0) {
+            camadaCalor = L.heatLayer(pontos, { radius: 25, blur: 15, maxZoom: 17 });
+            camadaCalor.addTo(mapa);
+        }
+        
+        // Adicionar marcadores e também renderizar botões na lista lateral
+        dados.forEach(local => {
+            const marker = L.marker([parseFloat(local.latitude), parseFloat(local.longitude)]).addTo(mapa);
+            marker.bindPopup(`
+                <b>${escapeHtml(local.nome)}</b><br>
+                <i class="fas fa-lightbulb"></i> ${local.total_ideias} ideia(s)<br>
+                <button onclick="carregarIdeiasDoLocal(${local.id}, '${escapeHtml(local.nome)}')" style="margin-top:5px; padding:4px 8px; background:#667eea; color:white; border:none; border-radius:5px; cursor:pointer;">
+                    Ver ideias
+                </button>
+            `);
+            marker.on('click', () => carregarIdeiasDoLocal(local.id, local.nome));
+            marcadores.push(marker);
+        });
+        
+        // 🔹 NOVO: Renderizar botões dos blocos na lista lateral
+        renderizarBotoesLocais(dados);
+        
+    } catch (error) {
+        console.error('Erro ao carregar mapa:', error);
+        alert('Erro ao carregar mapa de calor');
+    } finally {
+        showLoading(false);
+    }
+}
+
+function renderizarBotoesLocais(locais) {
+    const container = document.getElementById('listaIdeiasMapa');
+    if (!container) return;
+    
+    if (!locais || locais.length === 0) {
+        container.innerHTML = `
+            <div style="text-align: center;">
+                <p>Nenhum local cadastrado.</p>
+                <small>Clique em uma região do mapa para ver as ideias.</small>
+            </div>
+        `;
+        return;
+    }
+    
+    // Ordenar os locais por nome (opcional)
+    const locaisOrdenados = [...locais].sort((a, b) => a.nome.localeCompare(b.nome));
+    
+    let html = `
+        <div style="margin-bottom: 15px;">
+            <strong>📍 Selecione um bloco:</strong>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+    `;
+    
+    locaisOrdenados.forEach(local => {
+        html += `
+            <button onclick="carregarIdeiasDoLocal(${local.id}, '${escapeHtml(local.nome)}')" 
+                    style="background: #f1f5f9; border: none; padding: 10px; border-radius: 8px; text-align: left; cursor: pointer; font-size: 14px; transition: background 0.2s; display: flex; justify-content: space-between; align-items: center;">
+                <span><i class="fas fa-building"></i> ${escapeHtml(local.nome)}</span>
+                <span style="background: #667eea; color: white; padding: 2px 8px; border-radius: 20px; font-size: 12px;">${local.total_ideias} ideias</span>
+            </button>
+        `;
+    });
+    
+    html += `
+        </div>
+        <div style="margin-top: 15px; font-size: 12px; color: #718096; text-align: center; border-top: 1px solid #e2e8f0; padding-top: 12px;">
+            <i class="fas fa-info-circle"></i> Clique no botão acima ou diretamente no mapa
+        </div>
+    `;
+    
+    container.innerHTML = html;
+}
+async function carregarIdeiasDoLocal(localId, localNome) {
+    const periodo = document.getElementById('mapaPeriodo').value;
+    const categoria = document.getElementById('mapaCategoria').value;
+    
+    try {
+        const response = await fetch(`/api/mapa/ideias-por-local?localId=${localId}&periodo=${periodo}&categoria=${categoria}`);
+        const ideias = await response.json();
+        
+        const container = document.getElementById('listaIdeiasMapa');
+        
+        if (!ideias || ideias.length === 0) {
+            container.innerHTML = `<p>Nenhuma ideia encontrada para <strong>${escapeHtml(localNome)}</strong> no período selecionado.</p>`;
+            return;
+        }
+        
+        container.innerHTML = `
+            <h4>${escapeHtml(localNome)} tem ${ideias.length} ideia(s):</h4>
+            ${ideias.map(ideia => `
+                <div class="ideia-item-mapa" onclick="window.open('../pages/ideia.html?id=${ideia.id}', '_blank')">
+                    <strong>${escapeHtml(ideia.titulo)}</strong>
+                    <small>
+                        👤 ${escapeHtml(ideia.autor_nome)} | 
+                        👍 ${ideia.votos} voto(s) | 
+                        ${getStatusText(ideia.status)}
+                    </small>
+                </div>
+            `).join('')}
+        `;
+    } catch (error) {
+        console.error('Erro ao carregar ideias do local:', error);
+        document.getElementById('listaIdeiasMapa').innerHTML = '<p>Erro ao carregar ideias.</p>';
+    }
+}
+
+function exportarMapaImagem() {
+    if (!mapa) {
+        alert('Aguarde o mapa carregar primeiro.');
+        return;
+    }
+    
+    const mapaDiv = document.getElementById('mapa');
+    html2canvas(mapaDiv, { scale: 2, backgroundColor: '#ffffff', useCORS: true })
+        .then(canvas => {
+            const link = document.createElement('a');
+            link.download = `mapa_calor_${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.png`;
+            link.href = canvas.toDataURL();
+            link.click();
+            showMessage('✅ Imagem exportada com sucesso!', 'success');
+        })
+        .catch(err => {
+            console.error('Erro ao exportar imagem:', err);
+            alert('Erro ao exportar imagem do mapa.');
+        });
+}
+
+async function carregarCategoriasMapa() {
+    try {
+        const response = await fetch('/categorias');
+        const categorias = await response.json();
+        const select = document.getElementById('mapaCategoria');
+        select.innerHTML = '<option value="todos">📌 Todas as categorias</option>';
+        categorias.forEach(cat => {
+            const option = document.createElement('option');
+            option.value = cat.id;
+            option.textContent = `${cat.icone} ${cat.nome}`;
+            select.appendChild(option);
+        });
+    } catch (error) {
+        console.error('Erro ao carregar categorias:', error);
+    }
+}
+
+function getStatusIcone(status) {
+    const icones = {
+        'pendente': '⏳',
+        'aprovada': '✅',
+        'convertida': '🚀',
+        'rejeitada': '❌'
+    };
+    return icones[status] || '❓';
+}
+
+        async function carregarRanking() {
+    
+    try {
+        // Buscar dados do dashboard que já contém o ranking
+        const periodo = document.getElementById('periodoDashboard')?.value || 'mes';
+        const response = await fetch(`/admin/dashboard/inovacao?periodo=${periodo}`);
+        const data = await response.json();
+        
+        const container = document.getElementById('rankingList');
+        if (!container) {
+            console.error('Elemento rankingList não encontrado');
+            return;
+        }
+        
+        if (!data.rankingUsuarios || data.rankingUsuarios.length === 0) {
+            container.innerHTML = '<div class="empty-state">Nenhum dado de ranking disponível</div>';
+            return;
+        }
+        
+        container.innerHTML = data.rankingUsuarios.map((user, index) => {
+            let medalha = '';
+            if (index === 0) medalha = '🥇';
+            else if (index === 1) medalha = '🥈';
+            else if (index === 2) medalha = '🥉';
+            else medalha = `${index + 1}º`;
+            
+            return `
+                <div class="ranking-item">
+                    <span class="ranking-posicao">${medalha}</span>
+                    <span class="ranking-nome">${escapeHtml(user.nome)}</span>
+                    <span class="ranking-cargo">${getCargoTexto(user.cargo)}</span>
+                    <span class="ranking-ideias">💡 ${user.total_ideias}</span>
+                </div>
+            `;
+        }).join('');
+        
+    } catch (error) {
+        console.error('❌ Erro ao carregar ranking:', error);
+        const container = document.getElementById('rankingList');
+        if (container) {
+            container.innerHTML = '<div class="empty-state">Erro ao carregar ranking</div>';
+        }
+    }
+}
+        
+async function carregarRankingIdeias() {
+    
+    const periodo = document.getElementById('periodoDashboard')?.value || 'mes';
+    
+    try {
+        const response = await fetch(`/admin/ranking/ideias?periodo=${periodo}`);
+        const ideias = await response.json();
+        
+        const tbody = document.getElementById('rankingIdeiasList');
+        if (!tbody) return;
+        
+        if (!ideias || ideias.length === 0) {
+            tbody.innerHTML = ' <td colspan="6">Nenhuma ideia encontrada</td> ';
+            return;
+        }
+        
+        tbody.innerHTML = ideias.map((ideia, index) => {
+            let medalha = '';
+            if (index === 0) medalha = '🥇';
+            else if (index === 1) medalha = '🥈';
+            else if (index === 2) medalha = '🥉';
+            else medalha = `${index + 1}º`;
+            
+            return `
+                <tr>
+                    <td style="font-weight: 600; color: #667eea;">${medalha}</td>
+                    <td><strong>${escapeHtml(ideia.titulo)}</strong></td>
+                    <td>${escapeHtml(ideia.autor_nome)}</td>
+                    <td>👍 ${ideia.votos_count}</td>
+                    <td><span class="status-badge status-${ideia.status}">${getStatusText(ideia.status)}</span></td>
+                    <td>
+                        <button onclick="verDetalhesIdeia(${ideia.id})" class="btn-ver-ideia">
+                            <i class="fas fa-eye"></i> Ver
+                        </button>
+                    </td>
+                 </tr>
+            `;
+        }).join('');
+        
+    } catch (error) {
+        console.error('❌ Erro:', error);
+        const tbody = document.getElementById('rankingIdeiasList');
+        if (tbody) {
+            tbody.innerHTML = ' <td colspan="6">Erro ao carregar ranking</td> ';
+        }
+    }
+}
+
+function verDetalhesIdeia(ideiaId) {
+    window.open(`../pages/ideia.html?id=${ideiaId}`, '_blank');
+}
+
+       async function carregarUsuarios() {
+    try {
+        const response = await fetch('/admin/usuarios');
+        const usuarios = await response.json();
+        
+        const tbody = document.getElementById('usuariosList');
+        if (usuarios.length === 0) {
+            tbody.innerHTML = '发展<td colspan="8">Nenhum usuário encontrado</td></td>';
+            return;
+        }
+        
+        tbody.innerHTML = usuarios.map(user => {
+            // Badge de advertências
+            let advertenciasHtml = `
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span class="advertencia-badge ${user.total_advertencias > 0 ? 'tem-advertencia' : ''}" style="background: ${user.total_advertencias > 0 ? '#fef3c7' : '#e2e8f0'}; padding: 4px 8px; border-radius: 20px;">
+                        ⚠️ ${user.total_advertencias || 0}
+                    </span>
+                    ${user.total_advertencias > 0 ? `
+                        <button onclick="resetarAdvertencias(${user.id})" class="btn-reset-advertencia" title="Resetar advertências" style="background: #ffc107; border: none; border-radius: 5px; padding: 4px 8px; cursor: pointer;">
+                            <i class="fas fa-undo-alt"></i>
+                        </button>
+                    ` : ''}
+                </div>
+            `;
+            
+            // Badge de ideias removidas com cores diferentes
+            let removidasHtml = '';
+            const removidas = user.ideias_removidas || 0;
+            if (removidas === 0) {
+                removidasHtml = `<span style="background: #dcfce7; color: #166534; padding: 4px 8px; border-radius: 20px; font-size: 12px;">✅ ${removidas}</span>`;
+            } else if (removidas <= 2) {
+                removidasHtml = `<span style="background: #fef3c7; color: #b45309; padding: 4px 8px; border-radius: 20px; font-size: 12px;">⚠️ ${removidas}</span>`;
+            } else {
+                removidasHtml = `<span style="background: #fee2e2; color: #991b1b; padding: 4px 8px; border-radius: 20px; font-size: 12px;">🔴 ${removidas}</span>`;
+            }
+            
+            return `
+                <tr>
+                    <td style="font-weight: 500; color: #4a5568;">${user.id}</td>
+                    <td>
+                        <a href="../pages/perfil.html?id=${user.id}" 
+                           target="_blank" 
+                           style="color: #667eea; text-decoration: none; font-weight: 500; display: inline-flex; align-items: center; gap: 6px;">
+                            <i class="fas fa-user-circle"></i> ${escapeHtml(user.nome)}
+                        </a>
+                    </td>
+                    <td style="color: #4a5568;">${escapeHtml(user.email)}</td>
+                    <td>
+                        <select onchange="alterarCargo(${user.id}, this.value)" class="filter-select" style="width: auto; padding: 5px; border-radius: 8px;">
+                            <option value="aluno" ${user.cargo === 'aluno' ? 'selected' : ''}>👨‍🎓 Aluno</option>
+                            <option value="professor" ${user.cargo === 'professor' ? 'selected' : ''}>👨‍🏫 Professor</option>
+                            <option value="ti_staff" ${user.cargo === 'ti_staff' ? 'selected' : ''}>🖥️ TI Staff</option>
+                            <option value="gestor" ${user.cargo === 'gestor' ? 'selected' : ''}>📊 Gestor</option>
+                        </select>
+                    </td>
+                    <td>${advertenciasHtml}</td>
+                    <td>${removidasHtml}</td>
+                    <td>
+                        <span class="status-badge ${user.ativo ? 'status-aprovada' : 'status-rejeitada'}">
+                            ${user.ativo ? '✅ Ativo' : '❌ Inativo'}
+                        </span>
+                    </td>
+                    <td>
+                        <button onclick="toggleUsuarioStatus(${user.id}, ${!user.ativo})" 
+                                style="background: ${user.ativo ? '#dc3545' : '#28a745'}; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer;">
+                            ${user.ativo ? '🔒 Desativar' : '🔓 Ativar'}
+                        </button>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+        
+    } catch (error) {
+        console.error('Erro:', error);
+        document.getElementById('usuariosList').innerHTML = '发展<td colspan="8">❌ Erro ao carregar usuários</td></tr>';
+    }
+}
+
+async function resetarAdvertencias(usuarioId) {
+    if (!confirm('⚠️ Tem certeza que deseja resetar o contador de advertências deste usuário? Esta ação não pode ser desfeita.')) {
+        return;
+    }
+    
+    showLoading(true);
+    try {
+        const response = await fetch(`/admin/usuarios/${usuarioId}/resetar-advertencias`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ adminId: usuarioLogado.id })
+        });
+        const data = await response.json();
+        
+        if (data.sucesso) {
+            alert('✅ Advertências resetadas com sucesso!');
+            carregarUsuarios(); // Recarregar a tabela
+        } else {
+            alert(data.erro || 'Erro ao resetar advertências');
+        }
+    } catch (error) {
+        console.error('Erro:', error);
+        alert('Erro de conexão ao resetar advertências');
+    } finally {
+        showLoading(false);
+    }
+}
+        
+       async function carregarAtividades() {
+    try {
+        const response = await fetch('/admin/dashboard', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ usuarioId: usuarioLogado.id })
+        });
+        const data = await response.json();
+        const atividades = data.atividadesRecentes || [];
+        
+        // ✅ VERIFICAR SE O CONTAINER EXISTE
+        const container = document.getElementById('atividadesRecentes');
+        if (!container) {
+            console.warn('⚠️ Elemento "atividadesRecentes" não encontrado');
+            return;
+        }
+        
+        if (atividades.length === 0) {
+            container.innerHTML = '<p>Nenhuma atividade recente</p>';
+            return;
+        }
+        
+        container.innerHTML = atividades.map(act => `
+            <div style="padding: 10px; border-bottom: 1px solid #e2e8f0;">
+                <strong>${escapeHtml(act.nome)}</strong> ${act.descricao}
+                <small style="color: #999; display: block;">${formatarData(act.data)}</small>
+            </div>
+        `).join('');
+    } catch (error) {
+        console.error('Erro ao carregar atividades:', error);
+    }
+}
+        
+        async function aprovarIdeia(ideiaId) {
+            if (!confirm('Aprovar esta ideia? Ela poderá ser convertida em projeto.')) return;
+            
+            showLoading(true);
+            try {
+                const response = await fetch(`/admin/ideias/${ideiaId}/aprovar`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ adminId: usuarioLogado.id })
+                });
+                const data = await response.json();
+                if (data.sucesso) {
+                    alert('Ideia aprovada!');
+                    carregarRanking();
+                } else {
+                    alert(data.erro);
+                }
+            } catch (error) {
+                alert('Erro ao aprovar');
+            } finally {
+                showLoading(false);
+            }
+        }
+        
+        
+        function abrirModalConversao(ideiaId) {
+            document.getElementById('converterIdeiaId').value = ideiaId;
+            document.getElementById('converterModal').style.display = 'flex';
+        }
+        
+        document.getElementById('converterForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const ideiaId = document.getElementById('converterIdeiaId').value;
+            const nome = document.getElementById('projetoNome').value;
+            const descricao = document.getElementById('projetoDescricao').value;
+            const responsavel = document.getElementById('projetoResponsavel').value;
+            const data_inicio = document.getElementById('projetoDataInicio').value;
+            const prioridade = document.getElementById('projetoPrioridade').value;
+            
+            showLoading(true);
+            try {
+                const response = await fetch(`/admin/ideias/${ideiaId}/converter`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ adminId: usuarioLogado.id, nome, descricao, responsavel, data_inicio, prioridade })
+                });
+                const data = await response.json();
+                if (data.sucesso) {
+                    alert('Projeto criado com sucesso!');
+                    fecharModal('converterModal');
+                    carregarRanking();
+                } else {
+                    alert(data.erro);
+                }
+            } catch (error) {
+                alert('Erro ao converter');
+            } finally {
+                showLoading(false);
+            }
+        });
+        
+       async function carregarReportsComentarios() {
+    
+    const container = document.getElementById('reportsComentariosList');
+    if (!container) {
+        console.error('❌ Elemento "reportsComentariosList" não encontrado no DOM!');
+        return;
+    }
+    
+    if (!usuarioLogado || !usuarioLogado.id) {
+        console.warn('⚠️ Usuário não logado');
+        container.innerHTML = '<div class="empty-state">❌ Faça login para ver denúncias.</div>';
+        return;
+    }
+    
+    const adminId = usuarioLogado.id;
+
+    try {
+        const response = await fetch(`/admin/reports/comentarios?adminId=${adminId}`);
+        
+        if (response.status === 401) {
+            container.innerHTML = '<div class="error-state">❌ Sessão expirada. Faça login novamente.</div>';
+            return;
+        }
+        
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+        }
+        
+        const reports = await response.json();
+        
+        if (!reports || reports.length === 0) {
+            container.innerHTML = '<div class="empty-state">✅ Nenhuma denúncia de comentário pendente</div>';
+            return;
+        }
+        
+        // Função para formatar motivo
+        const getMotivoComentario = (motivo) => {
+            const motivos = {
+                'conteudo_improprio': '🔞 Conteúdo impróprio',
+                'discurso_odio': '😡 Discurso de ódio',
+                'spam': '📧 Spam ou publicidade',
+                'ofensivo': '🤬 Linguagem ofensiva',
+                'outro': '📝 Outro motivo'
+            };
+            return motivos[motivo] || motivo;
+        };
+        
+        let html = '';
+        for (let i = 0; i < reports.length; i++) {
+            const report = reports[i];
+            
+            // Formatar a descrição se existir
+            const descricaoHtml = report.descricao && report.descricao.trim() !== '' 
+                ? `<div style="background: #f8f9fa; padding: 8px; border-radius: 6px; margin: 8px 0;">
+                        <strong><i class="fas fa-comment-dots"></i> Descrição do denunciante:</strong><br>
+                        <em style="color: #555;">"${escapeHtml(report.descricao)}"</em>
+                    </div>`
+                : '';
+            
+            html += `
+                <div class="report-card" style="background: #fff3cd; padding: 15px; margin-bottom: 15px; border-radius: 10px; border-left: 4px solid #ffc107;">
+                    <div style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+                        <strong><i class="fas fa-flag"></i> Denúncia de Comentário #${report.id}</strong>
+                        <span>📅 ${formatarData(report.data_report)}</span>
+                    </div>
+                    <div style="background: white; padding: 10px; border-radius: 8px; margin: 10px 0;">
+                        <strong>📌 Ideia:</strong> "${escapeHtml(report.ideia_titulo || 'Ideia não encontrada')}"<br>
+                        <strong>💬 Comentário denunciado:</strong><br>
+                        <em>"${escapeHtml(report.comentario_texto || 'Comentário não encontrado')}"</em>
+                    </div>
+                    ${descricaoHtml}
+                    <p><strong>👤 Autor do comentário:</strong> ${escapeHtml(report.autor_comentario_nome || 'Desconhecido')}</p>
+                    <p><strong>⚠️ Motivo:</strong> ${getMotivoComentario(report.motivo)}</p>
+                    <p><strong>👮 Denunciante:</strong> ${escapeHtml(report.usuario_nome || 'Desconhecido')}</p>
+                    <div style="margin-top: 15px; display: flex; gap: 10px;">
+                        <button onclick="verIdeiaDenunciada(${report.ideia_id})" class="btn-ver-ideia">Ver Ideia</button>
+                        <button onclick="resolverReportComentario(${report.id}, 'ignorar')" class="btn-ignorar">Ignorar</button>
+                        <button onclick="resolverReportComentario(${report.id}, 'excluir')" class="btn-excluir-denuncia">Excluir Comentário</button>
+                    </div>
+                </div>
+            `;
+        }
+        
+        container.innerHTML = html;
+        
+    } catch (error) {
+        console.error('❌ Erro:', error);
+        container.innerHTML = `<div class="error-state">❌ Erro ao carregar: ${error.message}</div>`;
+    }
+}
+
+async function resolverReportComentario(reportId, acao) {
+    if (!usuarioLogado || !usuarioLogado.id) {
+        alert('Faça login novamente');
+        return;
+    }
+    
+    const mensagem = acao === 'excluir' 
+        ? '⚠️ Tem certeza que deseja EXCLUIR este comentário? O autor será notificado.'
+        : 'Deseja IGNORAR esta denúncia?';
+    
+    if (!confirm(mensagem)) return;
+    
+    showLoading(true);
+    try {
+        const response = await fetch(`/admin/reports/comentarios/${reportId}/resolver`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ adminId: usuarioLogado.id, acao: acao })
+        });
+        
+        const data = await response.json();
+        
+        if (data.sucesso) {
+            alert(data.mensagem);
+            // Recarregar as denúncias
+            await carregarReportsComentarios();
+        } else {
+            alert(data.erro || 'Erro ao processar');
+        }
+    } catch (error) {
+        console.error('Erro:', error);
+        alert('Erro de conexão ao processar denúncia');
+    } finally {
+        showLoading(false);
+    }
+}
+
+// Função para ver a ideia denunciada
+function verIdeiaDenunciada(ideiaId) {
+    if (!ideiaId) {
+        alert('ID da ideia não encontrado');
+        console.error('❌ ideiaId é undefined ou null');
+        return;
+    }
+
+    window.open(`../pages/ideia.html?id=${ideiaId}`, '_blank');
+}
+
+function getMotivoTexto(motivo) {
+    const motivos = {
+        'conteudo_improprio': '🔞 Conteúdo impróprio',
+        'discurso_odio': '😡 Discurso de ódio',
+        'spam': '📧 Spam ou publicidade',
+        'fake_news': '❓ Informação falsa',
+        'outro': '📝 Outro motivo'
+    };
+    return motivos[motivo] || motivo;
+}
+
+async function resolverReport(reportId, acao) {
+    const confirmMsg = acao === 'excluir' 
+        ? '⚠️ Tem certeza? Esta ação irá EXCLUIR PERMANENTEMENTE a ideia e todos os seus votos/comentários!' 
+        : 'Deseja ignorar esta denúncia?';
+    
+    if (!confirm(confirmMsg)) return;
+    
+    showLoading(true);
+    try {
+        const response = await fetch(`/admin/reports/${reportId}/resolver`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ adminId: usuarioLogado.id, acao: acao })
+        });
+        const data = await response.json();
+        
+        if (data.sucesso) {
+            alert(`✅ Denúncia ${acao === 'excluir' ? 'resolvida com exclusão da ideia' : 'ignorada'}!`);
+            carregarReports();
+            carregarDashboard();
+            carregarRanking();
+        } else {
+            alert(data.erro || 'Erro ao resolver denúncia');
+        }
+    } catch (error) {
+        console.error('Erro:', error);
+        alert('Erro ao processar');
+    } finally {
+        showLoading(false);
+    }
+}
+
+async function resolverReport(reportId, acao) {
+    if (acao === 'excluir') {
+        // Abrir modal de justificativa
+        document.getElementById('justificativaReportId').value = reportId;
+        document.getElementById('modalJustificativa').style.display = 'flex';
+    } else {
+        if (!confirm('Deseja ignorar esta denúncia?')) return;
+        
+        showLoading(true);
+        try {
+            const response = await fetch(`/admin/reports/${reportId}/resolver`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ adminId: usuarioLogado.id, acao: acao })
+            });
+            const data = await response.json();
+            if (data.sucesso) {
+                alert('✅ Denúncia ignorada!');
+                carregarReports();
+                carregarDashboard();
+            } else {
+                alert(data.erro || 'Erro ao resolver denúncia');
+            }
+        } catch (error) {
+            alert('Erro ao processar');
+        } finally {
+            showLoading(false);
+        }
+    }
+}
+
+function fecharModalJustificativa() {
+    document.getElementById('modalJustificativa').style.display = 'none';
+    document.getElementById('formJustificativa').reset();
+}
+
+// Configurar o formulário de justificativa
+document.getElementById('formJustificativa')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const reportId = document.getElementById('justificativaReportId').value;
+    const motivo = document.getElementById('justificativaMotivo').value;
+    const justificativa = document.getElementById('justificativaTexto').value;
+    const acao = document.getElementById('justificativaAcao').value;
+    
+    if (!motivo) {
+        alert('Selecione um motivo!');
+        return;
+    }
+    
+    showLoading(true);
+    try {
+        // Primeiro, buscar o ID da ideia associada ao report
+        const reportsResponse = await fetch('/admin/reports');
+        const reports = await reportsResponse.json();
+        const report = reports.find(r => r.id == reportId);
+        
+        if (!report) {
+            alert('Report não encontrado');
+            return;
+        }
+        
+        const response = await fetch(`/admin/moderar/ideia/${report.id_ideia}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                adminId: usuarioLogado.id,
+                motivo: motivo,
+                justificativa: justificativa,
+                acao: acao,
+                reportId: reportId
+            })
+        });
+        const data = await response.json();
+        
+        if (data.sucesso) {
+            alert(data.mensagem);
+            fecharModalJustificativa();
+            carregarReports();
+            carregarDashboard();
+            carregarRanking();
+        } else {
+            alert(data.erro || 'Erro ao processar moderação');
+        }
+    } catch (error) {
+        console.error('Erro:', error);
+        alert('Erro ao processar');
+    } finally {
+        showLoading(false);
+    }
+});
+
+// ==========================================
+// GESTÃO DE TEMPLATES (ADMIN)
+// ==========================================
+
+async function carregarTemplates() {
+    if (!usuarioLogado || !usuarioLogado.id) {
+        console.warn('Usuário não logado ou sem ID, não é possível carregar templates');
+        return;
+    }
+    const adminId = usuarioLogado.id;
+
+    try {
+        const response = await fetch(`/admin/templates?adminId=${adminId}`);
+        if (!response.ok) throw new Error('Erro ao carregar templates');
+        const templates = await response.json();
+        const container = document.getElementById('templatesList');
+        
+        if (!templates || templates.length === 0) {
+            container.innerHTML = '<div class="empty-state">Nenhum template cadastrado.</div>';
+            return;
+        }
+        
+        container.innerHTML = templates.map(tmpl => `
+            <div class="template-card" style="background: #f8fafc; border-radius: 12px; padding: 15px; border-left: 4px solid ${tmpl.recomendado ? '#f59e0b' : '#667eea'}">
+                <div style="display: flex; justify-content: space-between; align-items: start; gap: 10px;">
+                    <div style="flex: 1;">
+                        <h4 style="margin-bottom: 5px;">${escapeHtml(tmpl.titulo)}</h4>
+                        <span style="font-size: 12px; color: #718096;">${escapeHtml(tmpl.categoria)}</span>
+                        ${tmpl.recomendado ? '<span style="margin-left: 8px; background: #fef3c7; color: #b45309; padding: 2px 8px; border-radius: 20px; font-size: 11px;">⭐ Recomendado</span>' : ''}
+                    </div>
+                    <div style="display: flex; gap: 8px;">
+                        <button onclick="editarTemplate(${tmpl.id})" class="btn-editar" style="background: #ffc107; padding: 5px 10px;">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button onclick="excluirTemplate(${tmpl.id})" class="btn-editar" style="background: #dc3545; color: white;">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </div>
+                </div>
+                <p style="margin-top: 10px; font-size: 13px; color: #4a5568;">${escapeHtml(tmpl.descricao)}</p>
+                <div style="margin-top: 8px; font-size: 12px; color: #a0aec0;">
+                    <i class="fas fa-chart-line"></i> Usado ${tmpl.total_usos || 0} vez(es)
+                </div>
+            </div>
+        `).join('');
+    } catch (error) {
+        console.error('Erro:', error);
+        document.getElementById('templatesList').innerHTML = '<div class="empty-state">Erro ao carregar templates.</div>';
+    }
+}
+
+async function abrirModalTemplate(template = null) {
+    const modal = document.getElementById('modalTemplate');
+    const tituloModal = document.getElementById('modalTemplateTitulo');
+    const idInput = document.getElementById('templateId');
+    const tituloInput = document.getElementById('templateTitulo');
+    const descricaoInput = document.getElementById('templateDescricao');
+    const categoriaSelect = document.getElementById('templateCategoria');
+    const camposTextarea = document.getElementById('templateCampos');
+    const recomendadoCheck = document.getElementById('templateRecomendado');
+    
+    if (template) {
+        tituloModal.textContent = 'Editar Template';
+        idInput.value = template.id;
+        tituloInput.value = template.titulo;
+        descricaoInput.value = template.descricao || '';
+        categoriaSelect.value = template.categoria;
+        camposTextarea.value = JSON.stringify(template.campos_json, null, 2);
+        recomendadoCheck.checked = template.recomendado;
+    } else {
+        tituloModal.textContent = 'Novo Template';
+        idInput.value = '';
+        tituloInput.value = '';
+        descricaoInput.value = '';
+        categoriaSelect.value = '';
+        camposTextarea.value = '';
+        recomendadoCheck.checked = false;
+    }
+    modal.style.display = 'flex';
+}
+
+async function editarTemplate(id) {
+    if (!usuarioLogado) return;
+    const adminId = usuarioLogado.id;
+    try {
+        const response = await fetch(`/admin/templates/${id}?adminId=${adminId}`);
+        if (!response.ok) throw new Error('Template não encontrado');
+        const template = await response.json();
+        abrirModalTemplate(template);
+    } catch (error) {
+        console.error(error);
+        alert('Erro ao carregar template para edição');
+    }
+}
+
+async function excluirTemplate(id) {
+    if (!usuarioLogado) return;
+    if (!confirm('Excluir este template permanentemente?')) return;
+    showLoading(true);
+    try {
+        const response = await fetch(`/admin/templates/${id}`, {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ adminId: usuarioLogado.id })
+        });
+        const data = await response.json();
+        if (data.sucesso) {
+            alert('Template excluído!');
+            carregarTemplates();
+        } else {
+            alert(data.erro);
+        }
+    } catch (error) {
+        alert('Erro ao excluir');
+    } finally {
+        showLoading(false);
+    }
+}
+
+// Formulário de template
+document.getElementById('formTemplate')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const id = document.getElementById('templateId').value;
+    const titulo = document.getElementById('templateTitulo').value;
+    const descricao = document.getElementById('templateDescricao').value;
+    const categoria = document.getElementById('templateCategoria').value;
+    const camposJsonStr = document.getElementById('templateCampos').value;
+    const recomendado = document.getElementById('templateRecomendado').checked;
+    
+    if (!titulo || !categoria) {
+        alert('Preencha título e categoria');
+        return;
+    }
+    
+    let camposJson;
+    try {
+        camposJson = camposJsonStr ? JSON.parse(camposJsonStr) : [];
+        if (!Array.isArray(camposJson)) throw new Error();
+    } catch (error) {
+        alert('JSON dos campos está inválido. Use o formato correto.');
+        return;
+    }
+    
+    showLoading(true);
+    try {
+        const url = id ? `/admin/templates/${id}` : '/admin/templates';
+        const method = id ? 'PUT' : 'POST';
+        const response = await fetch(url, {
+            method,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                titulo, descricao, categoria, campos_json: camposJson, recomendado,
+                adminId: usuarioLogado.id
+            })
+        });
+        const data = await response.json();
+        if (data.sucesso) {
+            alert(id ? 'Template atualizado!' : 'Template criado!');
+            fecharModal('modalTemplate');
+            carregarTemplates();
+        } else {
+            alert(data.erro);
+        }
+    } catch (error) {
+        alert('Erro ao salvar template');
+    } finally {
+        showLoading(false);
+    }
+});
+
+        async function alterarCargo(usuarioId, novoCargo) {
+            showLoading(true);
+            try {
+                const response = await fetch(`/admin/usuarios/${usuarioId}/cargo`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ cargo: novoCargo, adminId: usuarioLogado.id })
+                });
+                const data = await response.json();
+                if (data.sucesso) {
+                    alert('Cargo atualizado!');
+                    carregarUsuarios();
+                } else {
+                    alert(data.erro);
+                }
+            } catch (error) {
+                alert('Erro ao alterar cargo');
+            } finally {
+                showLoading(false);
+            }
+        }
+        
+        async function toggleUsuarioStatus(usuarioId, ativar) {
+            showLoading(true);
+            try {
+                const response = await fetch(`/admin/usuarios/${usuarioId}/ativar`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ativo: ativar, adminId: usuarioLogado.id })
+                });
+                const data = await response.json();
+                if (data.sucesso) {
+                    alert(data.mensagem);
+                    carregarUsuarios();
+                } else {
+                    alert(data.erro);
+                }
+            } catch (error) {
+                alert('Erro ao alterar status');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+// ==========================================
+// US13 - MÉTRICAS E LOGS
+// ==========================================
+
+async function carregarMetricas() {
+    try {
+        const response = await fetch('/admin/metricas');
+        const data = await response.json();
+        
+        // ✅ VERIFICAR SE OS ELEMENTOS EXISTEM
+        const totalUsuariosEl = document.getElementById('totalUsuarios');
+        const totalIdeiasEl = document.getElementById('totalIdeias');
+        const totalComentariosEl = document.getElementById('totalComentarios');
+        const totalProjetosEl = document.getElementById('totalProjetos');
+        const usuariosHojeEl = document.getElementById('usuariosHoje');
+        
+        if (totalUsuariosEl) totalUsuariosEl.textContent = data.totalUsuarios;
+        if (totalIdeiasEl) totalIdeiasEl.textContent = data.totalIdeias;
+        if (totalComentariosEl) totalComentariosEl.textContent = data.totalComentarios;
+        if (totalProjetosEl) totalProjetosEl.textContent = data.totalProjetos;
+        if (usuariosHojeEl) usuariosHojeEl.textContent = data.usuariosAtivosHoje;
+        
+    } catch (error) {
+        console.error('Erro ao carregar métricas:', error);
+    }
+}
+
+async function carregarLogs() {
+    
+    const buscaUsuario = document.getElementById('buscaUsuario');
+    const buscaNome = buscaUsuario ? buscaUsuario.value : '';
+    const usuarioId = buscaUsuario ? buscaUsuario.getAttribute('data-usuario-id') : '';
+    const acaoSelect = document.getElementById('filtroAcao');
+    const acao = acaoSelect ? acaoSelect.value : 'todos';
+    const dataInicio = document.getElementById('filtroDataInicio')?.value || '';
+    const dataFim = document.getElementById('filtroDataFim')?.value || '';
+    
+    let url = '/admin/logs?limit=100';
+    
+    if (usuarioId && usuarioId !== 'null' && usuarioId !== '') {
+        url += `&usuarioId=${usuarioId}`;
+    } else if (buscaNome && buscaNome.trim() !== '') {
+        url += `&buscaUsuario=${encodeURIComponent(buscaNome)}`;
+    }
+    
+    if (acao && acao !== 'todos') {
+        url += `&acao=${acao}`;
+    }
+    if (dataInicio) url += `&dataInicio=${dataInicio}`;
+    if (dataFim) url += `&dataFim=${dataFim}`;
+    
+    try {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        
+        const logs = await response.json();
+        const tbody = document.getElementById('logsList');
+        
+        if (!tbody) {
+            console.error('Elemento logsList não encontrado');
+            return;
+        }
+        
+        // CORREÇÃO: Verificar se não há logs
+        if (!logs || logs.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 40px;">📭 Nenhum log encontrado</td></tr>';
+            return;
+        }
+        
+        // Montar tabela com os logs
+        tbody.innerHTML = logs.map(log => `
+            <tr>
+                <td style="white-space: nowrap;">${formatarData(log.data_acao)}</td>
+                <td><strong>${escapeHtml(log.usuario_nome || 'Sistema')}</strong></td>
+                <td><span class="acao-badge ${getAcaoClass(log.acao)}">${getAcaoTexto(log.acao)}</span></td>
+                <td style="max-width: 400px; word-wrap: break-word;">${escapeHtml(log.descricao || '-')}</td>
+            </tr>
+        `).join('');
+        
+    } catch (error) {
+        console.error('❌ Erro ao carregar logs:', error);
+        const tbody = document.getElementById('logsList');
+        if (tbody) {
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #dc3545; padding: 40px;">❌ Erro ao carregar logs: ' + error.message + '</td></tr>';
+        }
+    }
+}
+
+function limparFiltrosLogs() {
+    
+    // Limpar campo de busca
+    const buscaUsuario = document.getElementById('buscaUsuario');
+    if (buscaUsuario) {
+        buscaUsuario.value = '';
+        buscaUsuario.removeAttribute('data-usuario-id');
+    }
+    
+    // Limpar filtro de ação
+    const filtroAcao = document.getElementById('filtroAcao');
+    if (filtroAcao) filtroAcao.value = 'todos';
+    
+    // Limpar datas
+    const dataInicio = document.getElementById('filtroDataInicio');
+    const dataFim = document.getElementById('filtroDataFim');
+    if (dataInicio) dataInicio.value = '';
+    if (dataFim) dataFim.value = '';
+    
+    // Limpar sugestões
+    const sugestoes = document.getElementById('sugestoesList');
+    if (sugestoes) {
+        sugestoes.innerHTML = '';
+        sugestoes.classList.remove('show');
+    }
+    
+    // Recarregar logs
+    carregarLogs();
+}
+
+async function carregarUsuariosInativos() {
+    try {
+        const response = await fetch('/admin/usuarios/inativos');
+        const usuarios = await response.json();
+        
+        const container = document.getElementById('inativosList');
+        if (!usuarios || usuarios.length === 0) {
+            container.innerHTML = '<p>✅ Nenhum usuário inativo no momento.</p>';
+            return;
+        }
+        
+        container.innerHTML = `
+            <table class="logs-table">
+                <thead><tr><th>Usuário</th><th>Email</th><th>Cargo</th><th>Último Acesso</th><th>Ideias</th></tr></thead>
+                <tbody>
+                    ${usuarios.map(user => `
+                        <tr>
+                            <td>${escapeHtml(user.nome)}</td>
+                            <td>${escapeHtml(user.email)}</td>
+                            <td>${escapeHtml(user.cargo)}</td>
+                            <td>${user.ultimo_acesso ? formatarData(user.ultimo_acesso) : 'Nunca acessou'}</td>
+                            <td>${user.total_ideias || 0}</td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        `;
+    } catch (error) {
+        console.error('Erro:', error);
+        document.getElementById('inativosList').innerHTML = '<p>Erro ao carregar usuários inativos</p>';
+    }
+}
+
+function exportarLogs() {
+    
+    const buscaUsuario = document.getElementById('buscaUsuario');
+    const buscaNome = buscaUsuario ? buscaUsuario.value : '';
+    const usuarioId = buscaUsuario ? buscaUsuario.getAttribute('data-usuario-id') : '';
+    const acaoSelect = document.getElementById('filtroAcao');
+    const acao = acaoSelect ? acaoSelect.value : 'todos';
+    const dataInicio = document.getElementById('filtroDataInicio')?.value || '';
+    const dataFim = document.getElementById('filtroDataFim')?.value || '';
+    
+    let url = '/admin/logs/exportar?';
+    const params = [];
+    
+    if (usuarioId && usuarioId !== 'null' && usuarioId !== '') {
+        params.push(`usuarioId=${usuarioId}`);
+    } else if (buscaNome && buscaNome.trim() !== '') {
+        params.push(`buscaUsuario=${encodeURIComponent(buscaNome)}`);
+    }
+    
+    if (acao && acao !== 'todos') params.push(`acao=${acao}`);
+    if (dataInicio) params.push(`dataInicio=${dataInicio}`);
+    if (dataFim) params.push(`dataFim=${dataFim}`);
+    
+    url += params.join('&');
+    
+    window.open(url, '_blank');
+}
+
+// ==========================================
+// AUTOCOMPLETE - SUGESTÕES DE USUÁRIOS
+// ==========================================
+
+let timeoutSugestoes = null;
+
+async function buscarSugestoes(query) {
+    if (!query || query.trim() === '') {
+        const sugestoesDiv = document.getElementById('sugestoesList');
+        sugestoesDiv.classList.remove('show');
+        sugestoesDiv.innerHTML = '';
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/admin/usuarios/sugestoes?q=${encodeURIComponent(query)}`);
+        const usuarios = await response.json();
+        
+        const sugestoesDiv = document.getElementById('sugestoesList');
+        
+        if (usuarios.length === 0) {
+            sugestoesDiv.innerHTML = '<div class="sugestao-item" style="color: #999;">Nenhum usuário encontrado</div>';
+            sugestoesDiv.classList.add('show');
+            return;
+        }
+        
+        let html = '';
+        for (let i = 0; i < usuarios.length; i++) {
+            const user = usuarios[i];
+            const cargoTexto = getCargoTextoSimples(user.cargo);
+            html += `
+                <div class="sugestao-item" onclick="selecionarUsuario('${escapeHtml(user.nome)}', ${user.id})">
+                    <span class="sugestao-nome">${escapeHtml(user.nome)}</span>
+                    <span class="sugestao-email">${escapeHtml(user.email)}</span>
+                    <span class="sugestao-cargo">${cargoTexto}</span>
+                </div>
+            `;
+        }
+        
+        sugestoesDiv.innerHTML = html;
+        sugestoesDiv.classList.add('show');
+        
+    } catch (error) {
+        console.error('Erro ao buscar sugestões:', error);
+    }
+}
+
+function selecionarUsuario(nome, id) {
+    const inputBusca = document.getElementById('buscaUsuario');
+    inputBusca.value = nome;
+    inputBusca.setAttribute('data-usuario-id', id);
+    
+    // Esconder sugestões
+    const sugestoesDiv = document.getElementById('sugestoesList');
+    sugestoesDiv.classList.remove('show');
+    sugestoesDiv.innerHTML = '';
+    
+    // Carregar logs automaticamente
+    carregarLogs();
+}
+
+function getCargoTextoSimples(cargo) {
+    const cargos = {
+        'aluno': '🎓 Aluno',
+        'professor': '📚 Professor',
+        'ti_staff': '💻 TI',
+        'gestor': '👔 Gestor'
+    };
+    return cargos[cargo] || cargo;
+}
+
+// ==========================================
+// GRÁFICOS DO DASHBOARD (CORRIGIDOS)
+// ==========================================
+
+let graficoPeriodo = null;
+let graficoCategorias = null;
+let graficoStatus = null;
+
+function atualizarGraficoPeriodo(dados) {
+    
+    const canvas = document.getElementById('graficoPeriodo');
+    if (!canvas) {
+        console.error('Elemento graficoPeriodo não encontrado');
+        return;
+    }
+    
+    // Resetar estilos
+    canvas.style.width = '100%';
+    canvas.style.height = '300px';
+    canvas.style.position = 'relative';
+    
+    const ctx = canvas.getContext('2d');
+    
+    if (graficoPeriodo) {
+        graficoPeriodo.destroy();
+    }
+    
+    if (!dados || dados.length === 0) {
+        console.warn('Sem dados para o gráfico de período');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.font = '14px Arial';
+        ctx.fillStyle = '#999';
+        ctx.textAlign = 'center';
+        ctx.fillText('Sem dados disponíveis', canvas.width / 2, canvas.height / 2);
+        return;
+    }
+    
+    // Encontrar o valor máximo para definir o max do eixo Y
+    const maxValor = Math.max(...dados.map(item => item.total), 1);
+    const yAxisMax = Math.max(5, Math.ceil(maxValor * 1.1));
+    
+    const labels = dados.map(item => {
+        const data = new Date(item.data);
+        return data.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+    });
+    
+    const valores = dados.map(item => item.total);
+    
+    graficoPeriodo = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Ideias Criadas',
+                data: valores,
+                borderColor: '#667eea',
+                backgroundColor: 'rgba(102,126,234,0.1)',
+                borderWidth: 2,
+                fill: true,
+                tension: 0.3,
+                pointBackgroundColor: '#667eea',
+                pointBorderColor: '#fff',
+                pointRadius: 4,
+                pointHoverRadius: 6
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: { 
+                    position: 'top',
+                    labels: { font: { size: 12 } }
+                },
+                tooltip: { 
+                    callbacks: { 
+                        label: (ctx) => `${ctx.raw} ideia${ctx.raw !== 1 ? 's' : ''}` 
+                    } 
+                }
+            },
+            scales: {
+                y: { 
+                    beginAtZero: true,
+                    max: yAxisMax,
+                    stepSize: 1,
+                    title: { 
+                        display: true, 
+                        text: 'Quantidade de Ideias', 
+                        font: { size: 12 } 
+                    },
+                    grid: { color: '#e2e8f0' },
+                    ticks: {
+                        stepSize: 1,
+                        precision: 0,
+                        callback: function(value) {
+                            return Number.isInteger(value) ? value : null;
+                        }
+                    }
+                },
+                x: { 
+                    title: { display: true, text: 'Data', font: { size: 12 } },
+                    ticks: { 
+                        maxRotation: 45, 
+                        minRotation: 45,
+                        autoSkip: true,
+                        maxTicksLimit: 8
+                    }
+                }
+            },
+            layout: {
+                padding: {
+                    left: 10,
+                    right: 10,
+                    top: 10,
+                    bottom: 10
+                }
+            }
+        }
+    });
+    
+}
+
+function atualizarGraficoCategorias(dados) {
+    
+    const canvas = document.getElementById('graficoCategorias');
+    if (!canvas) {
+        console.error('Elemento graficoCategorias não encontrado');
+        return;
+    }
+    
+    canvas.style.width = '100%';
+    canvas.style.height = '300px';
+    
+    const ctx = canvas.getContext('2d');
+    
+    if (graficoCategorias) {
+        graficoCategorias.destroy();
+    }
+    
+    if (!dados || dados.length === 0) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.font = '14px Arial';
+        ctx.fillStyle = '#999';
+        ctx.textAlign = 'center';
+        ctx.fillText('Sem dados disponíveis', canvas.width / 2, canvas.height / 2);
+        return;
+    }
+    
+    // ========== CORES EXCLUSIVAS POR CATEGORIA ==========
+    const coresPorCategoria = {
+        'Tecnologia e Inovação': '#667eea',
+        'Gestão e Administração': '#764ba2',
+        'Bem-estar e Saúde': '#ef4444',
+        'Alimentação e RU': '#fa709a',
+        'Sustentabilidade': '#30cfd0',
+        'Segurança': '#43e97b', 
+        'Ensino e Metodologia': '#f093fb',
+        'Laboratórios e Pesquisa': '#4facfe',
+        'Cultura e Eventos': '#fee140',
+        'Acessibilidade e Inclusão': '#a855f7',
+        'Infraestrutura': '#f59e0b',
+        'Transporte e Mobilidade': '#06b6d4'
+    };
+    
+    // Ícones para cada categoria
+    const iconesPorCategoria = {
+        'Tecnologia e Inovação': '💻',
+        'Gestão e Administração': '📊',
+        'Bem-estar e Saúde': '💗',
+        'Alimentação e RU': '🍽️',
+        'Sustentabilidade': '🌿',
+        'Segurança': '🛡️',
+        'Ensino e Metodologia': '📚',
+        'Laboratórios e Pesquisa': '🔬',
+        'Cultura e Eventos': '🎉',
+        'Acessibilidade e Inclusão': '♿',
+        'Infraestrutura': '🏗️',
+        'Transporte e Mobilidade': '🚗'
+    };
+    
+    // Garantir que os valores são números
+    const dadosNumericos = dados.map(c => ({
+        ...c,
+        total: typeof c.total === 'number' ? c.total : parseInt(c.total) || 0
+    }));
+    
+    // Calcular total
+    const total = dadosNumericos.reduce((sum, c) => sum + c.total, 0);
+    
+    // Gerar cores na ordem correta
+    const cores = dadosNumericos.map(categoria => {
+        return coresPorCategoria[categoria.nome] || `hsl(${Math.random() * 360}, 70%, 60%)`;
+    });
+    
+    graficoCategorias = new Chart(ctx, {
+        type: 'pie',
+        data: {
+            labels: dadosNumericos.map(c => `${iconesPorCategoria[c.nome] || '📁'} ${c.nome}`),
+            datasets: [{
+                data: dadosNumericos.map(c => c.total),
+                backgroundColor: cores,
+                borderWidth: 2,
+                borderColor: '#ffffff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: { 
+                    position: 'right',
+                    labels: { 
+                        font: { size: 11 },
+                        // Função para gerar legendas com porcentagem
+                        generateLabels: function(chart) {
+                            const data = chart.data;
+                            const dataset = data.datasets[0];
+                            const total = dataset.data.reduce((acc, val) => acc + val, 0);
+                            
+                            return data.labels.map((label, i) => {
+                                const value = dataset.data[i];
+                                const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : '0';
+                                
+                                return {
+                                    text: `${label}: ${value} (${percentage}%)`,
+                                    fillStyle: dataset.backgroundColor[i],
+                                    hidden: false,
+                                    index: i
+                                };
+                            });
+                        }
+                    }
+                },
+                tooltip: { 
+                    callbacks: { 
+                        label: (context) => {
+                            const label = context.label || '';
+                            const value = context.raw || 0;
+                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : '0';
+                            return `${label}: ${value} ideia${value !== 1 ? 's' : ''} (${percentage}%)`;
+                        }
+                    }
+                }
+            }
+        }
+    });
+    
+}
+
+function criarLegendaPersonalizada(dados, total) {
+    // Verificar se já existe uma legenda personalizada
+    let legendaContainer = document.getElementById('legendaCategorias');
+    
+    if (!legendaContainer) {
+        // Criar o container da legenda
+        legendaContainer = document.createElement('div');
+        legendaContainer.id = 'legendaCategorias';
+        legendaContainer.className = 'legenda-categorias';
+        
+        // Inserir após o canvas
+        const canvas = document.getElementById('graficoCategorias');
+        canvas.parentNode.insertBefore(legendaContainer, canvas.nextSibling);
+    }
+    
+    // Cores para as legendas (mesmas do gráfico)
+    const cores = ['#667eea', '#764ba2', '#f093fb', '#4facfe', '#43e97b', '#fa709a', '#fee140', '#30cfd0', '#a8edea', '#ff6b6b'];
+    
+    // Gerar itens da legenda
+    legendaContainer.innerHTML = dados.map((categoria, index) => {
+        const percentual = ((categoria.total / total) * 100).toFixed(1);
+        return `
+            <div class="legenda-item">
+                <div class="legenda-cor" style="background-color: ${cores[index % cores.length]}"></div>
+                <div class="legenda-nome">${categoria.icone || '📁'} ${categoria.nome}</div>
+                <div class="legenda-valor">${categoria.total} (${percentual}%)</div>
+            </div>
+        `;
+    }).join('');
+}
+
+function atualizarGraficoStatus(dados) {
+    
+    const canvas = document.getElementById('graficoStatus');
+    if (!canvas) {
+        console.error('Elemento graficoStatus não encontrado');
+        return;
+    }
+    
+    // Resetar estilos
+    canvas.style.width = '100%';
+    canvas.style.height = '300px';
+    canvas.style.position = 'relative';
+    
+    const ctx = canvas.getContext('2d');
+    
+    if (graficoStatus) {
+        graficoStatus.destroy();
+    }
+    
+    if (!dados || dados.length === 0) {
+        console.warn('Sem dados para o gráfico de status');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.font = '14px Arial';
+        ctx.fillStyle = '#999';
+        ctx.textAlign = 'center';
+        ctx.fillText('Sem dados disponíveis', canvas.width / 2, canvas.height / 2);
+        return;
+    }
+    
+    // Encontrar o valor máximo para definir o max do eixo Y
+    const maxValor = Math.max(...dados.map(item => item.total), 1);
+    const yAxisMax = Math.max(5, Math.ceil(maxValor * 1.1));
+    
+    const statusLabels = {
+        'pendente': '⏳ Pendente',
+        'aprovada': '✅ Aprovada',
+        'convertida': '🚀 Convertida',
+        'rejeitada': '❌ Rejeitada'
+    };
+    
+    graficoStatus = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: dados.map(s => statusLabels[s.status] || s.status),
+            datasets: [{
+                label: 'Quantidade de Ideias',
+                data: dados.map(s => s.total),
+                backgroundColor: '#667eea',
+                borderRadius: 8,
+                barPercentage: 0.7,
+                categoryPercentage: 0.8
+            }]
+        },
+        options: {
+    responsive: true,
+    maintainAspectRatio: true,
+    layout: {
+        padding: {
+            bottom: 30,  // ← adiciona espaço extra para os rótulos do eixo X
+            top: 10,
+            left: 10,
+            right: 10
+        }
+    },
+            scales: {
+                y: { 
+                    beginAtZero: true,
+                    max: yAxisMax,
+                    stepSize: 1,
+                    title: { 
+                        display: true, 
+                        text: 'Quantidade de Ideias', 
+                        font: { size: 12 } 
+                    },
+                    grid: { color: '#e2e8f0' },
+                    ticks: {
+                        stepSize: 1,
+                        precision: 0,
+                        callback: function(value) {
+                            return Number.isInteger(value) ? value : null;
+                        }
+                    }
+                },
+                x: { 
+            title: { display: true, text: 'Status', font: { size: 12 } },
+            ticks: { 
+                font: { size: 11 },
+                autoSkip: false  // ← força todos os labels a aparecerem
+            }
+        }
+            },
+            layout: {
+                padding: {
+                    left: 10,
+                    right: 10,
+                    top: 10,
+                    bottom: 10
+                }
+            }
+        }
+    });
+    
+}
+// Carregar Dashboard
+async function carregarDashboardInovacao() {
+    showLoading(true);
+    
+    const periodo = document.getElementById('periodoDashboard')?.value || 'todos';
+    
+    try {
+        const response = await fetch(`/admin/dashboard/inovacao?periodo=${periodo}`);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        // Atualizar cards
+        document.getElementById('totalIdeias').textContent = data.totalIdeias;
+        document.getElementById('totalUsuarios').textContent = data.totalUsuarios;
+        document.getElementById('ideiasAprovadas').textContent = data.ideiasAprovadas;
+        document.getElementById('ideiasConvertidas').textContent = data.ideiasConvertidas;
+        document.getElementById('ideiasPendentes').textContent = data.ideiasPendentes;
+        document.getElementById('taxaConversao').textContent = `${data.taxaConversao}%`;
+        
+        // ATUALIZAR GRÁFICOS
+        if (data.ideiasPorPeriodo && data.ideiasPorPeriodo.length > 0) {
+            atualizarGraficoPeriodo(data.ideiasPorPeriodo);
+        } else {
+            // Mostrar mensagem no canvas
+            const canvas = document.getElementById('graficoPeriodo');
+            if (canvas) {
+                const ctx = canvas.getContext('2d');
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.font = '14px Arial';
+                ctx.fillStyle = '#999';
+                ctx.fillText('Nenhuma ideia no período selecionado', canvas.width/2 - 130, canvas.height/2);
+            }
+        }
+        
+        if (data.ideiasPorCategoria && data.ideiasPorCategoria.length > 0) {
+            atualizarGraficoCategorias(data.ideiasPorCategoria);
+        }
+        
+        if (data.ideiasPorStatus && data.ideiasPorStatus.length > 0) {
+            atualizarGraficoStatus(data.ideiasPorStatus);
+        }
+        
+        // Ranking de usuários
+        const rankingContainer = document.getElementById('rankingList');
+        if (rankingContainer && data.rankingUsuarios) {
+            if (data.rankingUsuarios.length === 0) {
+                rankingContainer.innerHTML = '<div class="empty-state">Nenhum usuário com ideias no período</div>';
+            } else {
+                rankingContainer.innerHTML = data.rankingUsuarios.map((user, index) => {
+                    let medalha = '';
+                    if (index === 0) medalha = '🥇';
+                    else if (index === 1) medalha = '🥈';
+                    else if (index === 2) medalha = '🥉';
+                    else medalha = `${index + 1}º`;
+                    
+                    return `
+                        <div class="ranking-item">
+                            <span class="ranking-posicao">${medalha}</span>
+                            <span class="ranking-nome">${escapeHtml(user.nome)}</span>
+                            <span class="ranking-cargo">${getCargoTexto(user.cargo)}</span>
+                            <span class="ranking-ideias">💡 ${user.total_ideias}</span>
+                        </div>
+                    `;
+                }).join('');
+            }
+        }
+        
+        // Ranking de ideias
+        await carregarRankingIdeias();
+        
+    } catch (error) {
+        console.error('❌ Erro ao carregar dashboard:', error);
+        showMessage('Erro ao carregar dashboard de inovação', 'error');
+    } finally {
+        showLoading(false);
+    }
+}
+
+function iniciarPollingDashboard() {
+    if (intervaloDashboard) clearInterval(intervaloDashboard);
+    
+    intervaloDashboard = setInterval(() => {
+        if (document.getElementById('periodoDashboard')) {
+            carregarDashboardInovacao();
+        }
+    }, 60000); // 60 segundos
+}
+
+// Função auxiliar para formato do cargo
+function getCargoTexto(cargo) {
+    const cargos = {
+        'aluno': '🎓 Aluno',
+        'professor': '📚 Professor',
+        'ti_staff': '💻 TI',
+        'gestor': '👔 Gestor'
+    };
+    return cargos[cargo] || cargo;
+}
+
+// ==========================================
+// EXPORTAÇÃO DO DASHBOARD EM PDF
+// ==========================================
+// Função auxiliar para remover acentos
+function removerAcentos(str) {
+    return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+}
+
+async function exportarDashboardPDF() {
+    
+    if (!usuarioLogado || (usuarioLogado.cargo !== 'gestor' && usuarioLogado.cargo !== 'ti_staff')) {
+        alert('Acesso negado.');
+        return;
+    }
+    
+    showLoading(true);
+    
+    try {
+        await carregarDashboardInovacao();
+        await new Promise(r => setTimeout(r, 800));
+        
+        const { jsPDF } = window.jspdf || jspdf;
+        if (!jsPDF) throw new Error('jsPDF não carregado');
+        
+        const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+        const pageWidth = 210;
+        const margin = 15;
+        const contentWidth = pageWidth - 2 * margin;
+        // 👇 DECLARADA UMA ÚNICA VEZ
+        const imgWidthMM = contentWidth;
+        
+        pdf.deletePage(1);
+        
+        function removerAcentos(str) {
+            return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+        }
+        
+        function getCargoTextoSemAcento(cargo) {
+            const map = {
+                'aluno': 'Aluno',
+                'professor': 'Professor',
+                'ti_staff': 'TI Staff',
+                'gestor': 'Gestor'
+            };
+            return map[cargo] || cargo;
+        }
+        
+        // ========== PÁGINA 1: CAPA ==========
+        pdf.addPage();
+        pdf.setFillColor(255, 255, 255);
+        pdf.rect(0, 0, pageWidth, 297, 'F');
+        
+        // Logo ou fallback SEM emojis
+const LOGO_URL = '../images/IdeaHub_nobg.png'; // ← VERIFIQUE ESTE CAMINHO
+let logoUsada = false;
+
+try {
+    const response = await fetch(LOGO_URL, { cache: 'no-store' });
+    if (response.ok) {
+        const blob = await response.blob();
+        const logoBase64 = await new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result);
+            reader.readAsDataURL(blob);
+        });
+        pdf.addImage(logoBase64, 'PNG', 75, 30, 60, 60);
+        logoUsada = true;
+    } else {
+        console.warn(`Logo não encontrada em ${LOGO_URL} - status ${response.status}`);
+    }
+} catch(e) {
+    console.warn('Erro ao carregar logo:', e.message);
+}
+
+if (!logoUsada) {
+    // Fallback SEM emoji: apenas texto estilizado
+    pdf.setFontSize(24);
+    pdf.setFont('helvetica', 'bold');
+    pdf.setTextColor(100, 100, 100);
+    pdf.text('IDEAHUB', 105, 75, { align: 'center' });
+    pdf.setFontSize(10);
+    pdf.setFont('helvetica', 'normal');
+    pdf.text('plataforma de inovacao', 105, 85, { align: 'center' });
+}
+        
+        pdf.setFontSize(16);
+        pdf.setFont('helvetica', 'bold');
+        pdf.text('RELATORIO DE INOVACAO', 105, 130, { align: 'center' });
+        
+        pdf.setFontSize(12);
+        pdf.setFont('helvetica', 'normal');
+        pdf.text(`Data: ${new Date().toLocaleDateString('pt-BR')}`, 105, 160, { align: 'center' });
+        pdf.text(`Hora: ${new Date().toLocaleTimeString('pt-BR')}`, 105, 175, { align: 'center' });
+        pdf.text(`Gerado por: ${removerAcentos(usuarioLogado.nome)}`, 105, 190, { align: 'center' });
+        
+        const cargoLimpo = getCargoTextoSemAcento(usuarioLogado.cargo);
+        pdf.text(`Cargo: ${removerAcentos(cargoLimpo)}`, 105, 205, { align: 'center' });
+        
+        pdf.setFontSize(10);
+        pdf.setTextColor(150,150,150);
+        pdf.text('© 2026 IdeaHub - Todos os direitos reservados', 105, 280, { align: 'center' });
+        
+        // ========== PÁGINA 2: MÉTRICAS + GRÁFICO PERÍODO ==========
+        pdf.addPage();
+        
+        const tempDiv2 = document.createElement('div');
+        tempDiv2.style.position = 'absolute';
+        tempDiv2.style.top = '-9999px';
+        tempDiv2.style.left = '-9999px';
+        tempDiv2.style.width = '800px';
+        tempDiv2.style.backgroundColor = 'white';
+        tempDiv2.style.padding = '20px';
+        tempDiv2.style.fontFamily = 'Arial, sans-serif';
+        
+        const cardsGrid = document.querySelector('.dashboard-grid');
+        if (cardsGrid) {
+            const cardsClone = cardsGrid.cloneNode(true);
+            const style = document.createElement('style');
+            style.textContent = `
+                .dashboard-card h3 { font-size: 11px !important; }
+                .dashboard-card .numero { font-size: 20px !important; }
+                .dashboard-card .icone i { font-size: 24px !important; }
+            `;
+            cardsClone.prepend(style);
+            tempDiv2.appendChild(cardsClone);
+        }
+        
+        const tituloPeriodo = document.createElement('h3');
+        tituloPeriodo.innerText = 'Ideias por Período';
+        tituloPeriodo.style.marginTop = '30px';
+        tempDiv2.appendChild(tituloPeriodo);
+        
+        const graficoPeriodo = document.getElementById('graficoPeriodo');
+        if (graficoPeriodo && graficoPeriodo.toDataURL) {
+            const imgPeriodo = document.createElement('img');
+            imgPeriodo.src = graficoPeriodo.toDataURL('image/png');
+            imgPeriodo.style.width = '100%';
+            imgPeriodo.style.marginTop = '10px';
+            tempDiv2.appendChild(imgPeriodo);
+        }
+        
+        document.body.appendChild(tempDiv2);
+        await new Promise(r => setTimeout(r, 200));
+        const canvasMetricas = await html2canvas(tempDiv2, { scale: 2, backgroundColor: '#ffffff' });
+        document.body.removeChild(tempDiv2);
+        
+        const imgHeightMM = (canvasMetricas.height * imgWidthMM) / canvasMetricas.width;
+        pdf.addImage(canvasMetricas.toDataURL(), 'PNG', margin, 15, imgWidthMM, imgHeightMM);
+        
+        // ========== PÁGINA 3: CATEGORIA + STATUS (COM ALTURA CORRIGIDA) ==========
+        pdf.addPage();
+        
+        const tempDiv3 = document.createElement('div');
+        tempDiv3.style.position = 'absolute';
+        tempDiv3.style.top = '-9999px';
+        tempDiv3.style.left = '-9999px';
+        tempDiv3.style.width = '800px';
+        tempDiv3.style.backgroundColor = 'white';
+        tempDiv3.style.padding = '20px';
+        tempDiv3.style.overflow = 'visible';
+        
+        const tituloCat = document.createElement('h3');
+        tituloCat.innerText = 'Ideias por Categorias';
+        tempDiv3.appendChild(tituloCat);
+        const graficoCat = document.getElementById('graficoCategorias');
+        if (graficoCat && graficoCat.toDataURL) {
+            const imgCat = document.createElement('img');
+            imgCat.src = graficoCat.toDataURL('image/png');
+            imgCat.style.width = '100%';
+            tempDiv3.appendChild(imgCat);
+        }
+        
+        const tituloStatus = document.createElement('h3');
+        tituloStatus.innerText = 'Ideias por Status';
+        tituloStatus.style.marginTop = '30px';
+        tempDiv3.appendChild(tituloStatus);
+        
+        const graficoStatus = document.getElementById('graficoStatus');
+if (graficoStatus && graficoStatus.toDataURL) {
+    // Salvar configurações originais
+    const alturaOriginal = graficoStatus.style.height;
+    const larguraOriginal = graficoStatus.style.width;
+    
+    // Aumentar drasticamente a altura
+    graficoStatus.style.height = '600px';
+    graficoStatus.style.width = '100%';
+    
+    // Forçar redesenho do Chart.js
+    if (graficoStatus.chart) {
+        graficoStatus.chart.resize();
+    }
+    await new Promise(r => setTimeout(r, 300));
+    
+    // Criar imagem
+    const imgStat = document.createElement('img');
+    imgStat.src = graficoStatus.toDataURL('image/png');
+    imgStat.style.width = '100%';
+    imgStat.style.height = 'auto';
+    imgStat.style.marginBottom = '30px';
+    tempDiv3.appendChild(imgStat);
+    
+    // Restaurar altura original
+    graficoStatus.style.height = alturaOriginal;
+    graficoStatus.style.width = larguraOriginal;
+    if (graficoStatus.chart) {
+        graficoStatus.chart.resize();
+    }
+    await new Promise(r => setTimeout(r, 100));
+}
+        
+        document.body.appendChild(tempDiv3);
+        await new Promise(r => setTimeout(r, 200));
+        const canvasCatStat = await html2canvas(tempDiv3, {
+            scale: 2,
+            backgroundColor: '#ffffff',
+            logging: false,
+            useCORS: true,
+            windowWidth: tempDiv3.scrollWidth,
+            windowHeight: tempDiv3.scrollHeight
+        });
+        document.body.removeChild(tempDiv3);
+        
+        const imgHeightCatStat = (canvasCatStat.height * imgWidthMM) / canvasCatStat.width;
+        pdf.addImage(canvasCatStat.toDataURL(), 'PNG', margin, 15, imgWidthMM, imgHeightCatStat);
+        
+        // ========== PÁGINA 4: RANKING DE USUÁRIOS ==========
+        pdf.addPage();
+        
+        const tempDiv4 = document.createElement('div');
+        tempDiv4.style.position = 'absolute';
+        tempDiv4.style.top = '-9999px';
+        tempDiv4.style.left = '-9999px';
+        tempDiv4.style.width = '800px';
+        tempDiv4.style.backgroundColor = 'white';
+        tempDiv4.style.padding = '20px';
+        
+        const tituloRank = document.createElement('h3');
+        tituloRank.innerText = 'Ranking de Usuários';
+        tempDiv4.appendChild(tituloRank);
+        
+        const rankingDiv = document.querySelector('#rankingList');
+        if (rankingDiv) {
+            const rankClone = rankingDiv.cloneNode(true);
+            tempDiv4.appendChild(rankClone);
+        }
+        
+        document.body.appendChild(tempDiv4);
+        await new Promise(r => setTimeout(r, 200));
+        const canvasRank = await html2canvas(tempDiv4, { scale: 2, backgroundColor: '#ffffff' });
+        document.body.removeChild(tempDiv4);
+        
+        const imgHeightRank = (canvasRank.height * imgWidthMM) / canvasRank.width;
+        pdf.addImage(canvasRank.toDataURL(), 'PNG', margin, 15, imgWidthMM, imgHeightRank);
+        
+        const fileName = `ideahub_dashboard_${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.pdf`;
+        pdf.save(fileName);
+        showMessage('✅ PDF gerado com sucesso!', 'success');
+        
+    } catch (error) {
+        console.error('❌ Erro:', error);
+        showMessage('Erro ao gerar PDF: ' + error.message, 'error');
+    } finally {
+        showLoading(false);
+    }
+}
+
+// Configurar evento de input com debounce
+document.addEventListener('DOMContentLoaded', function() {
+    const inputBusca = document.getElementById('buscaUsuario');
+    if (inputBusca) {
+        inputBusca.addEventListener('input', function(e) {
+            if (timeoutSugestoes) clearTimeout(timeoutSugestoes);
+            timeoutSugestoes = setTimeout(() => {
+                buscarSugestoes(e.target.value);
+            }, 300);
+        });
+        
+        // Fechar sugestões ao clicar fora
+        document.addEventListener('click', function(e) {
+            const container = document.querySelector('.autocomplete-container');
+            if (container && !container.contains(e.target)) {
+                const sugestoesDiv = document.getElementById('sugestoesList');
+                sugestoesDiv.classList.remove('show');
+            }
+        });
+    }
+});
+
+function getAcaoClass(acao) {
+    const classes = {
+        'login': 'acao-login',
+        'cadastro': 'acao-cadastro',
+        'criar_ideia': 'acao-criar_ideia',
+        'votar': 'acao-votar',
+        'comentar': 'acao-comentar',
+        'moderar': 'acao-moderar'
+    };
+    return classes[acao] || 'acao-login';
+}
+
+function getAcaoTexto(acao) {
+    const textos = {
+        'login': '🔐 Login',
+        'cadastro': '📝 Cadastro',
+        'criar_ideia': '💡 Criar Ideia',
+        'votar': '👍 Votar',
+        'comentar': '💬 Comentar',
+        'moderar': '⚖️ Moderar'
+    };
+    return textos[acao] || acao;
+}
+
+async function carregarUsuariosParaFiltro() {
+    try {
+        const response = await fetch('/admin/usuarios');
+        const usuarios = await response.json();
+        
+        // ✅ VERIFICAR SE O SELECT EXISTE
+        const select = document.getElementById('filtroUsuario');
+        if (!select) {
+            console.warn('⚠️ Elemento "filtroUsuario" não encontrado no DOM');
+            return;
+        }
+        
+        select.innerHTML = '<option value="todos">Todos os usuários</option>';
+        
+        usuarios.forEach(user => {
+            const option = document.createElement('option');
+            option.value = user.id;
+            option.textContent = user.nome;
+            select.appendChild(option);
+        });
+        
+    } catch (error) {
+        console.error('Erro ao carregar usuários para filtro:', error);
+    }
+}
+
+async function carregarReports() {
+    if (!usuarioLogado || !usuarioLogado.id) {
+        console.warn('⚠️ Usuário não logado');
+        return;
+    }
+    
+    const adminId = usuarioLogado.id;
+    
+    try {
+        const response = await fetch(`/admin/reports?adminId=${adminId}`);
+        const reports = await response.json();
+        const container = document.getElementById('reportsList');
+        
+        if (!reports || reports.length === 0) {
+            container.innerHTML = '<div class="empty-state">✅ Nenhuma denúncia de ideia pendente</div>';
+            return;
+        }
+        
+        container.innerHTML = reports.map(report => {
+            // Formatar a descrição se existir
+            const descricaoHtml = report.descricao && report.descricao.trim() !== '' 
+                ? `<div style="background: #f8f9fa; padding: 8px; border-radius: 6px; margin: 8px 0;">
+                        <strong><i class="fas fa-comment-dots"></i> Descrição do denunciante:</strong><br>
+                        <em style="color: #555;">"${escapeHtml(report.descricao)}"</em>
+                    </div>`
+                : '';
+            
+            return `
+                <div class="report-card" style="background: #fff3cd; padding: 15px; margin-bottom: 15px; border-radius: 10px; border-left: 4px solid #ffc107;">
+                    <div style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+                        <strong><i class="fas fa-flag"></i> Denúncia #${report.id}</strong>
+                        <span>📅 ${formatarData(report.data_report)}</span>
+                    </div>
+                    <div style="background: white; padding: 10px; border-radius: 8px; margin: 10px 0;">
+                        <strong>📌 Ideia denunciada:</strong>
+                        <div style="margin-top: 5px; color: #333;">
+                            "${escapeHtml(report.ideia_titulo)}"
+                        </div>
+                    </div>
+                    ${descricaoHtml}
+                    <p><strong>👤 Autor da ideia:</strong> ${escapeHtml(report.autor_ideia_nome)}</p>
+                    <p><strong>⚠️ Motivo:</strong> ${getMotivoTexto(report.motivo)}</p>
+                    <p><strong>👮 Denunciante:</strong> ${escapeHtml(report.usuario_nome)}</p>
+                    <div style="margin-top: 15px; display: flex; gap: 10px;">
+                        <button onclick="verIdeiaDenunciada(${report.id_ideia})" class="btn-ver-ideia">Ver Ideia</button>
+                        <button onclick="resolverReport(${report.id}, 'ignorar')" class="btn-ignorar">Ignorar</button>
+                        <button onclick="resolverReport(${report.id}, 'excluir')" class="btn-excluir-denuncia">Excluir Ideia</button>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    } catch (error) {
+        console.error('Erro:', error);
+        const container = document.getElementById('reportsList');
+        if (container) {
+            container.innerHTML = '<div class="error-state">❌ Erro ao carregar denúncias</div>';
+        }
+    }
+}
+    
+// Atualizar a inicialização
+document.addEventListener('DOMContentLoaded', async () => {
+    await verificarLogin();
+    if (usuarioLogado && (usuarioLogado.cargo === 'gestor' || usuarioLogado.cargo === 'ti_staff')) {
+        carregarMetricas();
+        carregarLogs();
+        carregarUsuariosInativos();
+        carregarUsuariosParaFiltro();
+        carregarDashboard();
+        carregarRanking();
+        carregarUsuarios();
+        carregarAtividades();
+        carregarReports();
+        carregarReportsComentarios();
+    } else {
+        alert('Acesso negado. Você não tem permissão.');
+        window.location.href = '../index.html';
+    }
+});
+        
+        function fecharModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+        
+        function getStatusText(status) {
+            const statusMap = {
+                'pendente': '⏳ Pendente', 'aprovada': '✅ Aprovada',
+                'convertida': '🚀 Convertida', 'rejeitada': '❌ Rejeitada'
+            };
+            return statusMap[status] || status;
+        }
+        
+        function formatarData(data) {
+    if (!data) return 'Data inválida';
+    try {
+        return new Date(data).toLocaleString('pt-BR');
+    } catch (e) {
+        return data;
+    }
+}
+        
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        function showLoading(show) {
+            document.getElementById('loading').style.display = show ? 'flex' : 'none';
+        }
+    </script>
+</body>
+</html>

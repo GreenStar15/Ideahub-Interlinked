@@ -1,0 +1,18 @@
+B - Bugs a serem resolvidos:
+Faltando notificação de ideia removida pelo o moderador para o autor da ideia // RESOLVIDO
+Remover a notificação de que alguem comentou na ideia para o autor da ideia // RESOLVIDO
+Modal para a descisção de ignorar a ideia do botão já existente da denuncia // ? Não entendi ainda
+Em Logs de Atividade, "Ação" prescisa ser revisado por existir "moderacao" e em Logs de Atividade não registra mais as ações dos usuarios // RESOLVIDO
+Advertencia esta sendo aplicada de forma duplicada // RESOLVIDO
+Ao exlcuir ideia na area de report aparecer um console.log que diz: "inserção ou atualização em tabela "notificacoes" viola restrição de chave estrangeira "notificacoes_id_ideia_fkey" // RESOLVIDO
+
+&
+
+R - Revisões a serem feitas:
+Limpar o código de Console.log // Pendente
+Por o nivel do usuario no ideias.html junto com o cargo // RESOLVIDO
+Em gestão de usuarios, mostrar o numero de ideias removidas pelo o admin além das advertencias // RESOLVIDO
+Notificação para o denunciante da ideia que o report foi enviado para o administrador // RESOLVIDO
+Notificação para o denunciante da ideia que o report foi efetivado // RESOLVIDO
+Minhas ideias e Ideias da Comunidade não estão padronizadas não tem a contagem de comentarios nas minhas ideias // RESOLVIDO
+Votar nas ideias incrementa no contador de visualizações da ideia // RESOLVIDO

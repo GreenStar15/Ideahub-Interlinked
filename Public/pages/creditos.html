@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IdeaHub - Créditos</title>
+    <link rel="stylesheet" href="../style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .legal-container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+        .legal-header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+        .legal-header h1 {
+            color: #2d3748;
+            margin-bottom: 10px;
+        }
+        .creditos-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin: 30px 0;
+        }
+        .credito-card {
+            background: #f8fafc;
+            border-radius: 16px;
+            padding: 25px;
+            text-align: center;
+            transition: all 0.3s;
+            border: 1px solid #e2e8f0;
+        }
+        .credito-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        .credito-icone {
+            font-size: 3em;
+            margin-bottom: 15px;
+        }
+        .credito-nome {
+            font-size: 1.2em;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 8px;
+        }
+        .credito-funcao {
+            color: #667eea;
+            font-weight: 600;
+            margin-bottom: 10px;
+            font-size: 0.9em;
+        }
+        .credito-descricao {
+            color: #4a5568;
+            font-size: 0.85em;
+            line-height: 1.5;
+        }
+        .academic-note {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 16px;
+            padding: 30px;
+            text-align: center;
+            margin: 30px 0;
+        }
+        .academic-note i {
+            font-size: 2.5em;
+            margin-bottom: 15px;
+        }
+        .academic-note h3 {
+            margin-bottom: 15px;
+        }
+        .tecnologias {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+            margin: 30px 0;
+        }
+        .tecnologia-item {
+            background: #f1f5f9;
+            padding: 8px 16px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #2d3748;
+        }
+        .btn-voltar {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 10px 24px;
+            border-radius: 10px;
+            text-decoration: none;
+            margin-bottom: 30px;
+            transition: all 0.3s;
+        }
+        .btn-voltar:hover {
+            background: #5a67d8;
+            transform: translateY(-2px);
+        }
+        .footer-note {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #e2e8f0;
+            font-size: 14px;
+            color: #718096;
+        }
+        @media (max-width: 768px) {
+            .creditos-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="../index.html" class="btn-voltar">
+            <i class="fas fa-arrow-left"></i> Voltar para o IdeaHub
+        </a>
+        
+        <div class="legal-container">
+            <div class="legal-header">
+                <i class="fas fa-users" style="font-size: 48px; color: #667eea; margin-bottom: 15px;"></i>
+                <h1>Créditos</h1>
+                <p>Conheça a equipe que tornou o IdeaHub possível</p>
+            </div>
+
+            <div class="academic-note">
+                <i class="fas fa-graduation-cap"></i>
+                <h3 style="color: #ffff;">Projeto Acadêmico</h3>
+                <p>Desenvolvido como Trabalho de Conclusão de Curso (TCC) pelos alunos do curso de <strong>Prática Profissional em Programação WEB</strong> da <strong>Faculdade UniBrasil Centro Universitário</strong>.</p>
+                <p style="margin-top: 10px; font-size: 0.9em;">O IdeaHub representa a conclusão de um ciclo de aprendizado e a aplicação prática dos conhecimentos adquiridos ao longo da graduação.</p>
+            </div>
+
+            <div class="creditos-grid">
+                <div class="credito-card">
+                    <div class="credito-icone">
+                        <i class="fas fa-code"></i>
+                    </div>
+                    <div class="credito-nome">Gabriel Peixoto de Oliveira Borba</div>
+                    <div class="credito-funcao">🎯 Scrum Master & Dev. Back-End</div>
+                    <div class="credito-descricao">Responsável pela gestão do projeto, desenvolvimento do servidor, APIs e integração com banco de dados.</div>
+                </div>
+
+                <div class="credito-card">
+                    <div class="credito-icone">
+                        <i class="fas fa-clipboard-list"></i>
+                    </div>
+                    <div class="credito-nome">Natacha Ketlyn Macarini Isidoro</div>
+                    <div class="credito-funcao">🔰 Product Owner</div>
+                    <div class="credito-descricao">Responsável pela definição dos requisitos, priorização das funcionalidades e visão do produto.</div>
+                </div>
+
+                <div class="credito-card">
+                    <div class="credito-icone">
+                        <i class="fas fa-file-alt"></i>
+                    </div>
+                    <div class="credito-nome">Henrique Bordignon Mariano da Silva</div>
+                    <div class="credito-funcao">📝 Documentação e Testes</div>
+                    <div class="credito-descricao">Responsável pela documentação do projeto, testes de qualidade e garantia de funcionamento.</div>
+                </div>
+
+                <div class="credito-card">
+                    <div class="credito-icone">
+                        <i class="fas fa-database"></i>
+                    </div>
+                    <div class="credito-nome">João Vitor Rodrigues de Lara</div>
+                    <div class="credito-funcao">🗄️ Banco de Dados</div>
+                    <div class="credito-descricao">Responsável pela modelagem, implementação e otimização do banco de dados PostgreSQL.</div>
+                </div>
+
+                <div class="credito-card">
+                    <div class="credito-icone">
+                        <i class="fab fa-html5"></i>
+                    </div>
+                    <div class="credito-nome">Levi Matheus Malachoski</div>
+                    <div class="credito-funcao">🎨 Front-End</div>
+                    <div class="credito-descricao">Responsável pelo desenvolvimento da interface, experiência do usuário e design responsivo.</div>
+                </div>
+
+                <div class="credito-card">
+                    <div class="credito-icone">
+                        <i class="fas fa-server"></i>
+                    </div>
+                    <div class="credito-nome">João Vitor Albano da Silva Pedroso</div>
+                    <div class="credito-funcao">⚙️ Apoiador no Back-End</div>
+                    <div class="credito-descricao">Responsável por auxiliar no desenvolvimento do servidor e integração das funcionalidades.</div>
+                </div>
+
+                <div class="credito-card">
+                    <div class="credito-icone">
+                        <i class="fas fa-paint-brush"></i>
+                    </div>
+                    <div class="credito-nome">Leonardo de Oliveira Fortes</div>
+                    <div class="credito-funcao">💻 Interface e apoio Front-End</div>
+                    <div class="credito-descricao">Responsável pelo design de interface e auxílio no desenvolvimento front-end.</div>
+                </div>
+            </div>
+
+            <div class="tecnologias">
+                <span class="tecnologia-item"><i class="fab fa-node-js"></i> Node.js</span>
+                <span class="tecnologia-item"><i class="fas fa-database"></i> PostgreSQL</span>
+                <span class="tecnologia-item"><i class="fab fa-html5"></i> HTML5</span>
+                <span class="tecnologia-item"><i class="fab fa-css3-alt"></i> CSS3</span>
+                <span class="tecnologia-item"><i class="fab fa-js"></i> JavaScript</span>
+                <span class="tecnologia-item"><i class="fab fa-github"></i> Git/GitHub</span>
+                <span class="tecnologia-item"><i class="fas fa-chart-line"></i> Chart.js</span>
+                <span class="tecnologia-item"><i class="fas fa-map"></i> Leaflet</span>
+            </div>
+
+            <div class="legal-section">
+                <h2 style="text-align: center;">Agradecimentos Especiais</h2>
+                <p style="text-align: center;">Agradecemos ao professor e orientador Alexandre Broleze do curso de Prática Profissional em Programação WEB da Faculdade UniBrasil Centro Universitário pelo suporte e incentivo ao desenvolvimento deste projeto. Também agradecemos aqueles que apoiaram por assistir o desenvolvimento do nosso projeto, contribuindo com feedbacks para a melhoria contínua da plataforma.</p>
+            </div>
+
+            <div class="footer-note">
+                <p>© 2026 IdeaHub - Projeto Acadêmico | Faculdade UniBrasil Centro Universitário</p>
+                <p>Plataforma desenvolvida como Trabalho de Conclusão de Curso - Todos os direitos reservados</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

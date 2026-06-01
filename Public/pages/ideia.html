@@ -1,0 +1,3445 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IdeaHub - Visualizar Ideia</title>
+    <link rel="stylesheet" href="../style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .ideia-detalhe {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .ideia-detalhe-card {
+            background: #f8fafc;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+        .ideia-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .ideia-header h1 {
+            font-size: 1.8em;
+            margin: 0;
+        }
+        .ideia-meta-detalhe {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            padding: 15px 0;
+            border-top: 1px solid #e2e8f0;
+            border-bottom: 1px solid #e2e8f0;
+            margin-bottom: 20px;
+            color: #666;
+        }
+        .ideia-descricao {
+            font-size: 1.1em;
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 6px 15px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        .status-pendente { background: #fef3c7; color: #b45309; }
+        .status-aprovada { background: #dcfce7; color: #166534; }
+        .status-convertida { background: #dbeafe; color: #1e40af; }
+        .comentarios-section {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        .form-comentario {
+            margin: 20px 0;
+        }
+        .form-comentario textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            resize: vertical;
+            font-family: 'Inter', sans-serif;
+        }
+        .comentario-card {
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        .comentario-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 14px;
+            color: #666;
+        }
+        .btn-voltar {
+            display: inline-block;
+            background: #6c757d;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 8px;
+            text-decoration: none;
+            margin-bottom: 20px;
+        }
+        .btn-voltar:hover {
+            background: #5a6268;
+        }
+        .btn-aprovar, .btn-converter {
+            padding: 20px 20px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        .btn-aprovar { background: #28a745; color: white; }
+        .btn-converter { background: #17a2b8; color: white; }
+        .modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: white;
+    border-radius: 15px;
+    padding: 30px;
+    max-width: 500px;
+    width: 90%;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.modal-close {
+    cursor: pointer;
+    font-size: 24px;
+}
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+.modal-content {
+    background: white;
+    border-radius: 15px;
+    padding: 30px;
+    max-width: 500px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+    position: relative;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.modal-close {
+    cursor: pointer;
+    font-size: 28px;
+    color: #999;
+    transition: color 0.3s;
+}
+
+.modal-close:hover {
+    color: #333;
+}
+
+.btn-perfil-mini {
+    margin-left: 8px;
+    color: #667eea;
+    text-decoration: none;
+    font-size: 12px;
+}
+.btn-perfil-mini:hover {
+    text-decoration: underline;
+}
+/* Abas da ideia (Comentários/Histórico) */
+.tabs-ideia {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #e2e8f0;
+    padding-bottom: 10px;
+}
+
+.tab-ideia-btn {
+    background: none;
+    border: none;
+    padding: 8px 20px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    color: #718096;
+    transition: all 0.3s;
+    border-radius: 20px;
+}
+
+.tab-ideia-btn:hover {
+    background: #f1f5f9;
+    color: #2d3748;
+}
+
+.tab-ideia-btn.active {
+    background: #667eea;
+    color: white;
+}
+
+.tab-ideia-content {
+    display: none;
+}
+
+.tab-ideia-content.active {
+    display: block;
+}
+
+/* Histórico de versões */
+.versoes-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.versao-card {
+    background: #f8fafc;
+    border-radius: 12px;
+    padding: 20px;
+    border-left: 4px solid #667eea;
+    transition: all 0.3s;
+}
+
+.versao-card:hover {
+    transform: translateX(5px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.versao-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.versao-numero {
+    background: #667eea;
+    color: white;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.versao-data {
+    font-size: 12px;
+    color: #718096;
+}
+
+.versao-autor {
+    font-size: 13px;
+    color: #4a5568;
+}
+
+.versao-titulo {
+    font-size: 16px;
+    font-weight: 600;
+    color: #2d3748;
+    margin-bottom: 10px;
+}
+
+.versao-descricao {
+    font-size: 14px;
+    color: #4a5568;
+    line-height: 1.5;
+    margin-bottom: 10px;
+}
+
+.versao-categoria {
+    display: inline-block;
+    background: #e2e8f0;
+    padding: 2px 8px;
+    border-radius: 15px;
+    font-size: 11px;
+    color: #4a5568;
+}
+
+.btn-ver-versao {
+    background: #667eea;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px;
+    margin-top: 10px;
+    transition: all 0.3s;
+}
+
+.btn-ver-versao:hover {
+    background: #5a67d8;
+    transform: translateY(-1px);
+}
+
+/* Modal de visualização de versão */
+.modal-versao {
+    max-width: 700px;
+}
+
+.diff-changed {
+    background: #fef3c7;
+    color: #b45309;
+}
+.btn-editar-ideia {
+    background: #ffc107;
+    color: #ffffff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.3s;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-editar-ideia:hover {
+    background: #e0a800;
+    transform: translateY(-2px);
+}
+
+/* ==========================================
+   HISTÓRICO DE VERSÕES (CORRIGIDO)
+   ========================================== */
+
+.historico-section {
+    background: white;
+    border-radius: 20px;
+    padding: 25px;
+    margin-top: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+
+.versoes-list {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    max-width: 100%;
+    overflow-x: hidden;
+}
+
+.versao-card {
+    background: #f8fafc;
+    border-radius: 16px;
+    padding: 20px;
+    border-left: 4px solid #667eea;
+    transition: all 0.3s;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.versao-card:hover {
+    transform: translateX(5px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.versao-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.versao-numero {
+    background: #667eea;
+    color: white;
+    padding: 4px 14px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.versao-data {
+    font-size: 12px;
+    color: #718096;
+}
+
+.versao-autor {
+    font-size: 13px;
+    color: #4a5568;
+}
+
+.versao-titulo {
+    font-size: 15px;
+    font-weight: 600;
+    color: #2d3748;
+    margin-bottom: 12px;
+    word-wrap: break-word;
+}
+
+.versao-titulo strong {
+    color: #667eea;
+    font-weight: 600;
+}
+
+.versao-descricao {
+    font-size: 14px;
+    color: #4a5568;
+    line-height: 1.5;
+    margin-bottom: 12px;
+    word-wrap: break-word;
+    white-space: pre-wrap;
+}
+
+.versao-categoria {
+    display: inline-block;
+    background: #e2e8f0;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    color: #4a5568;
+    margin-bottom: 15px;
+}
+
+.btn-ver-versao {
+    background: #667eea;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 13px;
+    transition: all 0.3s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.btn-ver-versao:hover {
+    background: #5a67d8;
+    transform: translateY(-2px);
+}
+
+/* Modal de versão completa */
+.modal-versao {
+    max-width: 700px;
+}
+
+.modal-versao .form-group {
+    margin-bottom: 20px;
+}
+
+.modal-versao label {
+    font-weight: 600;
+    color: #2d3748;
+    margin-bottom: 8px;
+    display: block;
+}
+
+.versao-titulo-modal {
+    background: #f8fafc;
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 500;
+    word-wrap: break-word;
+}
+.tab-ideia-btn[onclick*="historico"] {
+    position: relative;
+}
+
+.tab-ideia-btn[onclick*="historico"]:hover::after {
+    content: "Apenas você e administradores podem ver o histórico";
+    position: absolute;
+    bottom: -30px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #2d3748;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 10px;
+    white-space: nowrap;
+    z-index: 10;
+}
+/* Indicador de versão editada */
+.versao-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #e0f2fe;
+    color: #0369a1;
+    padding: 4px 12px;
+    border-radius: 30px;
+    font-size: 12px;
+    font-weight: 500;
+    margin-left: 12px;
+    cursor: help;
+    transition: all 0.2s;
+}
+
+.versao-indicator:hover {
+    background: #bae6fd;
+    transform: scale(1.02);
+}
+
+.versao-indicator i {
+    font-size: 12px;
+}
+
+/* Tooltip personalizado */
+.versao-indicator[data-tooltip] {
+    position: relative;
+}
+
+.versao-indicator[data-tooltip]:hover::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: -35px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1e293b;
+    color: white;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 11px;
+    white-space: nowrap;
+    z-index: 100;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+/* Badge de "Editada" no card da ideia (para listagens) */
+.badge-editada {
+    background: #e0f2fe;
+    color: #0369a1;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-size: 10px;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-left: 8px;
+}
+/* Indicador de versão editada */
+.versao-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #e0f2fe;
+    color: #0369a1;
+    padding: 4px 12px;
+    border-radius: 30px;
+    font-size: 12px;
+    font-weight: 500;
+    margin-left: 12px;
+    cursor: help;
+    transition: all 0.2s;
+}
+
+.versao-indicator:hover {
+    background: #bae6fd;
+    transform: scale(1.02);
+}
+
+.versao-indicator i {
+    font-size: 12px;
+}
+
+/* Tooltip personalizado */
+.versao-indicator[data-tooltip] {
+    position: relative;
+}
+
+.versao-indicator[data-tooltip]:hover::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: -35px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1e293b;
+    color: white;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 11px;
+    white-space: nowrap;
+    z-index: 100;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+.anexo-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #f1f5f9;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    margin-top: 8px;
+    margin-right: 8px;
+}
+
+.anexo-item i {
+    font-size: 14px;
+}
+
+.anexo-imagem-preview {
+    max-width: 100px;
+    max-height: 80px;
+    border-radius: 8px;
+    margin-top: 8px;
+    cursor: pointer;
+}
+
+.btn-anexo {
+    background: #e2e8f0;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 13px;
+    transition: all 0.3s;
+}
+
+.btn-anexo:hover {
+    background: #cbd5e0;
+}
+
+/* Botão de votar - Estado NÃO VOTADO (VERDE) */
+.btn-votar {
+    background: #28a745;  /* VERDE */
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-votar:hover {
+    background: #218838;  /* Verde mais escuro no hover */
+    transform: translateY(-2px);
+}
+
+/* Botão de votar - Estado VOTADO (VERMELHO com coração) */
+.btn-votar.votado {
+    background: #dc3545;  /* VERMELHO */
+    color: white;
+}
+
+.btn-votar.votado:hover {
+    background: #c82333;  /* Vermelho mais escuro no hover */
+    transform: translateY(-2px);
+}
+
+.btn-votar.votado i {
+    animation: heartbeat 0.3s ease;
+}
+
+/* Animação do coração ao votar */
+@keyframes heartbeat {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.3); }
+    100% { transform: scale(1); }
+}
+
+/* Botão desabilitado */
+.btn-votar:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+}
+/* ==========================================
+   SISTEMA DE NOTIFICAÇÕES EMPILHADAS
+   ========================================== */
+.notification-container {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    pointer-events: none;
+}
+
+.notification-toast {
+    min-width: 280px;
+    max-width: 350px;
+    background: white;
+    border-radius: 12px;
+    padding: 14px 18px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    animation: slideInRight 0.3s ease forwards;
+    pointer-events: auto;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Cores por tipo */
+.notification-toast.success {
+    border-left: 4px solid #28a745;
+    background: linear-gradient(135deg, #ffffff 0%, #f0fff4 100%);
+}
+
+.notification-toast.success i {
+    color: #28a745;
+}
+
+.notification-toast.error {
+    border-left: 4px solid #dc3545;
+    background: linear-gradient(135deg, #ffffff 0%, #fff5f5 100%);
+}
+
+.notification-toast.error i {
+    color: #dc3545;
+}
+
+.notification-toast.info {
+    border-left: 4px solid #17a2b8;
+    background: linear-gradient(135deg, #ffffff 0%, #e6f7ff 100%);
+}
+
+.notification-toast.info i {
+    color: #17a2b8;
+}
+
+.notification-toast.warning {
+    border-left: 4px solid #ffc107;
+    background: linear-gradient(135deg, #ffffff 0%, #fff8e7 100%);
+}
+
+.notification-toast.warning i {
+    color: #ffc107;
+}
+
+/* Ícone */
+.notification-icon {
+    font-size: 22px;
+    flex-shrink: 0;
+}
+
+/* Conteúdo */
+.notification-content {
+    flex: 1;
+}
+
+.notification-title {
+    font-weight: 600;
+    font-size: 14px;
+    color: #2d3748;
+    margin-bottom: 4px;
+}
+
+.notification-message {
+    font-size: 13px;
+    color: #4a5568;
+    line-height: 1.4;
+}
+
+/* Barra de progresso (fade out) */
+.notification-progress {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 3px;
+    background: rgba(0, 0, 0, 0.1);
+    animation: progressShrink 3s linear forwards;
+}
+
+.notification-toast.success .notification-progress {
+    background: #28a745;
+}
+
+.notification-toast.error .notification-progress {
+    background: #dc3545;
+}
+
+.notification-toast.info .notification-progress {
+    background: #17a2b8;
+}
+
+.notification-toast.warning .notification-progress {
+    background: #ffc107;
+}
+
+/* Botão fechar */
+.notification-close {
+    background: none;
+    border: none;
+    font-size: 18px;
+    cursor: pointer;
+    color: #a0aec0;
+    padding: 0 4px;
+    transition: color 0.2s;
+    flex-shrink: 0;
+}
+
+.notification-close:hover {
+    color: #4a5568;
+}
+
+/* Animações */
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOutRight {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+
+@keyframes progressShrink {
+    from {
+        width: 100%;
+    }
+    to {
+        width: 0%;
+    }
+}
+
+.notification-toast.removing {
+    animation: slideOutRight 0.3s ease forwards;
+}
+
+/* Ícones animados para notificações */
+.notification-toast.success i.fa-heart {
+    animation: heartbeat 0.5s ease;
+}
+
+.notification-toast.success i.fa-check-circle {
+    animation: scaleIn 0.3s ease;
+}
+
+.notification-toast.info i.fa-info-circle {
+    animation: pulse 0.5s ease;
+}
+
+.notification-toast.warning i.fa-exclamation-triangle {
+    animation: shake 0.3s ease;
+}
+
+@keyframes scaleIn {
+    from { transform: scale(0); }
+    to { transform: scale(1); }
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-3px); }
+    75% { transform: translateX(3px); }
+}
+
+/* Badge de nível do usuário */
+.comentario-nivel {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 2px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: transform 0.2s;
+}
+
+.comentario-nivel:hover {
+    transform: scale(1.05);
+}
+
+.comentario-nivel i {
+    font-size: 10px;
+}
+
+/* Tooltip para nível */
+.comentario-nivel[data-nivel] {
+    cursor: help;
+}
+
+.comentario-nivel:hover::after {
+    content: attr(data-nivel);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #2d3748;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 10px;
+    white-space: nowrap;
+    z-index: 10;
+}
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+    <button onclick="voltarParaHome()" class="btn-voltar">
+        <i class="fas fa-arrow-left"></i> Voltar para as Ideias
+    </button>
+    <div id="userInfoMini" style="display: flex; align-items: center; gap: 15px;">
+        <span id="userNameMini" style="font-weight: 500;"></span>
+        <button onclick="fazerLogout()" class="btn-logout" style="padding: 8px 15px;">
+            <i class="fas fa-sign-out-alt"></i> Sair
+        </button>
+    </div>
+</div>
+
+        <div id="ideiaContent" class="ideia-detalhe">
+            <div class="loading-spinner">Carregando...</div>
+        </div>
+        
+<!-- Abas de navegação -->
+<div class="tabs-ideia">
+    <button class="tab-ideia-btn active" onclick="mostrarAbaIdeia('comentarios')">
+        <i class="fas fa-comments"></i> Comentários (<span id="comentariosCount">0</span>)
+    </button>
+    <button class="tab-ideia-btn" onclick="mostrarAbaIdeia('historico')">
+        <i class="fas fa-history"></i> Histórico de Versões
+    </button>
+</div>
+
+<div id="comentariosSection" class="comentarios-section">
+    <h3><i class="fas fa-comments"></i> Comentários (<span id="comentariosCount">0</span>)</h3>
+    
+    <div style="margin-top: 10px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+            <button type="button" onclick="abrirSeletorAnexo()" class="btn-anexo" id="btnAnexoComentario">
+                <i class="fas fa-paperclip"></i> Anexar arquivo
+            </button>
+            <input type="file" id="anexoComentario" style="display: none;" accept="image/*,application/pdf">
+            <span id="nomeAnexoSelecionado" style="font-size: 12px; color: #666;"></span>
+        </div>
+
+    <div id="formComentario" class="form-comentario">
+        <textarea id="novoComentario" rows="3" placeholder="Escreva seu comentário..."></textarea>
+        
+        <button class="btn-primary" id="btnEnviarComentario">Enviar Comentário</button>
+    </div>
+    
+    <div id="listaComentarios" class="lista-comentarios"></div>
+</div>
+
+<!-- Conteúdo do Histórico de Versões -->
+<div id="historicoSection" class="historico-section tab-ideia-content" style="display: none;">
+    <h3 style="margin-bottom: 20px; color: #2d3748;">
+        <i class="fas fa-history"></i> Histórico de Versões
+    </h3>
+    <div id="listaVersoes" class="versoes-list"></div>
+</div>
+
+<!-- Container para notificações empilhadas -->
+<div id="notificationContainer" class="notification-container"></div>
+
+<!-- Modal de Edição de Ideia -->
+<div id="modalEditarIdeia" class="modal" style="display: none;">
+    <div class="modal-content" style="max-width: 600px;">
+        <div class="modal-header">
+            <h3><i class="fas fa-edit"></i> Editar Ideia</h3>
+            <span onclick="fecharModal('modalEditarIdeia')" class="modal-close">&times;</span>
+        </div>
+        <form id="formEditarIdeia">
+            <input type="hidden" id="editarIdeiaId">
+            <div class="form-group">
+                <label>Título</label>
+                <input type="text" id="editarTitulo" class="input-field" required>
+            </div>
+            <div class="form-group">
+                <label>Descrição</label>
+                <textarea id="editarDescricao" rows="6" class="input-field" required></textarea>
+            </div>
+            <div class="form-group">
+                <label>Categoria</label>
+                <select id="editarCategoria" class="filter-select" required>
+                    <option value="">Selecione uma categoria</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <small style="color: #718096;">
+                    <i class="fas fa-info-circle"></i> 
+                    A versão atual será salva no histórico antes da edição.
+                </small>
+            </div>
+            <button type="submit" class="btn-primary">Salvar Alterações</button>
+        </form>
+    </div>
+</div>
+
+<!-- Modal de Report de Ideia -->
+<div id="reportModal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3><i class="fas fa-flag"></i> Reportar Ideia</h3>
+            <span onclick="fecharModal('reportModal')" class="modal-close">&times;</span>
+        </div>
+        <form id="reportForm" onsubmit="enviarReportIdeia(event)">
+            <input type="hidden" id="reportIdeiaId">
+            <div class="form-group">
+                <label>Motivo do report</label>
+                <select id="reportMotivo" class="filter-select" required>
+                    <option value="">Selecione um motivo</option>
+                    <option value="conteudo_improprio">🔞 Conteúdo impróprio</option>
+                    <option value="discurso_odio">😡 Discurso de ódio</option>
+                    <option value="spam">📧 Spam ou publicidade</option>
+                    <option value="fake_news">❓ Informação falsa</option>
+                    <option value="outro">📝 Outro motivo</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Descrição (opcional)</label>
+                <textarea id="reportDescricao" rows="3" class="input-field" placeholder="Explique o motivo do report..."></textarea>
+            </div>
+            <button type="submit" class="btn-primary">Enviar Report</button>
+        </form>
+    </div>
+</div>
+
+<!-- Modal de Moderação -->
+<div id="modalModeracao" class="modal" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3><i class="fas fa-gavel"></i> Moderar Ideia</h3>
+            <span onclick="fecharModalModeracao()" class="modal-close">&times;</span>
+        </div>
+        <form id="formModeracao">
+            <input type="hidden" id="moderacaoIdeiaId">
+            <div class="form-group">
+                <label>Motivo da moderação</label>
+                <select id="moderacaoMotivo" class="filter-select" required>
+                    <option value="">Selecione um motivo</option>
+                    <option value="conteudo_improprio">🔞 Conteúdo impróprio</option>
+                    <option value="discurso_odio">😡 Discurso de ódio</option>
+                    <option value="spam">📧 Spam ou publicidade</option>
+                    <option value="fake_news">❓ Informação falsa</option>
+                    <option value="duplicada">📝 Ideia duplicada</option>
+                    <option value="fora_tema">📌 Fora do tema da plataforma</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Justificativa (opcional)</label>
+                <textarea id="moderacaoJustificativa" rows="4" placeholder="Explique o motivo da moderação para o autor..."></textarea>
+            </div>
+            <div class="form-group">
+                <label>Ação</label>
+                <select id="moderacaoAcao" class="filter-select">
+                    <option value="advertir">⚠️ Apenas advertir o autor</option>
+                    <option value="excluir">🗑️ Excluir ideia permanentemente</option>
+                </select>
+            </div>
+            <button type="submit" class="btn-primary">Aplicar Moderação</button>
+        </form>
+    </div>
+</div>
+
+    <div id="conversaoModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>🚀 Converter Ideia em Projeto</h3>
+                    <span class="modal-close" onclick="fecharModalConversao()">&times;</span>
+                </div>
+                <form id="conversaoForm">
+                    <input type="hidden" id="conversaoIdeiaId">
+                    <div class="form-group">
+                        <label>Nome do Projeto</label>
+                        <input type="text" id="projetoNome" class="input-field" placeholder="Nome do projeto" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Descrição</label>
+                        <textarea id="projetoDescricao" rows="3" class="input-field" placeholder="Descrição do escopo"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Responsável</label>
+                        <input type="text" id="projetoResponsavel" class="input-field" placeholder="Nome do responsável">
+                    </div>
+                    <div class="form-group">
+                <label>Data de Início</label>
+                <input type="date" id="projetoDataInicio" class="input-field">
+            </div>
+                    <div class="form-group">
+                        <label>Prioridade</label>
+                        <select id="projetoPrioridade" class="filter-select">
+                            <option value="alta">🔴 Alta</option>
+                            <option value="media">🟡 Média</option>
+                            <option value="baixa">🟢 Baixa</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn-primary">Converter em Projeto</button>
+                </form>
+            </div>
+        </div>
+
+<!-- Modal de Report de Comentário -->
+<div id="modalReportComentario" class="modal" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3><i class="fas fa-flag"></i> Reportar Comentário</h3>
+            <span onclick="fecharModal('modalReportComentario')" class="modal-close">&times;</span>
+        </div>
+        <form id="formReportComentario" onsubmit="enviarReportComentario(event)">
+            <input type="hidden" id="reportComentarioId">
+            <div class="form-group">
+                <label>Motivo do report</label>
+                <select id="reportComentarioMotivo" class="filter-select" required>
+                    <option value="">Selecione um motivo</option>
+                    <option value="conteudo_improprio">🔞 Conteúdo impróprio</option>
+                    <option value="discurso_odio">😡 Discurso de ódio</option>
+                    <option value="spam">📧 Spam ou publicidade</option>
+                    <option value="ofensivo">🤬 Linguagem ofensiva</option>
+                    <option value="outro">📝 Outro motivo</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Descrição (opcional)</label>
+                <textarea id="reportComentarioDescricao" rows="3" class="input-field" placeholder="Explique o motivo do report..."></textarea>
+            </div>
+            <button type="submit" class="btn-primary">Enviar Report</button>
+        </form>
+    </div>
+</div>
+
+    <div id="loading" class="loading">
+        <div class="spinner"></div>
+        <p>Carregando...</p>
+    </div>
+    
+        <script>
+    let usuarioLogado = null;
+    const urlParams = new URLSearchParams(window.location.search);
+    const ideiaId = urlParams.get('id');
+    
+    window.deletarIdeia = async function(ideiaId) {
+        
+        if (!confirm('⚠️ Tem certeza que deseja deletar esta ideia?\n\nTodas as imagens, votos e comentários serão removidos permanentemente!')) {
+            return;
+        }
+        
+        if (!usuarioLogado) {
+            alert('❌ Faça login para deletar sua ideia.');
+            return;
+        }
+        
+        showLoading(true);
+        
+        try {
+            const response = await fetch(`/ideias/${ideiaId}`, {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    usuarioId: usuarioLogado.id,
+                    isAutor: true
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (data.sucesso) {
+                alert('✅ Ideia deletada com sucesso!');
+                window.location.href = '../index.html';
+            } else {
+                alert(data.erro || '❌ Erro ao deletar ideia');
+            }
+        } catch (error) {
+            console.error('❌ Erro:', error);
+            alert('❌ Erro de conexão');
+        } finally {
+            showLoading(false);
+        }
+    };
+    
+    // Garantir que a função também está disponível localmente
+    const deletarIdeia = window.deletarIdeia;
+
+    // ==========================================
+// US21 - HISTÓRICO DE VERSÕES
+// ==========================================
+
+let versoesList = [];
+
+function mostrarAbaIdeia(aba) {
+    
+    const comentariosSection = document.getElementById('comentariosSection');
+    const historicoSection = document.getElementById('historicoSection');
+    const botoes = document.querySelectorAll('.tab-ideia-btn');
+    
+    botoes.forEach(btn => btn.classList.remove('active'));
+    
+    if (aba === 'comentarios') {
+        if (comentariosSection) {
+            comentariosSection.classList.add('active');
+            comentariosSection.style.display = 'block';
+        }
+        if (historicoSection) {
+            historicoSection.classList.remove('active');
+            historicoSection.style.display = 'none';
+        }
+        if (botoes[0]) botoes[0].classList.add('active');
+        
+    } else if (aba === 'historico') {
+        if (historicoSection) {
+            historicoSection.classList.add('active');
+            historicoSection.style.display = 'block';
+        }
+        if (comentariosSection) {
+            comentariosSection.classList.remove('active');
+            comentariosSection.style.display = 'none';
+        }
+        if (botoes[1]) botoes[1].classList.add('active');
+        
+        // Carregar histórico
+        carregarHistoricoVersoes();
+    }
+}
+
+async function carregarHistoricoVersoes() {
+    
+    if (!ideiaId) {
+        console.error('❌ ideiaId não definido');
+        return;
+    }
+    
+    showLoading(true);
+    
+    try {
+        const response = await fetch(`/ideias/${ideiaId}/versoes`);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+        }
+        
+        const versoes = await response.json();
+        
+        const container = document.getElementById('listaVersoes');
+        
+        if (!container) {
+            console.error('❌ Elemento listaVersoes não encontrado');
+            return;
+        }
+        
+        if (!versoes || versoes.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-history" style="font-size: 48px; color: #cbd5e0;"></i>
+                    <p style="margin-top: 15px;">Nenhuma versão anterior encontrada.</p>
+                    <small>Esta é a versão original da ideia.</small>
+                </div>
+            `;
+            return;
+        }
+        
+        container.innerHTML = versoes.map(versao => `
+            <div class="versao-card">
+                <div class="versao-header">
+                    <span class="versao-numero">
+                        <i class="fas fa-code-branch"></i> Versão ${versao.versao_numero}
+                    </span>
+                    <span class="versao-data">
+                        <i class="far fa-calendar-alt"></i> ${formatarData(versao.data_alteracao)}
+                    </span>
+                    <span class="versao-autor">
+                        <i class="fas fa-user-edit"></i> ${escapeHtml(versao.alterado_por_nome || 'Sistema')}
+                    </span>
+                </div>
+                <div class="versao-titulo">
+                    <strong><i class="fas fa-heading"></i> Título:</strong> ${escapeHtml(versao.titulo)}
+                </div>
+                <div class="versao-descricao">
+                    <strong><i class="fas fa-align-left"></i> Descrição:</strong><br>
+                    ${escapeHtml(versao.descricao)}
+                </div>
+                <div class="versao-categoria">
+                    <i class="fas fa-tag"></i> ${escapeHtml(versao.categoria_nome || 'Sem categoria')}
+                </div>
+                <button onclick="verVersaoCompleta(${versao.id})" class="btn-ver-versao">
+                    <i class="fas fa-eye"></i> Visualizar
+                </button>
+            </div>
+        `).join('');
+        
+    } catch (error) {
+        console.error('❌ Erro ao carregar histórico:', error);
+        const container = document.getElementById('listaVersoes');
+        if (container) {
+            container.innerHTML = `
+                <div class="error-state">
+                    <i class="fas fa-exclamation-triangle" style="font-size: 48px; color: #dc3545;"></i>
+                    <p>Erro ao carregar histórico de versões: ${error.message}</p>
+                    <button onclick="carregarHistoricoVersoes()" class="btn-primary" style="margin-top: 15px;">Tentar novamente</button>
+                </div>
+            `;
+        }
+    } finally {
+        showLoading(false);
+    }
+}
+
+// ==========================================
+// SISTEMA DE NOTIFICAÇÕES EMPILHADAS
+// ==========================================
+
+let notificationQueue = [];
+let activeNotifications = 0;
+const MAX_VISIBLE = 5; // Máximo de notificações visíveis ao mesmo tempo
+
+function mostrarNotificacao(mensagem, tipo = 'info', titulo = null) {
+    // Definir títulos padrão por tipo
+    const titulos = {
+        success: '✅ Sucesso!',
+        error: '❌ Erro!',
+        info: 'ℹ️ Informação',
+        warning: '⚠️ Atenção'
+    };
+    
+    const tituloFinal = titulo || titulos[tipo] || 'Notificação';
+    
+    // Definir ícone por tipo
+    const icones = {
+        success: 'fa-heart',
+        error: 'fa-exclamation-circle',
+        info: 'fa-info-circle',
+        warning: 'fa-exclamation-triangle'
+    };
+    
+    const icone = icones[tipo] || 'fa-bell';
+    
+    // Criar elemento da notificação
+    const notification = document.createElement('div');
+    notification.className = `notification-toast ${tipo}`;
+    notification.innerHTML = `
+        <div class="notification-icon">
+            <i class="fas ${icone}"></i>
+        </div>
+        <div class="notification-content">
+            <div class="notification-title">${tituloFinal}</div>
+            <div class="notification-message">${mensagem}</div>
+        </div>
+        <button class="notification-close" onclick="fecharNotificacao(this.parentElement)">
+            <i class="fas fa-times"></i>
+        </button>
+        <div class="notification-progress"></div>
+    `;
+    
+    // Adicionar ao container
+    const container = document.getElementById('notificationContainer');
+    if (!container) {
+        console.error('Container de notificações não encontrado!');
+        return;
+    }
+    
+    container.appendChild(notification);
+    activeNotifications++;
+    
+    // Verificar limite de visibilidade
+    verificarLimiteNotificacoes();
+    
+    // Configurar remoção automática após 3 segundos
+    const timeoutId = setTimeout(() => {
+        fecharNotificacao(notification);
+    }, 3000);
+    
+    // Armazenar timeout para cancelar se necessário
+    notification.dataset.timeoutId = timeoutId;
+    
+    // Pausar animação ao passar o mouse
+    notification.addEventListener('mouseenter', () => {
+        clearTimeout(timeoutId);
+        const progressBar = notification.querySelector('.notification-progress');
+        if (progressBar) {
+            progressBar.style.animationPlayState = 'paused';
+        }
+    });
+    
+    notification.addEventListener('mouseleave', () => {
+        const newTimeoutId = setTimeout(() => {
+            fecharNotificacao(notification);
+        }, 1500);
+        notification.dataset.timeoutId = newTimeoutId;
+        
+        const progressBar = notification.querySelector('.notification-progress');
+        if (progressBar) {
+            progressBar.style.animationPlayState = 'running';
+        }
+    });
+}
+
+function fecharNotificacao(notification) {
+    if (!notification || notification.classList.contains('removing')) return;
+    
+    // Limpar timeout pendente
+    if (notification.dataset.timeoutId) {
+        clearTimeout(parseInt(notification.dataset.timeoutId));
+    }
+    
+    notification.classList.add('removing');
+    
+    // Remover após animação
+    setTimeout(() => {
+        if (notification.parentNode) {
+            notification.parentNode.removeChild(notification);
+            activeNotifications--;
+            verificarLimiteNotificacoes();
+        }
+    }, 300);
+}
+
+function verificarLimiteNotificacoes() {
+    const container = document.getElementById('notificationContainer');
+    if (!container) return;
+    
+    const notifications = container.querySelectorAll('.notification-toast:not(.removing)');
+    
+    // Se tiver mais que o máximo visível, remover a mais antiga
+    if (notifications.length > MAX_VISIBLE) {
+        const primeiraNotificacao = notifications[0];
+        if (primeiraNotificacao) {
+            fecharNotificacao(primeiraNotificacao);
+        }
+    }
+}
+
+// Limpar todas as notificações (útil ao sair da página)
+function limparTodasNotificacoes() {
+    const container = document.getElementById('notificationContainer');
+    if (container) {
+        const notifications = container.querySelectorAll('.notification-toast');
+        notifications.forEach(notif => fecharNotificacao(notif));
+    }
+}
+
+async function verVersaoCompleta(versaoId) {
+    try {
+        const response = await fetch(`/versoes/${versaoId}`);
+        const versao = await response.json();
+        
+        // Criar modal para exibir versão completa
+        const modal = document.createElement('div');
+        modal.className = 'modal';
+        modal.style.display = 'flex';
+        modal.innerHTML = `
+            <div class="modal-content modal-versao">
+                <div class="modal-header">
+                    <h3><i class="fas fa-history"></i> Versão ${versao.versao_numero}</h3>
+                    <span onclick="this.closest('.modal').remove()" class="modal-close">&times;</span>
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <span class="versao-data"><i class="far fa-clock"></i> ${formatarData(versao.data_alteracao)}</span>
+                    <span style="margin-left: 15px;"><i class="fas fa-user"></i> ${escapeHtml(versao.alterado_por_nome || 'Sistema')}</span>
+                </div>
+                <div class="form-group">
+                    <label><strong>Título</strong></label>
+                    <div class="versao-titulo-modal">${escapeHtml(versao.titulo)}</div>
+                </div>
+                <div class="form-group">
+                    <label><strong>Descrição</strong></label>
+                    <div class="versao-descricao-modal" style="background: #f8fafc; padding: 15px; border-radius: 8px; line-height: 1.6;">${escapeHtml(versao.descricao)}</div>
+                </div>
+                <div class="form-group">
+                    <label><strong>Categoria</strong></label>
+                    <div><span class="versao-categoria">${escapeHtml(versao.categoria_nome || 'Sem categoria')}</span></div>
+                </div>
+                <button onclick="this.closest('.modal').remove()" class="btn-primary">Fechar</button>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+        
+        // Fechar modal ao clicar fora
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) modal.remove();
+        });
+        
+    } catch (error) {
+        console.error('❌ Erro ao carregar versão:', error);
+        alert('Erro ao carregar versão completa');
+    }
+}
+
+ // ==========================================
+// FUNÇÕES DE REPORT - DEFINIDAS GLOBALMENTE
+// ==========================================
+// ========== FUNÇÃO PARA REPORTAR IDEIA ==========
+function reportarIdeia(ideiaId) {
+    
+    // Verificar se usuário está logado
+    const tokenSalvo = localStorage.getItem('ideaHubToken');
+    if (!tokenSalvo) {
+        alert('Faça login para reportar uma ideia');
+        window.location.href = '../index.html';
+        return;
+    }
+    
+    let usuario;
+    try {
+        usuario = JSON.parse(tokenSalvo);
+    } catch(e) {
+        alert('Erro ao verificar usuário');
+        return;
+    }
+    
+    // Verificar se é o autor da ideia
+    const isAutor = usuario.id === ideiaId; // Isso precisa ser verificado melhor
+    
+    if (isAutor) {
+        alert('Você não pode reportar sua própria ideia!');
+        return;
+    }
+    
+    // Abrir modal
+    const modal = document.getElementById('reportModal');
+    if (!modal) {
+        console.error('Modal de report não encontrado');
+        alert('Erro ao abrir formulário de report');
+        return;
+    }
+    
+    document.getElementById('reportIdeiaId').value = ideiaId;
+    modal.style.display = 'flex';
+}
+
+function fecharReportModal() {
+    const modal = document.getElementById('reportModal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+    const form = document.getElementById('reportForm');
+    if (form) {
+        form.reset();
+    }
+}
+
+// ==========================================
+// FUNÇÕES DE REPORT DE IDEIA
+// ==========================================
+function abrirModalReport(ideiaId) {
+    if (!usuarioLogado) {
+        alert('Faça login para reportar');
+        return;
+    }
+    document.getElementById('reportIdeiaId').value = ideiaId;
+    document.getElementById('reportModal').style.display = 'flex';
+}
+
+async function enviarReportIdeia(event) {
+    if (event) event.preventDefault();
+    
+    const ideiaId = document.getElementById('reportIdeiaId').value;
+    const motivo = document.getElementById('reportMotivo').value;
+    const descricao = document.getElementById('reportDescricao').value;
+    
+    if (!motivo) {
+        mostrarNotificacao('Selecione um motivo para o report!', 'warning', '⚠️ Motivo Obrigatório');
+        return;
+    }
+    
+    showLoading(true);
+    
+    try {
+        const response = await fetch(`/ideias/${ideiaId}/reportar`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                usuarioId: usuarioLogado.id,
+                motivo: motivo,
+                descricao: descricao
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.sucesso) {
+            // ✅ NOTIFICAÇÃO DE SUCESSO
+            mostrarNotificacao(
+                'Sua denúncia foi enviada. A moderação irá analisar o caso.',
+                'info',
+                '📢 Denúncia Enviada'
+            );
+            
+            fecharModal('reportModal');
+            document.getElementById('reportForm').reset();
+        } else {
+            mostrarNotificacao(data.erro || 'Erro ao enviar denúncia', 'error', '❌ Falha no Report');
+        }
+    } catch (error) {
+        console.error('Erro:', error);
+        mostrarNotificacao('Erro de conexão ao enviar denúncia', 'error', '⚠️ Conexão Falhou');
+    } finally {
+        showLoading(false);
+    }
+}
+
+// ==========================================
+// FUNÇÕES DE REPORT DE COMENTÁRIO
+// ==========================================
+function abrirModalReportComentario(comentarioId) {
+    if (!usuarioLogado) {
+        alert('Faça login para reportar um comentário');
+        return;
+    }
+    
+    const modal = document.getElementById('modalReportComentario');
+    if (modal) {
+        document.getElementById('reportComentarioId').value = comentarioId;
+        document.getElementById('reportComentarioMotivo').value = '';
+        document.getElementById('reportComentarioDescricao').value = '';
+        modal.style.display = 'flex';
+    }
+}
+
+async function enviarReportComentario(event) {
+    if (event) event.preventDefault();
+    
+    const comentarioId = document.getElementById('reportComentarioId').value;
+    const motivo = document.getElementById('reportComentarioMotivo').value;
+    const descricao = document.getElementById('reportComentarioDescricao').value;
+    
+    if (!motivo) {
+        mostrarNotificacao('Selecione um motivo para o report!', 'warning', '⚠️ Motivo Obrigatório');
+        return;
+    }
+    
+    if (!usuarioLogado) {
+        mostrarNotificacao('Faça login para reportar', 'warning', '🔒 Login Necessário');
+        return;
+    }
+    
+    showLoading(true);
+    
+    try {
+        const response = await fetch(`/comentarios/${comentarioId}/reportar`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                usuarioId: usuarioLogado.id,
+                motivo: motivo,
+                descricao: descricao
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.sucesso) {
+            // ✅ NOTIFICAÇÃO DE SUCESSO
+            mostrarNotificacao(
+                'Denúncia de comentário enviada. A moderação irá analisar.',
+                'info',
+                '📢 Denúncia Enviada'
+            );
+            
+            fecharModal('modalReportComentario');
+            document.getElementById('reportComentarioMotivo').value = '';
+            document.getElementById('reportComentarioDescricao').value = '';
+        } else {
+            mostrarNotificacao(data.erro || 'Erro ao enviar denúncia', 'error', '❌ Falha no Report');
+        }
+    } catch (error) {
+        console.error('Erro:', error);
+        mostrarNotificacao('Erro de conexão ao enviar denúncia', 'error', '⚠️ Conexão Falhou');
+    } finally {
+        showLoading(false);
+    }
+}
+
+function fecharReportModal() {
+    const modal = document.getElementById('reportModal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+    document.getElementById('reportForm')?.reset();
+}
+
+function reportarIdeia(ideiaId) {
+    
+    const tokenSalvo = localStorage.getItem('ideaHubToken');
+    if (!tokenSalvo) {
+        alert('❌ Faça login para reportar uma ideia');
+        window.location.href = '../index.html';
+        return;
+    }
+    
+    let usuario;
+    try {
+        usuario = JSON.parse(tokenSalvo);
+        usuarioLogado = usuario;
+    } catch(e) {
+        alert('Erro ao identificar usuário');
+        return;
+    }
+    
+    const modal = document.getElementById('reportModal');
+    if (!modal) {
+        console.error('Modal não encontrado!');
+        alert('Erro: Modal de report não encontrado');
+        return;
+    }
+    
+    const ideiaIdInput = document.getElementById('reportIdeiaId');
+    if (ideiaIdInput) {
+        ideiaIdInput.value = ideiaId;
+    }
+    
+    modal.style.display = 'flex';
+}
+
+function fecharReportModal() {
+    const modal = document.getElementById('reportModal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+    const form = document.getElementById('reportForm');
+    if (form) {
+        form.reset();
+    }
+}
+
+    // ========== FUNÇÕES DE UTILIDADE ==========
+    function formatarData(data) {
+    if (!data) return 'Data inválida';
+    try {
+        return new Date(data).toLocaleString('pt-BR');
+    } catch (e) {
+        return data;
+    }
+}
+    
+    function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+    
+function showLoading(show) {
+    const loading = document.getElementById('loading');
+    if (loading) {
+        loading.style.display = show ? 'flex' : 'none';
+    }
+}
+
+function getStatusText(status) {
+    const map = { 
+        'pendente': '⏳ Pendente', 
+        'aprovada': '✅ Aprovada', 
+        'convertida': '🚀 Convertida', 
+        'rejeitada': '❌ Rejeitada' 
+    };
+    return map[status] || status;
+}
+
+    
+    // ========== FUNÇÕES DE AUTENTICAÇÃO ==========
+    async function verificarLogin() {
+    const tokenSalvo = localStorage.getItem('ideaHubToken');
+    if (tokenSalvo) {
+        try {
+            usuarioLogado = JSON.parse(tokenSalvo);
+            
+            const formComentario = document.getElementById('formComentario');
+            if (formComentario) {
+                formComentario.style.display = 'block';
+            }
+            return true;
+        } catch (e) {
+            console.error('Erro ao parsear token:', e);
+            return false;
+        }
+    }
+    
+    // Esconder formulário se não estiver logado
+    const formComentario = document.getElementById('formComentario');
+    if (formComentario) {
+        formComentario.style.display = 'none';
+    }
+    return false;
+}
+    
+    function abrirModalImagem(url) {
+    const modal = document.createElement('div');
+    modal.className = 'modal-imagem';
+    modal.innerHTML = `
+        <span class="modal-imagem-close">&times;</span>
+        <img src="${url}" alt="Imagem ampliada">
+    `;
+    document.body.appendChild(modal);
+    modal.style.display = 'flex';
+    
+    modal.querySelector('.modal-imagem-close').onclick = () => {
+        modal.remove();
+    };
+    
+    modal.onclick = (e) => {
+        if (e.target === modal) modal.remove();
+    };
+}
+
+function getCargoTexto(cargo) {
+    const cargos = {
+        'aluno': '👨‍🎓 Aluno',
+        'professor': '👨‍🏫 Professor',
+        'ti_staff': '🖥️ Equipe TI',
+        'gestor': '📊 Gestor'
+    };
+    return cargos[cargo] || cargo || 'Usuário';
+}
+
+// ========== US24 - ANEXOS EM COMENTÁRIOS ==========
+
+let anexoSelecionado = null;
+
+function abrirSeletorAnexo() {
+    const input = document.getElementById('anexoComentario');
+    if (input) input.click();
+}
+
+document.getElementById('anexoComentario')?.addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+        const maxSize = 5 * 1024 * 1024; // 5MB
+        const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'application/pdf'];
+        
+        if (file.size > maxSize) {
+            alert('❌ Arquivo muito grande! Máximo 5MB.');
+            this.value = '';
+            anexoSelecionado = null;
+            document.getElementById('nomeAnexoSelecionado').innerText = '';
+            return;
+        }
+        
+        if (!allowedTypes.includes(file.type)) {
+            alert('❌ Tipo de arquivo não suportado. Use imagens ou PDF.');
+            this.value = '';
+            anexoSelecionado = null;
+            document.getElementById('nomeAnexoSelecionado').innerText = '';
+            return;
+        }
+        
+        anexoSelecionado = file;
+        document.getElementById('nomeAnexoSelecionado').innerHTML = `<i class="fas fa-paperclip"></i> ${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+    }
+});
+
+async function carregarIdeia() {
+    if (!ideiaId) {
+        document.getElementById('ideiaContent').innerHTML = '<div class="error">Ideia não especificada</div>';
+        return;
+    }
+    
+    showLoading(true);
+    try {
+        const isAdmin = usuarioLogado && (usuarioLogado.cargo === 'gestor' || usuarioLogado.cargo === 'ti_staff');
+        const response = await fetch(`/ideias/${ideiaId}?isAdmin=${isAdmin}`);
+        const ideia = await response.json();
+        
+        if (!ideia || ideia.erro) {
+            document.getElementById('ideiaContent').innerHTML = '<div class="error">Ideia não encontrada</div>';
+            return;
+        }
+        
+        window.ideiaAtual = ideia;
+        
+        // ========== BUSCAR VERSÕES PARA INDICADOR DE EDIÇÃO ==========
+        let versaoIndicator = '';
+let totalVersoes = 0;
+let dataUltimaEdicao = '';
+
+try {
+    const versoesResponse = await fetch(`/ideias/${ideiaId}/versoes`);
+    if (versoesResponse.ok) {
+        const versoes = await versoesResponse.json();
+        if (versoes && versoes.length > 0) {
+            totalVersoes = versoes.length;
+            const ultimaVersao = versoes[0];
+            dataUltimaEdicao = formatarData(ultimaVersao.data_alteracao);
+            versaoIndicator = `<span class="versao-indicator" data-tooltip="Esta ideia foi editada ${totalVersoes} vez(es). Última edição: ${dataUltimaEdicao}">✏️ Editada (${totalVersoes})</span>`;
+        }
+    }
+} catch (err) {
+    console.log('Erro ao buscar versões:', err);
+}
+        // ===============================================================
+        
+        const isAdminUser = usuarioLogado && (usuarioLogado.cargo === 'gestor' || usuarioLogado.cargo === 'ti_staff');
+        const autorNome = isAdminUser ? ideia.autor_nome : (ideia.anonima ? 'Anônimo' : ideia.autor_nome);
+        const isAutor = usuarioLogado && usuarioLogado.id === ideia.id_usuario;
+        
+        // ========== CONTROLAR VISIBILIDADE DA ABA "HISTÓRICO" ==========
+        controlarVisibilidadeAbaHistorico();
+        // ==============================================================
+        
+        // Construir galeria de imagens (se houver)
+        let galeriaHTML = '';
+        if (ideia.imagens && ideia.imagens.length > 0) {
+            galeriaHTML = `
+                <div class="galeria-container">
+                    <div class="galeria-titulo">
+                        <i class="fas fa-images"></i> Galeria de Imagens (${ideia.imagens.length})
+                    </div>
+                    <div class="carrossel">
+                        <button class="carrossel-btn prev" onclick="mudarImagem(-1)">‹</button>
+                        <div class="carrossel-imagem" id="carrosselImagem">
+                            <img id="imagemAtual" src="${ideia.imagens[0].imagem_url}" alt="Imagem 1" onclick="abrirModalImagem(${JSON.stringify(ideia.imagens).replace(/"/g, '&quot;')}, 0)">
+                        </div>
+                        <button class="carrossel-btn next" onclick="mudarImagem(1)">›</button>
+                    </div>
+                    <div class="carrossel-indicadores" id="carrosselIndicadores">
+                        ${ideia.imagens.map((_, idx) => `<div class="indicador ${idx === 0 ? 'ativo' : ''}" onclick="irParaImagem(${idx})"></div>`).join('')}
+                    </div>
+                </div>
+            `;
+            window.imagensIdeia = ideia.imagens;
+            window.imagemAtualIndex = 0;
+        }
+
+// Controlar visibilidade da aba "Histórico" (apenas para admin)
+function controlarVisibilidadeAbaHistorico() {
+    const btnHistorico = document.querySelector('.tab-ideia-btn[onclick*="historico"]');
+    
+    // Verifica se o usuário está logado
+    if (!usuarioLogado) {
+        if (btnHistorico) btnHistorico.style.display = 'none';
+        return;
+    }
+    
+    const isAdmin = usuarioLogado.cargo === 'gestor' || usuarioLogado.cargo === 'ti_staff';
+    const isAutor = window.ideiaAtual && window.ideiaAtual.id_usuario === usuarioLogado.id;
+    
+    // Autor da ideia OU administrador podem ver o histórico
+    const podeVerHistorico = isAdmin || isAutor;
+    
+    if (btnHistorico) {
+        if (!podeVerHistorico) {
+            btnHistorico.style.display = 'none';
+            
+            // Se a aba ativa for histórico, voltar para comentários
+            const historicoSection = document.getElementById('historicoSection');
+            if (historicoSection && historicoSection.classList.contains('active')) {
+                mostrarAbaIdeia('comentarios');
+            }
+        } else {
+            btnHistorico.style.display = 'inline-flex';
+        }
+    } else {
+        console.warn('⚠️ Botão de histórico não encontrado no DOM');
+    }
+}
+
+// ==========================================
+// FUNÇÃO PARA DELETAR IDEIA
+// ==========================================
+async function deletarIdeia(ideiaId) {
+    if (!confirm('⚠️ Tem certeza que deseja deletar esta ideia?\n\nTodas as imagens, votos e comentários serão removidos permanentemente!')) {
+        return;
+    }
+    
+    if (!usuarioLogado) {
+        mostrarNotificacao('Faça login para deletar sua ideia.', 'warning', '🔒 Login Necessário');
+        return;
+    }
+    
+    showLoading(true);
+    
+    try {
+        const response = await fetch(`/ideias/${ideiaId}`, {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                usuarioId: usuarioLogado.id,
+                isAutor: true
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.sucesso) {
+            // ✅ NOTIFICAÇÃO DE SUCESSO
+            mostrarNotificacao(
+                'Sua ideia foi removida permanentemente do sistema.',
+                'warning',
+                '🗑️ Ideia Excluída'
+            );
+            
+            setTimeout(() => {
+                window.location.href = '../index.html';
+            }, 1500);
+        } else {
+            mostrarNotificacao(data.erro || 'Erro ao deletar ideia', 'error', '❌ Falha na Exclusão');
+        }
+    } catch (error) {
+        console.error('Erro:', error);
+        mostrarNotificacao('Erro de conexão ao deletar', 'error', '⚠️ Conexão Falhou');
+    } finally {
+        showLoading(false);
+    }
+}
+
+// ========== CONSTRUIR BOTÕES COM TAG DE AUTOR ==========
+let botoesHTML = '';
+
+// Tag de autor (minha ideia) - aparece mesmo se for anônima
+let autorTagHTML = '';
+if (isAutor) {
+    autorTagHTML = `
+        <div style="text-align: center; margin: 15px 0;">
+            <span class="autor-tag-detalhe">
+                <i class="fas fa-pen"></i> Você é o autor desta ideia
+            </span>
+        </div>
+    `;
+}
+
+// Botão de aprovar (apenas para admin)
+if (isAdminUser && ideia.status === 'pendente') {
+    botoesHTML += `<button onclick="aprovarIdeia(${ideia.id})" class="btn-aprovar">
+    <i class="fas fa-check-circle"></i> Aprovar
+</button>`;
+}
+
+// Botão de converter (apenas para admin)
+if (isAdminUser && ideia.status === 'aprovada') {
+    botoesHTML += `<button onclick="abrirConversao(${ideia.id})" class="btn-converter">
+    <i class="fas fa-project-diagram"></i> Converter
+</button>`;
+}
+
+// Botão de votar (apenas se NÃO for o autor)
+if (usuarioLogado && !isAutor) {
+    botoesHTML += `<button onclick="votar(${ideia.id})" class="btn-votar" id="votar-btn">
+    <i class="fas fa-thumbs-up"></i> Votar
+</button>`;
+}
+
+// Botão de reportar (apenas se NÃO for admin e NÃO for o autor)
+if (usuarioLogado && !isAdminUser && !isAutor) {
+    botoesHTML += `<button onclick="window.reportarIdeia(${ideia.id})" class="btn-report">
+    <i class="fas fa-flag"></i> Reportar
+</button>`;
+}
+
+// Botão de moderar (apenas para admin)
+if (isAdminUser) {
+    botoesHTML += `<button onclick="abrirModalModeracao(${ideia.id})" class="btn-moderar">
+    <i class="fas fa-gavel"></i> Moderar
+</button>`;
+}
+
+// Botão de deletar (apenas o autor)
+if (usuarioLogado && isAutor) {
+    botoesHTML += `<button onclick="deletarIdeia(${ideia.id})" class="btn-delete-ideia">
+        <i class="fas fa-trash-alt"></i> Deletar
+    </button>`;
+}
+
+let autorPerfilLink = '';
+if (!ideia.anonima && ideia.id_usuario) {
+    autorPerfilLink = `<a href="perfil.html?id=${ideia.id_usuario}" class="btn-perfil-autor" style="margin-left: 10px; font-size: 12px; background: #e2e8f0; padding: 2px 8px; border-radius: 20px; text-decoration: none; color: #2d3748;">
+        <i class="fas fa-user-circle"></i> Ver Perfil
+    </a>`;
+}
+// Dentro da construção dos botões, adicione:
+let editarButton = '';
+if (usuarioLogado && (isAutor || isAdminUser) && ideia.status !== 'convertida') {
+    editarButton = `<button onclick="abrirModalEditarIdeia()" class="btn-editar-ideia">
+        <i class="fas fa-edit"></i> Editar Ideia
+    </button>`;
+}
+        // ========== FIM DA CONSTRUÇÃO DOS BOTÕES ==========
+        
+        document.getElementById('ideiaContent').innerHTML = `
+    <div class="ideia-detalhe-card">
+        <div class="ideia-header" style="text-align: center;">
+            <h1 style="margin-bottom: 10px;">
+                ${escapeHtml(ideia.titulo)}
+            </h1>
+            <div style="display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; align-items: center;">
+                <span class="status-badge status-${ideia.status}">${getStatusText(ideia.status)}</span>
+                ${versaoIndicator}
+            </div>
+        </div>
+                
+                ${galeriaHTML}
+                
+                <div class="ideia-descricao" style="margin: 20px 0; line-height: 1.6; text-align: center;">
+                    <p>${escapeHtml(ideia.descricao)}</p>
+                </div>
+
+                <div class="ideia-meta-detalhe" style="display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 15px 0; border-top: 1px solid #e2e8f0; border-bottom: none;">
+                    <div class="meta-linha-central">
+                        <span class="meta-tag">
+                            <i class="fas fa-calendar-alt"></i> ${formatarData(ideia.data_publicacao)}
+                        </span>
+                        <span class="meta-tag">
+    <i class="fas fa-user"></i> ${escapeHtml(autorNome)} 
+    <span style="font-size: 11px; opacity: 0.8; margin-left: 4px;">(${getCargoTexto(ideia.autor_cargo)})</span>
+    ${autorPerfilLink}
+</span>
+                        <span class="meta-tag">
+                            <i class="fas fa-thumbs-up"></i> ${ideia.votos_count || 0} votos
+                        </span>
+                    </div>
+                    <div class="meta-linha-central">
+                        <span class="meta-tag">
+                            <i class="fas fa-images"></i> ${ideia.imagens?.length || 0} imagens
+                        </span>
+                        <span class="meta-tag">
+                            <i class="fas fa-comment"></i> ${ideia.total_comentarios || 0} comentários
+                        </span>
+                        <span class="meta-tag">
+                            <i class="fas fa-eye"></i> ${ideia.visualizacoes || 0} visualizações
+                        </span>
+                        <span class="meta-tag">
+                            <i class="fas fa-tag"></i> ${ideia.categoria_icone || '📁'} ${escapeHtml(ideia.categoria_nome)}
+                        </span>
+                        <span class="meta-tag">
+                            <i class="fas fa-map-marker-alt"></i> ${ideia.local_nome ? escapeHtml(ideia.local_nome) : 'Local não definido'}
+                        </span>
+                    </div>
+                </div>
+
+                ${autorTagHTML}
+                
+                <div class="ideia-actions" style="display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-top: 0; padding-top: 20px; border-top: 1px solid #e2e8f0;">
+    ${editarButton}
+    ${botoesHTML}
+</div>
+            </div>
+        `;
+        
+        if (usuarioLogado) {
+            await verificarVoto(ideiaId);
+        }
+        
+    } catch (error) {
+        console.error('Erro:', error);
+        document.getElementById('ideiaContent').innerHTML = '<div class="error">Erro ao carregar ideia</div>';
+    } finally {
+        showLoading(false);
+    }
+}
+
+// ========== FUNÇÕES DO CARROSSEL ==========
+function mudarImagem(direcao) {
+    if (!window.imagensIdeia || window.imagensIdeia.length === 0) return;
+    
+    const total = window.imagensIdeia.length;
+    let novoIndex = window.imagemAtualIndex + direcao;
+    
+    if (novoIndex < 0) novoIndex = total - 1;
+    if (novoIndex >= total) novoIndex = 0;
+    
+    irParaImagem(novoIndex);
+}
+
+function irParaImagem(index) {
+    if (!window.imagensIdeia || index >= window.imagensIdeia.length) return;
+    
+    window.imagemAtualIndex = index;
+    const imagem = window.imagensIdeia[index];
+    
+    // Atualizar imagem
+    const imgElement = document.getElementById('imagemAtual');
+    if (imgElement) {
+        imgElement.src = imagem.imagem_url;
+        imgElement.alt = `Imagem ${index + 1}`;
+    }
+    
+    // Atualizar indicadores
+    document.querySelectorAll('.indicador').forEach((ind, i) => {
+        if (i === index) {
+            ind.classList.add('ativo');
+        } else {
+            ind.classList.remove('ativo');
+        }
+    });
+}
+
+// ========== FUNÇÕES DO MODAL DE IMAGEM ==========
+let modalAtual = null;
+let modalImagens = [];
+let modalIndexAtual = 0;
+
+function abrirModalImagem(imagens, index) {
+    modalImagens = imagens;
+    modalIndexAtual = index;
+    
+    // Criar modal
+    modalAtual = document.createElement('div');
+    modalAtual.className = 'modal-imagem';
+    modalAtual.innerHTML = `
+        <div class="modal-imagem-content">
+            <span class="modal-imagem-close">&times;</span>
+            <button class="modal-imagem-nav prev">‹</button>
+            <img id="modalImagem" src="${imagens[index].imagem_url}" alt="Imagem ampliada">
+            <button class="modal-imagem-nav next">›</button>
+            <div class="modal-contador">${index + 1} / ${imagens.length}</div>
+        </div>
+    `;
+    
+    document.body.appendChild(modalAtual);
+    modalAtual.style.display = 'flex';
+    
+    // Usar addEventListener
+    const closeBtn = modalAtual.querySelector('.modal-imagem-close');
+    const prevBtn = modalAtual.querySelector('.prev');
+    const nextBtn = modalAtual.querySelector('.next');
+    
+    if (closeBtn) {
+        closeBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            fecharModalImagem();
+        });
+    }
+    
+    if (prevBtn) {
+        prevBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            mudarModalImagem(-1);
+        });
+    }
+    
+    if (nextBtn) {
+        nextBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            mudarModalImagem(1);
+        });
+    }
+    
+    modalAtual.addEventListener('click', (e) => {
+        if (e.target === modalAtual) {
+            fecharModalImagem();
+        }
+    });
+    
+    document.addEventListener('keydown', handleEscKey);
+}
+
+function mudarModalImagem(direcao) {
+    if (!modalImagens.length) return;
+    
+    let novoIndex = modalIndexAtual + direcao;
+    if (novoIndex < 0) novoIndex = modalImagens.length - 1;
+    if (novoIndex >= modalImagens.length) novoIndex = 0;
+    
+    modalIndexAtual = novoIndex;
+    
+    const modalImg = document.getElementById('modalImagem');
+    if (modalImg) {
+        modalImg.src = modalImagens[modalIndexAtual].imagem_url;
+    }
+    
+    const contador = document.querySelector('.modal-contador');
+    if (contador) {
+        contador.textContent = `${modalIndexAtual + 1} / ${modalImagens.length}`;
+    }
+}
+
+function fecharModalImagem() {
+    if (modalAtual) {
+        modalAtual.remove();
+        modalAtual = null;
+    }
+    document.removeEventListener('keydown', handleEscKey);
+}
+
+function handleEscKey(e) {
+    if (e.key === 'Escape' && modalAtual) {
+        fecharModalImagem();
+    }
+}
+
+let ideiaAtual = null;
+
+async function abrirModalEditarIdeia() {
+    try {
+        // Buscar dados atuais da ideia
+        const response = await fetch(`/ideias/${ideiaId}?isAdmin=true`);
+        ideiaAtual = await response.json();
+        
+        document.getElementById('editarIdeiaId').value = ideiaAtual.id;
+        document.getElementById('editarTitulo').value = ideiaAtual.titulo;
+        document.getElementById('editarDescricao').value = ideiaAtual.descricao;
+        
+        // Carregar categorias no select
+        const catResponse = await fetch('/categorias');
+        const categorias = await catResponse.json();
+        const selectCategoria = document.getElementById('editarCategoria');
+        selectCategoria.innerHTML = '<option value="">Selecione uma categoria</option>';
+        categorias.forEach(cat => {
+            const option = document.createElement('option');
+            option.value = cat.id;
+            option.textContent = `${cat.icone} ${cat.nome}`;
+            if (cat.id === ideiaAtual.categoria_id) option.selected = true;
+            selectCategoria.appendChild(option);
+        });
+        
+        document.getElementById('modalEditarIdeia').style.display = 'flex';
+    } catch (error) {
+        console.error('Erro ao carregar dados para edição:', error);
+        alert('Erro ao preparar edição');
+    }
+}
+
+document.getElementById('formEditarIdeia')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const ideiaId = document.getElementById('editarIdeiaId').value;
+    const titulo = document.getElementById('editarTitulo').value.trim();
+    const descricao = document.getElementById('editarDescricao').value.trim();
+    const categoria_id = document.getElementById('editarCategoria').value;
+    
+    if (!titulo || !descricao || !categoria_id) {
+        mostrarNotificacao('Preencha todos os campos!', 'warning', '⚠️ Campos Obrigatórios');
+        return;
+    }
+    
+    showLoading(true);
+    try {
+        const response = await fetch(`/ideias/${ideiaId}/editar`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                titulo,
+                descricao,
+                categoria_id: parseInt(categoria_id),
+                usuarioId: usuarioLogado.id
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.sucesso) {
+            // ✅ NOTIFICAÇÃO DE SUCESSO
+            mostrarNotificacao(
+                `Sua ideia foi atualizada para a versão ${data.versao}. O histórico foi salvo.`,
+                'success',
+                '✏️ Ideia Editada'
+            );
+            
+            fecharModal('modalEditarIdeia');
+            await carregarIdeia();
+        } else {
+            mostrarNotificacao(data.erro || 'Erro ao editar ideia', 'error', '❌ Falha na Edição');
+        }
+    } catch (error) {
+        console.error('Erro:', error);
+        mostrarNotificacao('Erro de conexão ao editar', 'error', '⚠️ Conexão Falhou');
+    } finally {
+        showLoading(false);
+    }
+});
+
+// ========== FUNÇÕES DE MODERAÇÃO ==========
+function abrirModalModeracao(ideiaId) {
+    
+    if (!usuarioLogado) {
+        alert('Faça login para moderar');
+        return;
+    }
+    
+    if (usuarioLogado.cargo !== 'gestor' && usuarioLogado.cargo !== 'ti_staff') {
+        alert('Acesso negado. Apenas administradores podem moderar.');
+        return;
+    }
+    
+    // Verificar se o elemento existe antes de tentar definir o valor
+    const ideiaIdInput = document.getElementById('moderacaoIdeiaId');
+    const modal = document.getElementById('modalModeracao');
+    
+    if (!ideiaIdInput) {
+        console.error('Elemento moderacaoIdeiaId não encontrado!');
+        alert('Erro ao abrir modal. Contate o administrador.');
+        return;
+    }
+    
+    if (!modal) {
+        console.error('Modal de moderação não encontrado!');
+        alert('Erro ao abrir modal. Contate o administrador.');
+        return;
+    }
+    
+    ideiaIdInput.value = ideiaId;
+    modal.style.display = 'flex';
+}
+
+function fecharModalModeracao() {
+    const modal = document.getElementById('modalModeracao');
+    const form = document.getElementById('formModeracao');
+    
+    if (modal) {
+        modal.style.display = 'none';
+    }
+    
+    if (form) {
+        form.reset();
+    }
+}
+// Configurar o formulário de moderação (colocar dentro do DOMContentLoaded)
+const formModeracao = document.getElementById('formModeracao');
+if (formModeracao) {
+    // Remover listeners antigos
+    const novoFormModeracao = formModeracao.cloneNode(true);
+    formModeracao.parentNode.replaceChild(novoFormModeracao, formModeracao);
+    
+    novoFormModeracao.addEventListener('submit', async function(event) {
+        event.preventDefault();
+        
+        const ideiaId = document.getElementById('moderacaoIdeiaId')?.value;
+        const motivo = document.getElementById('moderacaoMotivo')?.value;
+        const justificativa = document.getElementById('moderacaoJustificativa')?.value;
+        const acao = document.getElementById('moderacaoAcao')?.value;
+        
+        if (!motivo) {
+            mostrarNotificacao('Selecione um motivo para a moderação!', 'warning', '⚠️ Motivo Obrigatório');
+            return;
+        }
+        
+        if (!usuarioLogado) {
+            mostrarNotificacao('Faça login para moderar!', 'warning', '🔒 Login Necessário');
+            return;
+        }
+        
+        // Confirmar ação
+        const confirmMsg = acao === 'excluir' 
+            ? '⚠️ ATENÇÃO: Esta ação irá EXCLUIR PERMANENTEMENTE a ideia. Deseja continuar?'
+            : '⚠️ Confirmar advertência para este usuário?';
+            
+        if (!confirm(confirmMsg)) return;
+        
+        showLoading(true);
+        
+        try {
+            const response = await fetch(`/admin/moderar/ideia/${ideiaId}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    adminId: usuarioLogado.id,
+                    motivo: motivo,
+                    justificativa: justificativa,
+                    acao: acao
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (data.sucesso) {
+                // Notificação de sucesso
+                mostrarNotificacao(data.mensagem, 'success', acao === 'excluir' ? '🗑️ Ideia Excluída' : '⚠️ Advertência Aplicada');
+                
+                fecharModalModeracao();
+                
+                // Redirecionar ou recarregar
+                if (acao === 'excluir') {
+                    // Aguarda 1.5 segundos para mostrar a notificação e redireciona
+                    setTimeout(() => {
+                        window.location.href = '../index.html';
+                    }, 1500);
+                } else {
+                    // Recarregar a página para atualizar o status
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1500);
+                }
+            } else {
+                mostrarNotificacao(data.erro || '❌ Erro ao processar moderação', 'error', '❌ Falha na Moderação');
+            }
+        } catch (error) {
+            console.error('Erro:', error);
+            mostrarNotificacao('Erro de conexão ao processar moderação', 'error', '⚠️ Conexão Falhou');
+        } finally {
+            showLoading(false);
+        }
+    });
+}
+    function abrirModalReportComentario(comentarioId) {
+    if (!usuarioLogado) {
+        alert('Faça login para reportar um comentário');
+        return;
+    }
+    
+    const modal = document.getElementById('modalReportComentario');
+    if (modal) {
+        document.getElementById('reportComentarioId').value = comentarioId;
+        modal.style.display = 'flex';
+    }
+}
+
+    async function carregarComentarios() {
+    
+    if (!ideiaId) {
+        console.error('❌ ideiaId não definido');
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/ideias/${ideiaId}/comentarios`);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const comentarios = await response.json();
+        
+        const comentariosCount = document.getElementById('comentariosCount');
+        if (comentariosCount) comentariosCount.textContent = comentarios.length;
+        
+        const listaComentarios = document.getElementById('listaComentarios');
+        
+        if (!listaComentarios) {
+            console.error('Elemento listaComentarios não encontrado');
+            return;
+        }
+        
+        if (comentarios.length === 0) {
+            listaComentarios.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-comment-dots"></i>
+                    <p>Nenhum comentário ainda. Seja o primeiro a comentar!</p>
+                </div>
+            `;
+            return;
+        }
+        
+        // Buscar autor da ideia
+        let autorIdeiaId = null;
+        try {
+            const ideiaResponse = await fetch(`/ideias/${ideiaId}`);
+            const ideia = await ideiaResponse.json();
+            autorIdeiaId = ideia.id_usuario;
+        } catch (err) {
+            console.error('Erro ao buscar autor:', err);
+        }
+        
+        const isAdmin = usuarioLogado && (usuarioLogado.cargo === 'gestor' || usuarioLogado.cargo === 'ti_staff');
+        
+        listaComentarios.innerHTML = comentarios.map(com => {
+            const isAutorIdeia = autorIdeiaId === com.id_usuario;
+            const isAutorComentario = usuarioLogado && usuarioLogado.id === com.id_usuario;
+            
+            // ========== GERAR ESTRELA DO NÍVEL ==========
+            const nivel = com.autor_nivel || 1;
+            const estrelas = '⭐'.repeat(Math.min(nivel, 5)) + '☆'.repeat(Math.max(0, 5 - Math.min(nivel, 5)));
+            const nivelTexto = getNivelTexto(nivel);
+            
+            // ========== BOTÃO DE EXCLUIR ==========
+            const podeExcluir = usuarioLogado && (isAdmin || isAutorIdeia || isAutorComentario);
+            
+            let deleteButton = '';
+            if (podeExcluir) {
+                deleteButton = `
+                    <button onclick="deletarComentario(${com.id})" class="btn-delete-comentario" style="background: #dc3545; color: white; border: none; padding: 4px 10px; border-radius: 5px; cursor: pointer; font-size: 12px;">
+                        <i class="fas fa-trash-alt"></i> Excluir
+                    </button>
+                `;
+            }
+            
+            // ========== BOTÃO DE REPORTAR ==========
+            const podeReportar = usuarioLogado && !isAdmin && !isAutorComentario;
+            
+            let reportButton = '';
+            if (podeReportar) {
+                reportButton = `
+                    <button onclick="abrirModalReportComentario(${com.id})" class="btn-report-comentario" style="background: none; border: none; color: #dc3545; cursor: pointer; font-size: 12px; padding: 4px 8px; border-radius: 5px; display: inline-flex; align-items: center; gap: 4px;">
+                        <i class="fas fa-flag"></i> Reportar
+                    </button>
+                `;
+            }
+            
+            return `
+                <div class="comentario-card" data-id="${com.id}">
+                    <div class="comentario-header">
+                        <div class="comentario-autor">
+                            <strong><i class="fas fa-user-circle"></i> ${escapeHtml(com.autor_nome)}</strong>
+                            <a href="perfil.html?id=${com.id_usuario}" class="btn-perfil-comentario" style="margin-left: 8px; font-size: 12px; color: #667eea;">
+                                <i class="fas fa-external-link-alt"></i> Perfil
+                            </a>
+                            <span class="comentario-cargo">${getCargoTexto(com.autor_cargo)}</span>
+                            <!-- 🎯 NÍVEL DO USUÁRIO -->
+                            <span class="comentario-nivel" style="margin-left: 8px; background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 2px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px;">
+                                <i class="fas fa-star" style="font-size: 10px;"></i>
+                                Nível ${nivel} ${estrelas.substring(0, 3)}
+                            </span>
+                            ${isAutorIdeia ? '<span class="comentario-badge-autor" style="background: #dbeafe; padding: 2px 8px; border-radius: 12px; font-size: 11px; margin-left: 8px;">📌 Autor da Ideia</span>' : ''}
+                            ${isAutorComentario ? '<span class="comentario-badge-autor" style="background: #e2e8f0; padding: 2px 8px; border-radius: 12px; font-size: 11px; margin-left: 8px;">✏️ Você</span>' : ''}
+                        </div>
+                        <span class="comentario-data">${formatarData(com.data_comentario)}</span>
+                    </div>
+                    <div class="comentario-texto">
+                        <p>${escapeHtml(com.texto)}</p>
+                    </div>
+                    <div style="margin-top: 10px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+                        ${deleteButton}
+                        ${reportButton}
+                    </div>
+                </div>
+            `;
+        }).join('');
+        
+    } catch (error) {
+        console.error('❌ Erro ao carregar comentários:', error);
+        const listaComentarios = document.getElementById('listaComentarios');
+        if (listaComentarios) {
+            listaComentarios.innerHTML = `
+                <div class="error-state">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <p>Erro ao carregar comentários: ${error.message}</p>
+                    <button onclick="carregarComentarios()" class="btn-primary" style="margin-top: 15px;">Tentar novamente</button>
+                </div>
+            `;
+        }
+    }
+}
+
+// Função auxiliar para texto do nível
+function getNivelTexto(nivel) {
+    if (nivel <= 1) return 'Iniciante';
+    if (nivel <= 3) return 'Aprendiz';
+    if (nivel <= 5) return 'Colaborador';
+    if (nivel <= 7) return 'Especialista';
+    if (nivel <= 9) return 'Mestre';
+    return 'Lendário';
+}
+    
+    // ========== FUNÇÃO PARA DELETAR COMENTÁRIO ==========
+async function deletarComentario(comentarioId) {
+
+    if (!confirm('⚠️ Tem certeza que deseja excluir este comentário?')) {
+        return;
+    }
+    
+    if (!usuarioLogado) {
+        alert('❌ Faça login para excluir comentários.');
+        return;
+    }
+    
+    showLoading(true);
+    
+    try {
+        const response = await fetch(`/comentarios/${comentarioId}`, {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ usuarioId: usuarioLogado.id })
+        });
+        
+        const data = await response.json();
+        
+        if (data.sucesso) {
+            alert('✅ Comentário excluído!');
+            await carregarComentarios();
+        } else {
+            alert(data.erro || '❌ Erro ao excluir comentário');
+        }
+    } catch (error) {
+        console.error('Erro:', error);
+        alert('❌ Erro de conexão');
+    } finally {
+        showLoading(false);
+    }
+}
+
+ async function votar(ideiaId) {
+    if (!usuarioLogado) {
+        mostrarNotificacao('Faça login para votar!', 'warning', '🔒 Login Necessário');
+        return;
+    }
+    
+    const btnVotar = document.getElementById('votar-btn');
+    if (btnVotar && btnVotar.disabled) return;
+    
+    const estavaVotado = btnVotar ? btnVotar.classList.contains('votado') : false;
+    
+    if (btnVotar) {
+        btnVotar.disabled = true;
+        btnVotar.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processando...';
+    }
+    
+    showLoading(true);
+    
+    try {
+        const response = await fetch(`/ideias/${ideiaId}/votar`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ usuarioId: usuarioLogado.id })
+        });
+        
+        const data = await response.json();
+        
+        if (data.sucesso) {
+            const isAdmin = usuarioLogado.cargo === 'gestor' || usuarioLogado.cargo === 'ti_staff';
+            const ideiaResponse = await fetch(`/ideias/${ideiaId}?inc=false&isAdmin=${isAdmin}`);
+            const ideiaAtualizada = await ideiaResponse.json();
+            
+            const contadorVotos = document.querySelector('.meta-tag .fa-thumbs-up')?.parentElement;
+            if (contadorVotos) {
+                contadorVotos.innerHTML = `<i class="fas fa-thumbs-up"></i> ${ideiaAtualizada.votos_count || 0} votos`;
+            }
+            
+            if (data.acao === 'adicionado') {
+                btnVotar.innerHTML = '<i class="fas fa-heart"></i> Votado';
+                btnVotar.classList.add('votado');
+                
+                const icon = btnVotar.querySelector('i');
+                if (icon) {
+                    icon.style.animation = 'heartbeat 0.3s ease';
+                    setTimeout(() => {
+                        if (icon) icon.style.animation = '';
+                    }, 300);
+                }
+                
+                // ✅ NOTIFICAÇÃO DE SUCESSO
+                mostrarNotificacao(
+                    'Você apoiou esta ideia! O autor receberá pontos.',
+                    'success',
+                    'Voto Registrado'
+                );
+            } else {
+                btnVotar.innerHTML = '<i class="fas fa-thumbs-up"></i> Votar';
+                btnVotar.classList.remove('votado');
+                btnVotar.style.background = '';
+                
+                // ✅ NOTIFICAÇÃO DE REMOÇÃO
+                mostrarNotificacao(
+                    'Seu voto foi removido. Você pode votar novamente.',
+                    'info',
+                    'Voto Removido'
+                );
+            }
+        } else {
+            if (estavaVotado) {
+                btnVotar.innerHTML = '<i class="fas fa-heart"></i> Votado';
+                btnVotar.classList.add('votado');
+            } else {
+                btnVotar.innerHTML = '<i class="fas fa-thumbs-up"></i> Votar';
+                btnVotar.classList.remove('votado');
+            }
+            mostrarNotificacao(data.erro || 'Erro ao processar voto', 'error', '❌ Falha no Voto');
+        }
+    } catch (error) {
+        console.error('Erro:', error);
+        if (btnVotar) {
+            if (estavaVotado) {
+                btnVotar.innerHTML = '<i class="fas fa-heart"></i> Votado';
+                btnVotar.classList.add('votado');
+            } else {
+                btnVotar.innerHTML = '<i class="fas fa-thumbs-up"></i> Votar';
+                btnVotar.classList.remove('votado');
+            }
+        }
+        mostrarNotificacao('Erro de conexão ao votar', 'error', '⚠️ Conexão Falhou');
+    } finally {
+        showLoading(false);
+        if (btnVotar) {
+            btnVotar.disabled = false;
+        }
+    }
+}
+
+// Função auxiliar para notificações temporárias
+function mostrarNotificacaoTemporaria(mensagem, tipo) {
+    const notificacao = document.createElement('div');
+    notificacao.className = `notificacao-temporaria ${tipo}`;
+    notificacao.innerHTML = mensagem;
+    notificacao.style.cssText = `
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background: ${tipo === 'sucesso' ? '#dc3545' : '#17a2b8'};
+        color: white;
+        padding: 12px 20px;
+        border-radius: 8px;
+        z-index: 9999;
+        font-weight: 500;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        animation: slideInRight 0.3s ease, fadeOut 0.3s ease 2.7s;
+    `;
+    document.body.appendChild(notificacao);
+    setTimeout(() => {
+        notificacao.remove();
+    }, 3000);
+}
+
+// Adicionar animações CSS para a notificação
+const styleAnimations = document.createElement('style');
+styleAnimations.textContent = `
+    @keyframes slideInRight {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+    
+    @keyframes fadeOut {
+        from {
+            opacity: 1;
+        }
+        to {
+            opacity: 0;
+        }
+    }
+`;
+document.head.appendChild(styleAnimations);
+
+// Função auxiliar para notificações temporárias
+function mostrarNotificacaoTemporaria(mensagem, tipo) {
+    const notificacao = document.createElement('div');
+    notificacao.className = `notificacao-temporaria ${tipo}`;
+    notificacao.innerHTML = mensagem;
+    notificacao.style.cssText = `
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background: ${tipo === 'sucesso' ? '#28a745' : '#17a2b8'};
+        color: white;
+        padding: 12px 20px;
+        border-radius: 8px;
+        z-index: 9999;
+        animation: fadeInOut 3s ease;
+    `;
+    document.body.appendChild(notificacao);
+    setTimeout(() => {
+        notificacao.remove();
+    }, 3000);
+}
+    
+    async function verificarVoto(ideiaId) {
+        if (!usuarioLogado) return;
+        
+        try {
+            const response = await fetch(`/ideias/${ideiaId}/voto-usuario?usuarioId=${usuarioLogado.id}`);
+            const data = await response.json();
+            const btn = document.getElementById('votar-btn');
+            if (btn && data.votou) {
+                btn.innerHTML = '<i class="fa-regular fa-heart"></i> Votado';
+                btn.classList.add('votado');
+            }
+        } catch (error) {
+            console.error('Erro:', error);
+        }
+    }
+    
+    // ========== FUNÇÕES DE ADMIN ==========
+   async function aprovarIdeia(ideiaId) {
+    if (!confirm('Aprovar esta ideia? Ela poderá ser convertida em projeto posteriormente.')) {
+        return;
+    }
+    
+    showLoading(true);
+    try {
+        const response = await fetch(`/admin/ideias/${ideiaId}/aprovar`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ adminId: usuarioLogado.id })
+        });
+        
+        const data = await response.json();
+        
+        if (data.sucesso) {
+            // ✅ NOTIFICAÇÃO DE SUCESSO
+            mostrarNotificacao(
+                'Ideia aprovada! Agora pode ser convertida em projeto.',
+                'success',
+                '✅ Ideia Aprovada'
+            );
+            
+            await carregarIdeia();
+        } else {
+            mostrarNotificacao(data.erro || 'Erro ao aprovar ideia', 'error', '❌ Falha na Aprovação');
+        }
+    } catch (error) {
+        console.error('Erro:', error);
+        mostrarNotificacao('Erro de conexão ao aprovar', 'error', '⚠️ Conexão Falhou');
+    } finally {
+        showLoading(false);
+    }
+}
+    
+    function abrirConversao(ideiaId) {
+    
+    const modal = document.getElementById('conversaoModal');
+    if (!modal) {
+        console.error('Modal de conversão não encontrado!');
+        alert('Erro: Modal não encontrado');
+        return;
+    }
+    
+    // Preencher o ID da ideia
+    document.getElementById('conversaoIdeiaId').value = ideiaId;
+    
+    // Preencher nome do projeto com o título da ideia (sugestão)
+    const tituloIdeia = document.querySelector('h1')?.innerText || '';
+    document.getElementById('projetoNome').value = tituloIdeia;
+    
+    // Limpar outros campos
+    document.getElementById('projetoDescricao').value = '';
+    document.getElementById('projetoResponsavel').value = '';
+    document.getElementById('projetoDataInicio').value = '';
+    document.getElementById('projetoPrioridade').value = 'media';
+    
+    // Mostrar modal
+    modal.style.display = 'flex';
+}
+
+function fecharModalConversao() {
+    const modal = document.getElementById('conversaoModal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
+    async function enviarConversao(event) {
+        event.preventDefault();
+        
+        const ideiaId = document.getElementById('conversaoIdeiaId').value;
+        const nome = document.getElementById('projetoNome').value;
+        const descricao = document.getElementById('projetoDescricao').value;
+        const responsavel = document.getElementById('projetoResponsavel').value;
+        const prioridade = document.getElementById('projetoPrioridade').value;
+        
+        if (!nome) {
+            alert('Nome do projeto é obrigatório!');
+            return;
+        }
+        
+        showLoading(true);
+        try {
+            const response = await fetch(`/admin/ideias/${ideiaId}/converter`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    adminId: usuarioLogado.id,
+                    nome: nome,
+                    descricao: descricao,
+                    responsavel: responsavel,
+                    data_inicio: new Date().toISOString().split('T')[0],
+                    prioridade: prioridade
+                })
+            });
+            const data = await response.json();
+            
+            if (response.status === 401) {
+                alert('Sessão expirada. Faça login novamente.');
+                localStorage.removeItem('ideaHubToken');
+                window.location.href = '../index.html';
+                return;
+            }
+            
+            if (data.sucesso) {
+                alert('✅ Projeto criado com sucesso!');
+                fecharModal();
+                await carregarIdeia();
+            } else {
+                alert(data.erro || 'Erro ao converter ideia');
+            }
+        } catch (error) {
+            console.error('Erro:', error);
+            alert('Erro de conexão ao converter');
+        } finally {
+            showLoading(false);
+        }
+    }
+    
+    function fecharModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
+// ========== INICIALIZAÇÃO ==========
+document.addEventListener('DOMContentLoaded', async () => {
+    
+    // ==========================================
+    // 1. CONFIGURAÇÕES INICIAIS
+    // ==========================================
+    
+    // Atualizar o nome do usuário no mini header
+    atualizarUserInfo();
+    
+    // Verificar login do usuário
+    await verificarLogin();
+    
+    // ==========================================
+    // 2. CARREGAR CONTEÚDO PRINCIPAL
+    // ==========================================
+    
+    if (ideiaId) {
+        await carregarIdeia();
+        await carregarComentarios();
+
+        // Pequeno delay para garantir que o DOM foi atualizado
+        setTimeout(() => {
+            if (typeof controlarVisibilidadeAbaHistorico === 'function') {
+                controlarVisibilidadeAbaHistorico();
+            }
+        }, 200);
+
+    } else {
+        const ideiaContent = document.getElementById('ideiaContent');
+        if (ideiaContent) {
+            ideiaContent.innerHTML = '<div class="error">❌ Ideia não especificada</div>';
+        }
+    }
+    
+    // ==========================================
+    // 3. CONFIGURAR FORMULÁRIO DE CONVERSÃO
+    // ==========================================
+    const conversaoForm = document.getElementById('conversaoForm');
+    if (conversaoForm) {
+        // Remover listeners antigos para evitar duplicação
+        const novoConversaoForm = conversaoForm.cloneNode(true);
+        conversaoForm.parentNode.replaceChild(novoConversaoForm, conversaoForm);
+        
+        novoConversaoForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const ideiaId = document.getElementById('conversaoIdeiaId')?.value;
+            const nome = document.getElementById('projetoNome')?.value;
+            const descricao = document.getElementById('projetoDescricao')?.value;
+            const responsavel = document.getElementById('projetoResponsavel')?.value;
+            const data_inicio = document.getElementById('projetoDataInicio')?.value;
+            const prioridade = document.getElementById('projetoPrioridade')?.value;
+            
+            if (!nome) {
+                alert('❌ Nome do projeto é obrigatório!');
+                return;
+            }
+            
+            if (!usuarioLogado) {
+                alert('❌ Faça login para converter ideia!');
+                return;
+            }
+            
+            showLoading(true);
+            
+            try {
+                const response = await fetch(`/admin/ideias/${ideiaId}/converter`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        adminId: usuarioLogado.id,
+                        nome: nome,
+                        descricao: descricao,
+                        responsavel: responsavel,
+                        data_inicio: data_inicio,
+                        prioridade: prioridade
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.sucesso) {
+                    alert('✅ Projeto criado com sucesso!');
+                    fecharModalConversao();
+                    window.location.reload();
+                } else {
+                    alert(data.erro || '❌ Erro ao converter ideia');
+                }
+            } catch (error) {
+                console.error('Erro:', error);
+                alert('❌ Erro de conexão');
+            } finally {
+                showLoading(false);
+            }
+        });
+    }
+    
+    // ==========================================
+    // 4. CONFIGURAR FORMULÁRIO DE REPORT DE IDEIA
+    // ==========================================
+    const reportForm = document.getElementById('reportForm');
+    if (reportForm) {
+        // Remover listeners antigos
+        const novoReportForm = reportForm.cloneNode(true);
+        reportForm.parentNode.replaceChild(novoReportForm, reportForm);
+        
+        novoReportForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const ideiaId = document.getElementById('reportIdeiaId')?.value;
+            const motivo = document.getElementById('reportMotivo')?.value;
+            const descricao = document.getElementById('reportDescricao')?.value;
+            
+            if (!motivo) {
+                alert('❌ Selecione um motivo!');
+                return;
+            }
+            
+            // Buscar usuário logado
+            const tokenSalvo = localStorage.getItem('ideaHubToken');
+            if (!tokenSalvo) {
+                alert('❌ Faça login para reportar');
+                window.location.href = '../index.html';
+                return;
+            }
+            
+            let usuario;
+            try {
+                usuario = JSON.parse(tokenSalvo);
+            } catch(e) {
+                alert('❌ Erro ao identificar usuário');
+                return;
+            }
+            
+            showLoading(true);
+            
+            try {
+                const response = await fetch(`/ideias/${ideiaId}/reportar`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        usuarioId: usuario.id,
+                        motivo: motivo,
+                        descricao: descricao
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.sucesso) {
+                    alert('✅ Report enviado com sucesso!');
+                    fecharModal('reportModal');
+                    novoReportForm.reset();
+                } else {
+                    alert(data.erro || '❌ Erro ao enviar report');
+                }
+            } catch (error) {
+                console.error('Erro:', error);
+                alert('❌ Erro de conexão');
+            } finally {
+                showLoading(false);
+            }
+        });
+    }
+    
+    // ==========================================
+    // 5. CONFIGURAR FORMULÁRIO DE MODERAÇÃO
+    // ==========================================
+    const formModeracao = document.getElementById('formModeracao');
+    if (formModeracao) {
+        // Remover listeners antigos
+        const novoFormModeracao = formModeracao.cloneNode(true);
+        formModeracao.parentNode.replaceChild(novoFormModeracao, formModeracao);
+        
+        novoFormModeracao.addEventListener('submit', async function(event) {
+    event.preventDefault();
+    
+    const ideiaId = document.getElementById('moderacaoIdeiaId')?.value;
+    const motivo = document.getElementById('moderacaoMotivo')?.value;
+    const justificativa = document.getElementById('moderacaoJustificativa')?.value;
+    const acao = document.getElementById('moderacaoAcao')?.value;
+    
+    if (!motivo) {
+        mostrarNotificacao('Selecione um motivo para a moderação!', 'warning', '⚠️ Motivo Obrigatório');
+        return;
+    }
+    
+    if (!usuarioLogado) {
+        mostrarNotificacao('Faça login para moderar!', 'warning', '🔒 Login Necessário');
+        return;
+    }
+    
+    // Confirmar ação
+    const confirmMsg = acao === 'excluir' 
+        ? '⚠️ ATENÇÃO: Esta ação irá EXCLUIR PERMANENTEMENTE a ideia. Deseja continuar?'
+        : '⚠️ Confirmar advertência para este usuário?';
+        
+    if (!confirm(confirmMsg)) return;
+    
+    showLoading(true);
+    
+    try {
+        const response = await fetch(`/admin/moderar/ideia/${ideiaId}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                adminId: usuarioLogado.id,
+                motivo: motivo,
+                justificativa: justificativa,
+                acao: acao
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.sucesso) {
+            // ✅ NOTIFICAÇÃO DE SUCESSO
+            mostrarNotificacao(data.mensagem, 'success', acao === 'excluir' ? '🗑️ Ideia Excluída' : '⚠️ Advertência Aplicada');
+            
+            fecharModalModeracao();
+            
+            // ✅ REDIRECIONAR PARA O INDEX.HTML APÓS EXCLUSÃO
+            if (acao === 'excluir') {
+                setTimeout(() => {
+                    window.location.href = '../index.html';
+                }, 1500);
+            } else {
+                // Se foi apenas advertência, recarregar a página
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1500);
+            }
+        } else {
+            mostrarNotificacao(data.erro || '❌ Erro ao processar moderação', 'error', '❌ Falha na Moderação');
+        }
+    } catch (error) {
+        console.error('Erro:', error);
+        mostrarNotificacao('Erro de conexão ao processar moderação', 'error', '⚠️ Conexão Falhou');
+    } finally {
+        showLoading(false);
+    }
+        });
+    }
+    
+    // ==========================================
+    // 6. CONFIGURAR BOTÃO DE ENVIO DE COMENTÁRIO (CORRIGIDO)
+    // ==========================================
+    const btnEnviarComentario = document.getElementById('btnEnviarComentario');
+    if (btnEnviarComentario) {
+        // Remover listeners antigos clonando o botão
+        const novoBtnEnviar = btnEnviarComentario.cloneNode(true);
+        btnEnviarComentario.parentNode.replaceChild(novoBtnEnviar, btnEnviarComentario);
+        
+        // Adicionar o novo listener
+        novoBtnEnviar.addEventListener('click', function(e) {
+            e.preventDefault();
+            if (typeof enviarComentario === 'function') {
+                enviarComentario();
+            } else {
+                console.error('❌ Função enviarComentario não está definida!');
+                alert('Erro: Função de envio não encontrada. Recarregue a página.');
+            }
+        });
+        
+    } else {
+        console.error('❌ Botão btnEnviarComentario não encontrado no DOM!');
+    }
+    
+    // ==========================================
+    // 7. CONFIGURAR TECLA DE ATALHO (Ctrl+Enter) NO TEXTAREA
+    // ==========================================
+    const textareaComentario = document.getElementById('novoComentario');
+    if (textareaComentario) {
+        // Remover listener antigo se existir
+        const novoTextarea = textareaComentario.cloneNode(true);
+        textareaComentario.parentNode.replaceChild(novoTextarea, textareaComentario);
+        
+        novoTextarea.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.key === 'Enter') {
+                e.preventDefault();
+                if (typeof enviarComentario === 'function') {
+                    enviarComentario();
+                }
+            }
+        });
+    }
+    
+    // ==========================================
+    // 8. CONFIGURAR INPUT DE ANEXO
+    // ==========================================
+    const inputAnexo = document.getElementById('anexoComentario');
+    if (inputAnexo && !inputAnexo.hasAttribute('data-listener')) {
+        inputAnexo.setAttribute('data-listener', 'true');
+        inputAnexo.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const maxSize = 5 * 1024 * 1024;
+                const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'application/pdf'];
+                
+                if (file.size > maxSize) {
+                    alert('❌ Arquivo muito grande! Máximo 5MB.');
+                    this.value = '';
+                    if (typeof anexoSelecionado !== 'undefined') window.anexoSelecionado = null;
+                    const nomeAnexo = document.getElementById('nomeAnexoSelecionado');
+                    if (nomeAnexo) nomeAnexo.innerHTML = '';
+                    return;
+                }
+                
+                if (!allowedTypes.includes(file.type)) {
+                    alert('❌ Tipo de arquivo não suportado. Use imagens ou PDF.');
+                    this.value = '';
+                    if (typeof anexoSelecionado !== 'undefined') window.anexoSelecionado = null;
+                    const nomeAnexo = document.getElementById('nomeAnexoSelecionado');
+                    if (nomeAnexo) nomeAnexo.innerHTML = '';
+                    return;
+                }
+                
+                if (typeof anexoSelecionado !== 'undefined') {
+                    window.anexoSelecionado = file;
+                    const nomeAnexo = document.getElementById('nomeAnexoSelecionado');
+                    if (nomeAnexo) {
+                        nomeAnexo.innerHTML = `<i class="fas fa-paperclip"></i> ${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+                    }
+                }
+            }
+        });
+    }
+    
+    // ==========================================
+    // 9. CONFIGURAR BOTÃO DE ABRIR ANEXO
+    // ==========================================
+    const btnAnexo = document.getElementById('btnAnexoComentario');
+    if (btnAnexo) {
+        const novoBtnAnexo = btnAnexo.cloneNode(true);
+        btnAnexo.parentNode.replaceChild(novoBtnAnexo, btnAnexo);
+        
+        novoBtnAnexo.addEventListener('click', function() {
+            const input = document.getElementById('anexoComentario');
+            if (input) input.click();
+        });
+    }
+});
+
+// Limpeza de estado ao sair da página
+window.addEventListener('beforeunload', function() {
+    if (typeof enviandoComentario !== 'undefined') {
+        enviandoComentario = false;
+    }
+});
+
+function mostrarAvisoAdvertenciaExistente(data) {
+    // Criar um modal de aviso customizado
+    const modalAviso = document.createElement('div');
+    modalAviso.className = 'modal-aviso';
+    modalAviso.innerHTML = `
+        <div class="modal-aviso-content">
+            <div class="modal-aviso-header">
+                <i class="fas fa-exclamation-triangle"></i>
+                <h3>Ideia já Advertida</h3>
+            </div>
+            <div class="modal-aviso-body">
+                <p>${data.mensagem}</p>
+                <div class="aviso-detalhes">
+                    <p><strong>📅 Data da advertência:</strong> ${data.dataAdvertencia}</p>
+                    <p><strong>💡 O que fazer?</strong></p>
+                    <ul>
+                        <li>Esta ideia já foi notificada ao autor</li>
+                        <li>Se o problema persistir, considere outras ações</li>
+                        <li>Você pode excluir a ideia manualmente se necessário</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="modal-aviso-footer">
+                <button onclick="fecharModalAviso()" class="btn-primary">Entendi</button>
+                <button onclick="abrirExclusaoManual()" class="btn-excluir">Excluir Ideia Manualmente</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modalAviso);
+    modalAviso.style.display = 'flex';
+}
+
+function fecharModalAviso() {
+    const modal = document.querySelector('.modal-aviso');
+    if (modal) modal.remove();
+}
+
+function abrirExclusaoManual() {
+    if (confirm('⚠️ Deseja excluir esta ideia manualmente? O autor será notificado.')) {
+        const ideiaId = document.getElementById('moderacaoIdeiaId').value;
+        deletarIdeia(ideiaId);
+        fecharModalAviso();
+        fecharModalModeracao();
+    }
+}
+
+    function voltarParaHome() {
+    window.location.href = '../index.html';
+}
+
+function fazerLogout() {
+    localStorage.removeItem('ideaHubToken');
+    window.location.href = '../index.html';
+}
+
+function atualizarUserInfo() {
+    const tokenSalvo = localStorage.getItem('ideaHubToken');
+    if (tokenSalvo) {
+        try {
+            const user = JSON.parse(tokenSalvo);
+            const userNameSpan = document.getElementById('userNameMini');
+            if (userNameSpan) {
+                userNameSpan.textContent = user.nome;
+            }
+        } catch (e) {
+            console.error('Erro:', e);
+        }
+    }
+// ========== FUNÇÕES DE REPORT ==========
+
+
+// Configurar o formulário de report - usando a função correta
+document.getElementById('reportForm')?.addEventListener('submit', enviarReportIdeia);
+}
+
+</script>
+</body>
+</html>

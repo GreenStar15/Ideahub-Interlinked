@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IdeaHub - Compartilhe Ideias</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+    <div class="logo-container">
+    <img src="IdeaHub nobg.png" alt="IdeaHub Logo" class="logo">
+    </div>
+
+    <div class="container">
+        <h1>IdeaHub</h1>
+        <p class="subtitle">Compartilhe de forma interligada suas ideias e inspire outras pessoas!</p>
+        
+        <!-- Área de Login/Cadastro -->
+        <div id="authArea" class="auth-area">
+            <div class="tab-buttons">
+                <button id="btnLoginTab" class="tab-btn active" onclick="showLogin()">Login</button>
+                <button id="btnCadastroTab" class="tab-btn" onclick="showCadastro()">Cadastro</button>
+            </div>
+            
+            <!-- Formulário de Login -->
+            <div id="loginForm" class="form-container">
+                <h3>Login</h3>
+                <div class="form-group">
+                    <input type="email" id="loginEmail" placeholder="Email">
+                </div>
+                <div class="form-group">
+                    <input type="password" id="loginSenha" placeholder="Senha">
+                </div>
+                <button onclick="fazerLogin()" class="btn-primary">Entrar</button>
+            </div>
+            
+            <!-- Formulário de Cadastro -->
+            <div id="cadastroForm" class="form-container" style="display: none;">
+                <h3>Cadastro</h3>
+                <div class="form-group">
+                    <input type="text" id="cadastroNome" placeholder="Nome completo">
+                </div>
+                <div class="form-group">
+                    <input type="email" id="cadastroEmail" placeholder="Email">
+                </div>
+                <div class="form-group">
+                    <input type="password" id="cadastroSenha" placeholder="Senha">
+                </div>
+                <button onclick="fazerCadastro()" class="btn-primary">Cadastrar</button>
+            </div>
+        </div>
+        
+        <!-- Área do Usuário Logado -->
+        <div id="ideiaArea" style="display: none;">
+            <div class="user-info">
+                <span>👋 Olá, <strong id="userName"></strong>!</span>
+                <button onclick="fazerLogout()" class="btn-logout">Sair</button>
+            </div>
+            
+            <h3>✨ Criar Nova Ideia</h3>
+            <div class="form-group">
+                <input type="text" id="titulo" placeholder="Título da ideia">
+            </div>
+            <div class="form-group">
+                <textarea id="descricao" rows="4" placeholder="Descreva sua ideia..."></textarea>
+            </div>
+            <div class="form-group">
+                <input type="text" id="categoria" placeholder="Categoria (ex: Tecnologia, Educação, Saúde)">
+            </div>
+            <div class="form-group checkbox-group">
+                <label>
+                    <input type="checkbox" id="anonima"> Publicar como anônimo
+                </label>
+            </div>
+            <button onclick="enviarIdeia()" class="btn-primary">📤 Publicar Ideia</button>
+        </div>
+        
+        <!-- Mensagens de Alerta -->
+        <div id="alert" class="alert"></div>
+        
+        <!-- Minhas Ideias -->
+        <div id="minhasIdeiasArea" style="display: none;">
+            <h3>📝 Minhas Ideias</h3>
+            <div id="minhasIdeias" class="ideias-grid"></div>
+        </div>
+        
+        <!-- Todas as Ideias -->
+        <h3>🌟 Ideias da Comunidade</h3>
+        <div id="todasIdeias" class="ideias-grid"></div>
+        
+        <div id="loading" class="loading">
+            <div class="spinner"></div>
+            <p>Carregando...</p>
+        </div>
+    </div>
+    
+    <script src="script.js"></script>
+</body>
+</html>

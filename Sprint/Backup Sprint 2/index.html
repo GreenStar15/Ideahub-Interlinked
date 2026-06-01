@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IdeaHub - Compartilhe Ideias</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="logo-container">
+    <img src="IdeaHub nobg.png" alt="IdeaHub Logo" class="logo">
+    </div>
+
+    <div class="container">
+        <h1>💡 IdeaHub</h1>
+        <p class="subtitle">Compartilhe de forma interligada suas ideias e inspire outras pessoas!</p>
+        
+        <!-- Área de Login/Cadastro -->
+        <div id="authArea" class="auth-area">
+            <div class="tab-buttons">
+                <button id="btnLoginTab" class="tab-btn active" onclick="showLogin()">Login</button>
+                <button id="btnCadastroTab" class="tab-btn" onclick="showCadastro()">Cadastro</button>
+            </div>
+            
+            <div id="loginForm" class="form-container">
+                <h3>Login</h3>
+                <div class="form-group">
+                    <input type="email" id="loginEmail" placeholder="Email">
+                </div>
+                <div class="form-group">
+                    <input type="password" id="loginSenha" placeholder="Senha">
+                </div>
+                <button onclick="fazerLogin()" class="btn-primary">Entrar</button>
+            </div>
+            
+            <div id="cadastroForm" class="form-container" style="display: none;">
+                <h3>Cadastro</h3>
+                <div class="form-group">
+                    <input type="text" id="cadastroNome" placeholder="Nome completo">
+                </div>
+                <div class="form-group">
+                    <input type="email" id="cadastroEmail" placeholder="Email">
+                </div>
+                <div class="form-group">
+                    <input type="password" id="cadastroSenha" placeholder="Senha (mínimo 6 caracteres)">
+                </div>
+                <div class="form-group">
+                    <select id="cadastroCargo" class="filter-select">
+                        <option value="aluno">👨‍🎓 Aluno</option>
+                        <option value="professor">👨‍🏫 Professor</option>
+                    </select>
+                </div>
+                <button onclick="fazerCadastro()" class="btn-primary">Cadastrar</button>
+            </div>
+        </div>
+        
+        <!-- Notificações -->
+        <div id="notificacaoArea" class="notificacao-area" style="display: none;">
+            <div class="notificacao-header">
+                <i class="fas fa-bell"></i> Notificações
+                <span id="notificacaoBadge" class="badge">0</span>
+            </div>
+            <div id="listaNotificacoes" class="lista-notificacoes"></div>
+        </div>
+        
+        <!-- Área de Busca -->
+        <div id="buscaArea" class="busca-area" style="display: none;">
+            <div class="search-bar">
+                <input type="text" id="searchInput" placeholder="🔍 Buscar ideias por título, descrição..." class="search-input">
+                <button onclick="buscarIdeias()" class="btn-primary">Buscar</button>
+            </div>
+            <div class="filters">
+                <select id="categoriaFilter" class="filter-select" onchange="buscarIdeias()">
+                    <option value="todos">📌 Todas as categorias</option>
+                </select>
+                <select id="orderBy" class="filter-select" onchange="mudarOrdenacao()">
+                    <option value="votos">🔥 Mais votados</option>
+                    <option value="data">🕒 Mais recentes</option>
+                </select>
+                <button onclick="limparFiltros()" class="btn-clear">Limpar filtros</button>
+            </div>
+        </div>
+        
+        <!-- Área do Usuário Logado -->
+        <div id="ideiaArea" style="display: none;">
+            <div class="user-info">
+                <div>
+                    <span>👋 Olá, <strong id="userName"></strong>!</span>
+                    <span id="userCargoBadge" class="cargo-badge"></span>
+                </div>
+                <div class="user-actions">
+                    <a href="pages/admin.html" id="adminLink" class="btn-admin" style="display: none;">
+                        <i class="fas fa-chart-line"></i> Admin
+                    </a>
+                    <a href="pages/projetos.html" id="projetosLink" class="btn-projetos" style="display: none;">
+                        <i class="fas fa-project-diagram"></i> Projetos
+                    </a>
+                    <button onclick="fazerLogout()" class="btn-logout">Sair</button>
+                </div>
+            </div>
+            
+            <h3>✨ Criar Nova Ideia</h3>
+            <div class="form-group">
+                <input type="text" id="titulo" placeholder="Título da ideia">
+            </div>
+            <div class="form-group">
+                <textarea id="descricao" rows="4" placeholder="Descreva sua ideia em detalhes..."></textarea>
+            </div>
+            <div class="form-group">
+                <select id="categoriaCadastro" class="filter-select">
+                    <option value="">🔽 Selecione uma categoria</option>
+                </select>
+            </div>
+            <div class="form-group checkbox-group">
+                <label>
+                    <input type="checkbox" id="anonima"> Publicar como anônimo
+                </label>
+            </div>
+            <button onclick="enviarIdeia()" class="btn-primary">📤 Publicar Ideia</button>
+        </div>
+        
+        <!-- Mensagens de Alerta -->
+        <div id="alert" class="alert"></div>
+        
+        <!-- Minhas Ideias -->
+        <div id="minhasIdeiasArea" style="display: none;">
+            <h3>📝 Minhas Ideias</h3>
+            <div id="minhasIdeias" class="ideias-grid"></div>
+        </div>
+        
+        <!-- Todas as Ideias -->
+        <h3>🌟 Ideias da Comunidade</h3>
+        <div id="resultadoInfo" class="resultado-info"></div>
+        <div id="todasIdeias" class="ideias-grid"></div>
+        <div id="paginacao" class="pagination"></div>
+        
+        <!-- Loading -->
+        <div id="loading" class="loading">
+            <div class="spinner"></div>
+            <p>Carregando...</p>
+        </div>
+    </div>
+    
+    <script src="script.js"></script>
+</body>
+</html>

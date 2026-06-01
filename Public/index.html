@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IdeaHub - Compartilhe Ideias</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="logo-container">
+    <img src="IdeaHub nobg.png" alt="IdeaHub Logo" class="logo">
+    </div>
+
+    <div class="container">
+        <h1>💡<i> IdeaHub Interlinked</i></h1>
+        <p class="subtitle">Compartilhe de forma interligada suas ideias e inspire outras pessoas!</p>
+
+        <!-- Links centralizados -->
+    <div style="display: flex; justify-content: center; gap: 30px; margin-top: 20px; flex-wrap: wrap;">
+        <a href="pages/politica-privacidade.html" style="color: #667eea; text-decoration: none; font-size: 14px;">
+            <i class="fas fa-shield-alt"></i> Política de Privacidade
+        </a>
+        <a href="pages/termos-uso.html" style="color: #667eea; text-decoration: none; font-size: 14px;">
+            <i class="fas fa-file-contract"></i> Termos de Uso
+        </a>
+        <a href="pages/creditos.html" style="color: #667eea; text-decoration: none; font-size: 14px;">
+            <i class="fas fa-users"></i> Créditos
+        </a>
+    </div>
+<br>
+        <!-- Área de Login/Cadastro -->
+        <div id="authArea" class="auth-area">
+            <div class="tab-buttons">
+                <button id="btnLoginTab" class="tab-btn active" onclick="showLogin()">Login</button>
+                <button id="btnCadastroTab" class="tab-btn" onclick="showCadastro()">Cadastro</button>
+            </div>
+            
+            <div id="loginForm" class="form-container">
+                <h3>Login</h3>
+                <div class="form-group">
+                    <input type="email" id="loginEmail" placeholder="Email">
+                </div>
+                <div class="form-group">
+                    <input type="password" id="loginSenha" placeholder="Senha">
+                </div>
+                <button onclick="fazerLogin()" class="btn-primary">Entrar</button>
+            </div>
+            
+            <div id="cadastroForm" class="form-container" style="display: none;">
+                <h3>Cadastro</h3>
+                <div class="form-group">
+                    <input type="text" id="cadastroNome" placeholder="Nome completo">
+                </div>
+                <div class="form-group">
+                    <input type="email" id="cadastroEmail" placeholder="Email">
+                </div>
+                <div class="form-group">
+                    <input type="password" id="cadastroSenha" placeholder="Senha (mínimo 6 caracteres)">
+                </div>
+                <div class="form-group">
+                    <select id="cadastroCargo" class="filter-select">
+                        <option value="aluno">👨‍🎓 Aluno</option>
+                        <option value="professor">👨‍🏫 Professor</option>
+                    </select>
+                </div>
+                <button onclick="fazerCadastro()" class="btn-primary">Cadastrar</button>
+            </div>
+        </div>
+   
+                <!-- Área do Usuário Logado -->
+        <div id="ideiaArea" style="display: none;">
+            <div class="user-info">
+                <div>
+                    <span>👋 Olá, <strong id="userName"></strong>!</span>
+                    <span id="userCargoBadge" class="cargo-badge"></span>
+                </div>
+                <div class="user-actions">
+    <a href="pages/perfil.html" class="btn-perfil">
+        <i class="fas fa-user-circle"></i> Meu Perfil
+    </a>
+    <a href="pages/admin.html" id="adminLink" class="btn-admin" style="display: none;">
+        <i class="fas fa-chart-line"></i> Admin
+    </a>
+    <a href="pages/projetos.html" id="projetosLink" class="btn-projetos" style="display: none;">
+        <i class="fas fa-project-diagram"></i> Projetos
+    </a>
+    <button onclick="limparSessao()" id="limparSessaoBtn" class="btn-limpar" style="display: none;">
+        <i class="fas fa-trash"></i> Limpar Sessão
+    </button>
+    <button onclick="fazerLogout()" class="btn-logout">Sair</button>
+</div>
+            </div>
+            
+                    <!-- Mensagens de Alerta -->
+        <div id="alert" class="alert"></div>
+
+        
+<!-- Notificações -->
+<div id="notificacaoArea" class="notificacao-area" style="display: none;">
+    <div class="notificacao-header">
+        <div class="notificacao-header-left">
+            <i class="fas fa-bell"></i> Notificações
+            <span id="notificacaoBadge" class="badge">0</span>
+        </div>
+        <div class="notificacao-header-right">
+            <button onclick="marcarTodasNotificacoesLidas()" class="btn-marcar-lidas" title="Marcar todas como lidas">
+                <i class="fas fa-check-double"></i> Marcar todas
+            </button>
+            <button onclick="limparTodasNotificacoes()" class="btn-limpar-notificacoes" title="Limpar todas">
+                <i class="fas fa-trash-alt"></i> Limpar todas
+            </button>
+        </div>
+    </div>
+    <div id="listaNotificacoes" class="lista-notificacoes"></div>
+</div>
+
+<div class="notificacao-header-right" style="display: flex; align-items: center; gap: 10px;">
+    <button id="btnNotificacaoEmail" class="btn-email-notificacao" onclick="toggleNotificacoesEmail()" title="Ativar/Desativar notificações por e-mail">
+        <i class="fas fa-envelope"></i> <span id="statusEmailIcon">📧 Ativado</span>
+    </button>
+    <button onclick="marcarTodasNotificacoesLidas()" class="btn-marcar-lidas" title="Marcar todas como lidas">
+        <i class="fas fa-check-double"></i> Marcar todas
+    </button>
+    <button onclick="limparTodasNotificacoes()" class="btn-limpar-notificacoes" title="Limpar todas">
+        <i class="fas fa-trash-alt"></i> Limpar todas
+    </button>
+</div>
+
+<!-- ========== DASHBOARD PESSOAL ========== -->
+<div id="dashboardPessoal" class="dashboard-pessoal-section" style="display: none;">
+    <div class="dashboard-header">
+        <h3><i class="fas fa-chart-line"></i> Meu Dashboard de Inovação</h3>
+        <div class="dashboard-periodo">
+            <select id="dashboardPeriodo" onchange="carregarDashboardPessoal()" class="filter-select">
+                <option value="6">Últimos 6 meses</option>
+                <option value="12" selected>Últimos 12 meses</option>
+                <option value="24">Últimos 24 meses</option>
+            </select>
+        </div>
+    </div>
+    
+    <div class="dashboard-cards">
+        <div class="dashboard-card-mini">
+            <div class="card-icon"><i class="fas fa-lightbulb"></i></div>
+            <div class="card-info">
+                <span class="card-value" id="totalIdeiasUser">0</span>
+                <span class="card-label">Total de Ideias</span>
+            </div>
+        </div>
+        <div class="dashboard-card-mini">
+            <div class="card-icon"><i class="fas fa-check-circle"></i></div>
+            <div class="card-info">
+                <span class="card-value" id="ideiasAprovadasUser">0</span>
+                <span class="card-label">Aprovadas</span>
+            </div>
+        </div>
+        <div class="dashboard-card-mini">
+            <div class="card-icon"><i class="fas fa-rocket"></i></div>
+            <div class="card-info">
+                <span class="card-value" id="ideiasConvertidasUser">0</span>
+                <span class="card-label">Convertidas</span>
+            </div>
+        </div>
+        <div class="dashboard-card-mini">
+            <div class="card-icon"><i class="fas fa-thumbs-up"></i></div>
+            <div class="card-info">
+                <span class="card-value" id="votosRecebidosUser">0</span>
+                <span class="card-label">Votos Recebidos</span>
+            </div>
+        </div>
+        <div class="dashboard-card-mini">
+            <div class="card-icon"><i class="fas fa-comment"></i></div>
+            <div class="card-info">
+                <span class="card-value" id="comentariosFeitosUser">0</span>
+                <span class="card-label">Comentários</span>
+            </div>
+        </div>
+        <div class="dashboard-card-mini">
+            <div class="card-icon"><i class="fas fa-star"></i></div>
+            <div class="card-info">
+                <span class="card-value" id="pontosUser">0</span>
+                <span class="card-label">Pontos</span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="dashboard-chart-container">
+        <canvas id="graficoEvolucaoIdeias" width="400" height="200"></canvas>
+    </div>
+    
+    <div class="dashboard-sugestoes">
+        <h4><i class="fas fa-lightbulb"></i> Sugestões para você</h4>
+        <div id="sugestoesPersonalizadas" class="sugestoes-list"></div>
+    </div>
+</div>
+
+<!-- ========== SEÇÃO DE CONQUISTAS ========== -->
+<!-- Minhas Conquistas -->
+<div id="conquistasSection" class="conquistas-section" style="display: none; background: #f8fafc; border-radius: 15px; padding: 20px; margin: 20px 0; border: 1px solid #e2e8f0;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
+        <h3 style="margin: 0; color: #2d3748;"><i class="fas fa-trophy"></i> Minhas Conquistas</h3>
+        <div style="display: flex; gap: 15px;">
+            <span style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 8px 16px; border-radius: 30px; font-weight: 600; font-size: 14px; display: inline-flex; align-items: center; gap: 6px;">
+                <i class="fas fa-star"></i> <span id="pontosTotais">0</span> pontos
+            </span>
+            <span style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 8px 16px; border-radius: 30px; font-weight: 600; font-size: 14px; display: inline-flex; align-items: center; gap: 6px;">
+                <i class="fas fa-chart-line"></i> Nível <span id="nivelUsuario">1</span>
+            </span>
+        </div>
+    </div>
+    <div id="conquistasList" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 15px;">
+        <div style="text-align: center; padding: 40px; color: #a0aec0;">Carregando conquistas...</div>
+    </div>
+</div>
+
+<!-- Conquistas Disponíveis -->
+<div id="conquistasDisponiveisSection" class="conquistas-disponiveis-section" style="display: none;">
+    <div class="conquistas-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+        <div>
+            <h3 style="margin: 0;"><i class="fas fa-trophy"></i> Conquistas Disponíveis</h3>
+            <p class="conquistas-subtitle" style="margin: 5px 0 0 0; font-size: 13px; color: #718096;">Complete os desafios para desbloquear conquistas e ganhar pontos!</p>
+        </div>
+        <button id="btnMinimizarConquistas" class="btn-minimizar" onclick="toggleConquistasDisponiveis()" style="background: none; border: none; font-size: 20px; cursor: pointer; color: #667eea;">
+            <i class="fas fa-minus-circle"></i>
+        </button>
+    </div>
+    <div id="conquistasDisponiveisContent" class="conquistas-disponiveis-content">
+        <div id="conquistasDisponiveisList" class="conquistas-grid">
+            <div class="loading">Carregando conquistas disponíveis...</div>
+        </div>
+    </div>
+</div>
+
+<!-- Botão para abrir galeria -->
+<button onclick="abrirGaleriaTemplates()" class="btn-secundario">
+    <i class="fas fa-copy"></i> Usar Template
+</button>
+
+<!-- Modal da galeria de templates -->
+<div id="modalTemplates" class="modal" style="display: none;">
+    <div class="modal-content" style="max-width: 800px;">
+        <div class="modal-header">
+            <h3>📋 Escolha um Template</h3>
+            <span onclick="fecharModal('modalTemplates')" class="modal-close">&times;</span>
+        </div>
+        <div id="listaTemplates" style="max-height: 500px; overflow-y: auto; padding: 10px;">
+            <p>Carregando templates...</p>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de pré-visualização do template -->
+<div id="modalPrevisualizacao" class="modal" style="display: none;">
+    <div class="modal-content" style="max-width: 600px;">
+        <div class="modal-header">
+            <h3>🔍 Pré-visualização do Template</h3>
+            <span onclick="fecharModal('modalPrevisualizacao')" class="modal-close">&times;</span>
+        </div>
+        <div id="previewContent"></div>
+        <div style="margin-top: 20px; text-align: right;">
+            <button onclick="aplicarTemplateAtual()" class="btn-primary">Usar este template</button>
+        </div>
+    </div>
+</div>
+
+<!-- Seção de regras éticas -->
+<div class="regras-eticas">
+    <h4><i class="fas fa-shield-alt"></i> Regras Mínimas de Ética para Submissão</h4>
+    <ul>
+        <li><i class="fas fa-check-circle"></i> As ideias devem respeitar a legislação vigente e os valores institucionais.</li>
+        <li><i class="fas fa-check-circle"></i> Não é permitido conteúdo difamatório, discriminatório ou ofensivo.</li>
+        <li><i class="fas fa-check-circle"></i> Ideias com spam, publicidade ou autopromoção serão removidas.</li>
+        <li><i class="fas fa-check-circle"></i> Respeite a propriedade intelectual – não copie ideias de terceiros.</li>
+        <li><i class="fas fa-check-circle"></i> Seja construtivo: foque em soluções, não apenas em críticas.</li>
+    </ul>
+</div>
+
+            <h3>🌟 Criar Nova Ideia</h3>
+            <div class="form-group">
+                <input type="text" id="titulo" placeholder="Título da ideia">
+            </div>
+            <div class="form-group">
+    
+    <button type="button" id="btnAdicionarImagem" class="btn-adicionar-imagem">
+        <i class="fas fa-plus-circle"></i> Adicionar Imagem
+    </button>
+    
+    <div id="imagensContainer" class="imagens-grid">
+        <!-- Imagens serão adicionadas dinamicamente -->
+    </div>
+    
+    <div id="contadorImagens" class="contador-imagens">
+        <span><i class="fas fa-images"></i> <span id="contadorAtual">0</span>/10 imagens adicionadas</span>
+        <span id="avisoTamanho" class="aviso-tamanho" style="display: none;">
+            <i class="fas fa-info-circle"></i> ⚠️ Atenção: Cada imagem deve ter no máximo 5MB
+        </span>
+    </div>
+</div>
+            <div class="form-group">
+                <textarea id="descricao" rows="4" placeholder="Descreva sua ideia em detalhes..."></textarea>
+            </div>
+            <div class="form-group">
+                <select id="categoriaCadastro" class="filter-select">
+                    <option value="">🔽 Selecione uma categoria</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <select id="localCadastro" class="filter-select">
+                   <option value="">📍 Selecione um local (opcional)</option>
+                </select>
+            </div>
+            <div class="form-group checkbox-group">
+                <label>
+                    <input type="checkbox" id="anonima"> Publicar como anônimo
+                </label>
+            </div>
+            <button onclick="enviarIdeia()" class="btn-primary">📤 Publicar Ideia</button>
+        </div>
+
+        <!-- Área de Busca -->
+        <div id="buscaArea" class="busca-area" style="display: none;">
+            <div class="search-bar">
+                <input type="text" id="searchInput" placeholder="🔍 Buscar ideias por título, descrição..." class="search-input">
+                <button onclick="buscarIdeias()" class="btn-primary">Buscar</button>
+            </div>
+            <div class="filters">
+                <select id="categoriaFilter" class="filter-select" onchange="buscarIdeias()">
+                    <option value="todos">📌 Todas as categorias</option>
+                </select>
+                <select id="localFilter" class="filter-select" onchange="buscarIdeias()">
+                    <option value="todos">📍 Todos os locais</option>
+                </select>
+                <select id="orderBy" class="filter-select" onchange="mudarOrdenacao()">
+                    <option value="votos">🔥 Mais votados</option>
+                    <option value="data">🕒 Mais recentes</option>
+                    <option value="aprovadas">✅ Aprovadas</option>
+                    <option value="convertidas">🚀 Convertidas em Projetos</option>
+                </select>
+                <button onclick="limparFiltros()" class="btn-clear">Limpar filtros</button>
+            </div>
+        </div>
+
+        <!-- Botões de Filtro de Visualização -->
+<div class="filtro-visualizacao">
+    <button onclick="filtrarVisualizacao('ambas')" id="btnAmbas" class="btn-filtro ativo">
+        <i class="fas fa-layer-group"></i> Ambas
+    </button>
+    <button onclick="filtrarVisualizacao('minhas')" id="btnMinhas" class="btn-filtro">
+        <i class="fas fa-user"></i> Minhas Ideias
+    </button>
+    <button onclick="filtrarVisualizacao('comunidade')" id="btnComunidade" class="btn-filtro">
+        <i class="fas fa-globe"></i> Ideias da Comunidade
+    </button>
+</div>
+
+<!-- Minhas Ideias -->
+<div id="minhasIdeiasArea" style="display: none;">
+    <h3>👤 Minhas Ideias</h3>
+    <div id="minhasIdeias" class="ideias-grid"></div>
+    <!-- Paginação para Minhas Ideias -->
+    <div id="paginacaoMinhasIdeias" class="pagination" style="margin-top: 20px;"></div>
+</div>
+
+<!-- Divisória -->
+<div style="display: flex; align-items: center; gap: 20px; margin: 30px 0;">
+    <div style="flex: 1; height: 1px; background: #e2e8f0;"></div>
+    <span style="color: #a0aec0; font-size: 13px; text-transform: uppercase; letter-spacing: 2px;">✦</span>
+    <div style="flex: 1; height: 1px; background: #e2e8f0;"></div>
+</div>
+
+<!-- Todas as Ideias -->
+<div class="todas-ideias-header">
+    <h3>🌐 Ideias da Comunidade</h3>
+</div>
+<div id="todasIdeias" class="ideias-grid"></div>
+<!-- Paginação para Ideias da Comunidade -->
+<div id="paginacaoTodasIdeias" class="pagination" style="margin-top: 20px;"></div>
+    
+    <script src="script.js"></script>
+</body>
+</html>
