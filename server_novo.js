@@ -34,7 +34,8 @@ app.use(cors());
 // 3. CRIAR APP E CONFIGURAR MIDDLEWARES BÁSICOS
 // ==========================================
 const app = express();
-const port = 3000;
+// ✅ CORRETO - Usa a porta que o Render define
+const port = process.env.PORT || 3000;
 
 app.use(express.json());
 app.use(express.static('public'));
@@ -4426,8 +4427,17 @@ app.get('/pages/:page.html', (req, res) => {
     res.sendFile(path.join(__dirname, 'Public', 'pages', `${page}.html`));
 });
 
-// ... (suas outras rotas aqui)
-app.listen(port, () => {
+pool.connect((err, client, release) => {
+    if (err) {
+        console.error('❌ Erro ao conectar ao PostgreSQL:', err.message);
+        // Não encerre o servidor, apenas registre o erro
+        return;
+    }
+    console.log('✅ Conectado ao PostgreSQL!');
+    release();
+});
+
+app.listen(port, '0.0.0.0', () => {
     console.log(`🚀 Servidor rodando em http://localhost:${port}`);
 });
 
