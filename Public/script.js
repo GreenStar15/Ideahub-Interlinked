@@ -1119,6 +1119,18 @@ async function fazerLogin() {
             const todasIdeiasHeader = document.querySelector('.todas-ideias-header');
             if (todasIdeiasHeader) todasIdeiasHeader.style.display = 'block';
             
+            // Mostrar paginação
+const paginacaoTodasIdeias = document.getElementById('paginacaoTodasIdeias');
+const paginacaoMinhasIdeias = document.getElementById('paginacaoMinhasIdeias');
+if (paginacaoTodasIdeias) paginacaoTodasIdeias.style.display = 'block';
+if (paginacaoMinhasIdeias) paginacaoMinhasIdeias.style.display = 'block';
+
+// Esconder mensagens de login
+const mensagemMinhasIdeias = document.getElementById('mensagemMinhasIdeias');
+const mensagemTodasIdeias = document.getElementById('mensagemTodasIdeias');
+if (mensagemMinhasIdeias) mensagemMinhasIdeias.style.display = 'none';
+if (mensagemTodasIdeias) mensagemTodasIdeias.style.display = 'none';
+
             // Mostrar conquistas
             const conquistasSection = document.getElementById('conquistasSection');
             const conquistasDisponiveisSection = document.getElementById('conquistasDisponiveisSection');
@@ -1240,34 +1252,23 @@ function fazerLogout() {
     if (categoriaFilter) categoriaFilter.value = 'todos';
     if (orderBy) orderBy.value = 'votos';
     
-    // Mostrar mensagens de login
-    const mensagemMinhasIdeias = document.getElementById('mensagemMinhasIdeias');
-    const mensagemTodasIdeias = document.getElementById('mensagemTodasIdeias');
-    
-    if (mensagemMinhasIdeias) {
-        mensagemMinhasIdeias.style.display = 'block';
-        mensagemMinhasIdeias.innerHTML = `
-            <i class="fas fa-lock" style="font-size: 48px; color: #667eea; margin-bottom: 15px;"></i>
-            <h3 style="color: #2d3748;">🔒 Acesso Restrito</h3>
-            <p style="color: #4a5568;">Faça <strong>login</strong> ou <strong>cadastre-se</strong> para ver suas ideias!</p>
-            <button onclick="document.getElementById('loginEmail').focus()" class="btn-primary" style="margin-top: 10px;">
-                <i class="fas fa-sign-in-alt"></i> Ir para Login
-            </button>
-        `;
-    }
-    
-    if (mensagemTodasIdeias) {
-        mensagemTodasIdeias.style.display = 'block';
-        mensagemTodasIdeias.innerHTML = `
-            <i class="fas fa-lightbulb" style="font-size: 64px; color: #667eea; margin-bottom: 20px;"></i>
-            <h2 style="color: #2d3748;">💡 Compartilhe suas ideias!</h2>
-            <p style="color: #4a5568;">Faça login ou cadastre-se para ver as ideias da comunidade!</p>
-            <div style="margin-top: 25px; display: flex; gap: 15px; justify-content: center;">
-                <button onclick="showLogin()" class="btn-primary">Login</button>
-                <button onclick="showCadastro()" class="btn-secundario">Cadastre-se</button>
-            </div>
-        `;
-    }
+    // Esconder paginação
+const paginacaoTodasIdeias = document.getElementById('paginacaoTodasIdeias');
+const paginacaoMinhasIdeias = document.getElementById('paginacaoMinhasIdeias');
+if (paginacaoTodasIdeias) paginacaoTodasIdeias.style.display = 'none';
+if (paginacaoMinhasIdeias) paginacaoMinhasIdeias.style.display = 'none';
+
+// Mostrar mensagens de login
+const mensagemMinhasIdeias = document.getElementById('mensagemMinhasIdeias');
+const mensagemTodasIdeias = document.getElementById('mensagemTodasIdeias');
+if (mensagemMinhasIdeias) {
+    mensagemMinhasIdeias.style.display = 'block';
+    mensagemMinhasIdeias.innerHTML = `<h3 style="color: #2d3748;">🔒 Acesso Restrito</h3><p style="color: #4a5568;">Faça login para ver suas ideias!</p>`;
+}
+if (mensagemTodasIdeias) {
+    mensagemTodasIdeias.style.display = 'block';
+    mensagemTodasIdeias.innerHTML = `<h2 style="color: #2d3748;">🔒 Acesso Restrito</h2><p style="color: #4a5568;">Faça login para ver as ideias da comunidade!</p>`;
+}
 }
 
 // ==================== CATEGORIAS ====================
@@ -2705,6 +2706,8 @@ function forcarModoVisitante() {
     const conquistasDisponiveisSection = document.getElementById('conquistasDisponiveisSection');
     const dashboardPessoal = document.getElementById('dashboardPessoal');
     const filtroVisualizacao = document.querySelector('.filtro-visualizacao');
+    const paginacaoTodasIdeias = document.getElementById('paginacaoTodasIdeias');
+    const paginacaoMinhasIdeias = document.getElementById('paginacaoMinhasIdeias');
     
     if (authArea) authArea.style.display = 'block';
     if (ideiaArea) ideiaArea.style.display = 'none';
@@ -2717,12 +2720,28 @@ function forcarModoVisitante() {
     if (conquistasDisponiveisSection) conquistasDisponiveisSection.style.display = 'none';
     if (dashboardPessoal) dashboardPessoal.style.display = 'none';
     if (filtroVisualizacao) filtroVisualizacao.style.display = 'none';
+    if (paginacaoTodasIdeias) paginacaoTodasIdeias.style.display = 'none';
+    if (paginacaoMinhasIdeias) paginacaoMinhasIdeias.style.display = 'none';
     
-    // Mostrar mensagens de login
+    // Mostrar mensagens de login (sem botões)
     const mensagemMinhasIdeias = document.getElementById('mensagemMinhasIdeias');
     const mensagemTodasIdeias = document.getElementById('mensagemTodasIdeias');
-    if (mensagemMinhasIdeias) mensagemMinhasIdeias.style.display = 'block';
-    if (mensagemTodasIdeias) mensagemTodasIdeias.style.display = 'block';
+    
+    if (mensagemMinhasIdeias) {
+        mensagemMinhasIdeias.style.display = 'block';
+        mensagemMinhasIdeias.innerHTML = `
+            <h3 style="color: #2d3748;">🔒 Acesso Restrito</h3>
+            <p style="color: #4a5568;">Faça login para ver suas ideias!</p>
+        `;
+    }
+    
+    if (mensagemTodasIdeias) {
+        mensagemTodasIdeias.style.display = 'block';
+        mensagemTodasIdeias.innerHTML = `
+            <h2 style="color: #2d3748;">🔒 Acesso Restrito</h2>
+            <p style="color: #4a5568;">Faça login para ver as ideias da comunidade!</p>
+        `;
+    }
     
     // Recarregar apenas categorias (para o select de cadastro)
     carregarCategorias();

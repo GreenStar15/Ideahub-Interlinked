@@ -6144,3 +6144,57 @@ textarea {
         font-size: 12px;
     }
 }
+
+/* Mensagem de login */
+.login-message {
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    border-radius: 20px;
+    text-align: center;
+    padding: 60px 40px;
+    margin: 20px 0;
+    animation: fadeIn 0.5s ease;
+}
+
+.login-message i {
+    font-size: 64px;
+    color: #667eea;
+    margin-bottom: 20px;
+}
+
+.login-message h2 {
+    color: #2d3748;
+    margin-bottom: 15px;
+}
+
+.login-message p {
+    color: #4a5568;
+    max-width: 500px;
+    margin: 0 auto 25px auto;
+}
+
+.login-message .btn-primary,
+.login-message .btn-secundario {
+    margin: 0 8px;
+}
+
+.btn-secundario {
+    background: white;
+    color: #667eea;
+    border: 2px solid #667eea;
+    padding: 10px 20px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s;
+}
+
+.btn-secundario:hover {
+    background: #667eea;
+    color: white;
+    transform: translateY(-2px);
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
