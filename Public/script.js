@@ -1186,6 +1186,11 @@ async function fazerLogin() {
             if (paginacaoTodas) paginacaoTodas.style.display = 'block';
             if (paginacaoMinhas) paginacaoMinhas.style.display = 'block';
             
+            // ========== PASSO 2: MOSTRAR FILTRO DE VISUALIZAÇÃO ==========
+            const filtroVisualizacao = document.querySelector('.filtro-visualizacao');
+            if (filtroVisualizacao) filtroVisualizacao.style.display = 'flex';
+            // ============================================================
+            
             // Carregar dados
             await carregarCategorias();
             await carregarLocais();
@@ -1204,8 +1209,9 @@ async function fazerLogin() {
             // Exibir mensagem de erro personalizada do servidor
             showMessage(data.mensagem || data.erro || '❌ Email ou senha incorretos!', 'error');
             
-            // Limpar o campo de senha por segurança
+            // ========== PASSO 3: LIMPAR O CAMPO DE SENHA ==========
             document.getElementById('loginSenha').value = '';
+            // ======================================================
         }
     } catch (error) {
         console.error('❌ Erro no login:', error);
@@ -1296,22 +1302,27 @@ function fazerLogout() {
     if (orderBy) orderBy.value = 'votos';
     
     // Esconder paginação
-const paginacaoTodasIdeias = document.getElementById('paginacaoTodasIdeias');
-const paginacaoMinhasIdeias = document.getElementById('paginacaoMinhasIdeias');
-if (paginacaoTodasIdeias) paginacaoTodasIdeias.style.display = 'none';
-if (paginacaoMinhasIdeias) paginacaoMinhasIdeias.style.display = 'none';
-
-// Mostrar mensagens de login
-const mensagemMinhasIdeias = document.getElementById('mensagemMinhasIdeias');
-const mensagemTodasIdeias = document.getElementById('mensagemTodasIdeias');
-if (mensagemMinhasIdeias) {
-    mensagemMinhasIdeias.style.display = 'block';
-    mensagemMinhasIdeias.innerHTML = `<h3 style="color: #2d3748;">🔒 Acesso Restrito</h3><p style="color: #4a5568;">Faça login para ver suas ideias!</p>`;
-}
-if (mensagemTodasIdeias) {
-    mensagemTodasIdeias.style.display = 'block';
-    mensagemTodasIdeias.innerHTML = `<h2 style="color: #2d3748;">🔒 Acesso Restrito</h2><p style="color: #4a5568;">Faça login para ver as ideias da comunidade!</p>`;
-}
+    const paginacaoTodasIdeias = document.getElementById('paginacaoTodasIdeias');
+    const paginacaoMinhasIdeias = document.getElementById('paginacaoMinhasIdeias');
+    if (paginacaoTodasIdeias) paginacaoTodasIdeias.style.display = 'none';
+    if (paginacaoMinhasIdeias) paginacaoMinhasIdeias.style.display = 'none';
+    
+    // ========== PASSO 4: ESCONDER FILTRO DE VISUALIZAÇÃO ==========
+    const filtroVisualizacao = document.querySelector('.filtro-visualizacao');
+    if (filtroVisualizacao) filtroVisualizacao.style.display = 'none';
+    // ===============================================================
+    
+    // Mostrar mensagens de login
+    const mensagemMinhasIdeias = document.getElementById('mensagemMinhasIdeias');
+    const mensagemTodasIdeias = document.getElementById('mensagemTodasIdeias');
+    if (mensagemMinhasIdeias) {
+        mensagemMinhasIdeias.style.display = 'block';
+        mensagemMinhasIdeias.innerHTML = `<h3 style="color: #2d3748;">🔒 Acesso Restrito</h3><p style="color: #4a5568;">Faça login para ver suas ideias!</p>`;
+    }
+    if (mensagemTodasIdeias) {
+        mensagemTodasIdeias.style.display = 'block';
+        mensagemTodasIdeias.innerHTML = `<h2 style="color: #2d3748;">🔒 Acesso Restrito</h2><p style="color: #4a5568;">Faça login para ver as ideias da comunidade!</p>`;
+    }
 }
 
 // ==================== CATEGORIAS ====================
@@ -2748,9 +2759,11 @@ function forcarModoVisitante() {
     const conquistasSection = document.getElementById('conquistasSection');
     const conquistasDisponiveisSection = document.getElementById('conquistasDisponiveisSection');
     const dashboardPessoal = document.getElementById('dashboardPessoal');
-    const filtroVisualizacao = document.querySelector('.filtro-visualizacao');
     const paginacaoTodasIdeias = document.getElementById('paginacaoTodasIdeias');
     const paginacaoMinhasIdeias = document.getElementById('paginacaoMinhasIdeias');
+    
+    // ❌ REMOVA ESTA LINHA - NÃO ESCONDER O FILTRO
+    // const filtroVisualizacao = document.querySelector('.filtro-visualizacao');
     
     if (authArea) authArea.style.display = 'block';
     if (ideiaArea) ideiaArea.style.display = 'none';
@@ -2762,11 +2775,10 @@ function forcarModoVisitante() {
     if (conquistasSection) conquistasSection.style.display = 'none';
     if (conquistasDisponiveisSection) conquistasDisponiveisSection.style.display = 'none';
     if (dashboardPessoal) dashboardPessoal.style.display = 'none';
-    if (filtroVisualizacao) filtroVisualizacao.style.display = 'none';
     if (paginacaoTodasIdeias) paginacaoTodasIdeias.style.display = 'none';
     if (paginacaoMinhasIdeias) paginacaoMinhasIdeias.style.display = 'none';
     
-    // Mostrar mensagens de login (sem botões)
+    // Mostrar mensagens de login
     const mensagemMinhasIdeias = document.getElementById('mensagemMinhasIdeias');
     const mensagemTodasIdeias = document.getElementById('mensagemTodasIdeias');
     
@@ -2786,7 +2798,7 @@ function forcarModoVisitante() {
         `;
     }
     
-    // Recarregar apenas categorias (para o select de cadastro)
+    // Recarregar apenas categorias
     carregarCategorias();
 }
 
