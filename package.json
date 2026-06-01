@@ -7,12 +7,16 @@
     "start": "node server_novo.js",
     "dev": "nodemon server_novo.js"
   },
-  "keywords": ["ideias", "inovacao", "gamificacao"],
+  "keywords": [
+    "ideias",
+    "inovacao",
+    "gamificacao"
+  ],
   "author": "Gabriel Borba & Equipe",
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
-    "cors": "^2.8.5",
+    "cors": "^2.8.6",
     "dotenv": "^16.3.1",
     "express": "^4.18.2",
     "express-session": "^1.17.3",

@@ -20,6 +20,15 @@ const path = require('path');
 const fs = require('fs');
 const nodemailer = require('nodemailer');
 const cron = require('node-cron');
+const cors = require('cors');
+
+// Permite requisições de qualquer origem (mais simples para teste)
+app.use(cors());
+
+// Ou, para mais segurança, permita apenas as origens do seu site:
+// app.use(cors({
+//     origin: 'https://ideahub-interlinked.onrender.com'
+// }));
 
 // ==========================================
 // 3. CRIAR APP E CONFIGURAR MIDDLEWARES BÁSICOS
