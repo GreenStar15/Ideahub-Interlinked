@@ -137,44 +137,50 @@ function escapeHtml(text) {
 // ========== FILTRO DE VISUALIZAÇÃO ==========
 let visualizacaoAtual = 'ambas'; // 'ambas', 'minhas', 'comunidade'
 
+// ========== FUNÇÃO PARA FILTRAR VISUALIZAÇÃO ==========
 function filtrarVisualizacao(tipo) {
     if (!usuarioLogado) {
-        showMessage('Faça login para ver as ideias!', 'warning');
+        mostrarMensagemLogin('todasIdeias', 'mensagemTodasIdeias', 'grid');
         return;
     }
+    
     visualizacaoAtual = tipo;
     
-    // Atualizar classes dos botões
     const btnAmbas = document.getElementById('btnAmbas');
     const btnMinhas = document.getElementById('btnMinhas');
     const btnComunidade = document.getElementById('btnComunidade');
     
-    btnAmbas.classList.remove('ativo');
-    btnMinhas.classList.remove('ativo');
-    btnComunidade.classList.remove('ativo');
+    if (btnAmbas) btnAmbas.classList.remove('ativo');
+    if (btnMinhas) btnMinhas.classList.remove('ativo');
+    if (btnComunidade) btnComunidade.classList.remove('ativo');
     
     if (tipo === 'ambas') {
-        btnAmbas.classList.add('ativo');
-        document.getElementById('minhasIdeiasArea').style.display = 'block';
-        document.querySelector('.todas-ideias-header').style.display = 'block';
-        document.getElementById('todasIdeias').style.display = 'grid';
-    } else if (tipo === 'minhas') {
-        btnMinhas.classList.add('ativo');
-        document.getElementById('minhasIdeiasArea').style.display = 'block';
-        document.querySelector('.todas-ideias-header').style.display = 'none';
-        document.getElementById('todasIdeias').style.display = 'none';
-    } else if (tipo === 'comunidade') {
-        btnComunidade.classList.add('ativo');
-        document.getElementById('minhasIdeiasArea').style.display = 'none';
-        document.querySelector('.todas-ideias-header').style.display = 'block';
-        document.getElementById('todasIdeias').style.display = 'grid';
-    }
-    
-    // Recarregar os dados se necessário
-    if (tipo === 'minhas' || tipo === 'ambas') {
+        if (btnAmbas) btnAmbas.classList.add('ativo');
+        const minhasArea = document.getElementById('minhasIdeiasArea');
+        const header = document.querySelector('.todas-ideias-header');
+        const todas = document.getElementById('todasIdeias');
+        if (minhasArea) minhasArea.style.display = 'block';
+        if (header) header.style.display = 'block';
+        if (todas) todas.style.display = 'grid';
         carregarMinhasIdeias();
-    }
-    if (tipo === 'comunidade' || tipo === 'ambas') {
+        carregarIdeias();
+    } else if (tipo === 'minhas') {
+        if (btnMinhas) btnMinhas.classList.add('ativo');
+        const minhasArea = document.getElementById('minhasIdeiasArea');
+        const header = document.querySelector('.todas-ideias-header');
+        const todas = document.getElementById('todasIdeias');
+        if (minhasArea) minhasArea.style.display = 'block';
+        if (header) header.style.display = 'none';
+        if (todas) todas.style.display = 'none';
+        carregarMinhasIdeias();
+    } else if (tipo === 'comunidade') {
+        if (btnComunidade) btnComunidade.classList.add('ativo');
+        const minhasArea = document.getElementById('minhasIdeiasArea');
+        const header = document.querySelector('.todas-ideias-header');
+        const todas = document.getElementById('todasIdeias');
+        if (minhasArea) minhasArea.style.display = 'none';
+        if (header) header.style.display = 'block';
+        if (todas) todas.style.display = 'grid';
         carregarIdeias();
     }
 }
@@ -1083,7 +1089,7 @@ async function fazerLogin() {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email, senha }),
-            credentials: 'include'  // ← IMPORTANTE: envia cookies de sessão
+            credentials: 'include'
         });
         
         const data = await response.json();
@@ -1091,9 +1097,7 @@ async function fazerLogin() {
         if (response.ok && data.sucesso) {
             usuarioLogado = data.usuario;
             
-            // ✅ NÃO SALVAR NO LOCALSTORAGE
-            // localStorage.setItem('ideaHubToken', ...) ← REMOVIDO
-            
+            // Atualizar interface
             document.getElementById('userName').textContent = usuarioLogado.nome;
             
             const cargoBadge = document.getElementById('userCargoBadge');
@@ -1109,35 +1113,36 @@ async function fazerLogin() {
             if (adminLink) adminLink.style.display = isAdmin ? 'inline-block' : 'none';
             if (projetosLink) projetosLink.style.display = isAdmin ? 'inline-block' : 'none';
             
-            // MOSTRAR ÁREAS LOGADAS
+            // Mostrar áreas logadas
             document.getElementById('authArea').style.display = 'none';
             document.getElementById('ideiaArea').style.display = 'block';
             document.getElementById('buscaArea').style.display = 'block';
             document.getElementById('notificacaoArea').style.display = 'block';
             document.getElementById('minhasIdeiasArea').style.display = 'block';
             document.getElementById('todasIdeias').style.display = 'grid';
+            
             const todasIdeiasHeader = document.querySelector('.todas-ideias-header');
             if (todasIdeiasHeader) todasIdeiasHeader.style.display = 'block';
             
-            // Mostrar paginação
-const paginacaoTodasIdeias = document.getElementById('paginacaoTodasIdeias');
-const paginacaoMinhasIdeias = document.getElementById('paginacaoMinhasIdeias');
-if (paginacaoTodasIdeias) paginacaoTodasIdeias.style.display = 'block';
-if (paginacaoMinhasIdeias) paginacaoMinhasIdeias.style.display = 'block';
-
-// Esconder mensagens de login
-const mensagemMinhasIdeias = document.getElementById('mensagemMinhasIdeias');
-const mensagemTodasIdeias = document.getElementById('mensagemTodasIdeias');
-if (mensagemMinhasIdeias) mensagemMinhasIdeias.style.display = 'none';
-if (mensagemTodasIdeias) mensagemTodasIdeias.style.display = 'none';
-
             // Mostrar conquistas
             const conquistasSection = document.getElementById('conquistasSection');
             const conquistasDisponiveisSection = document.getElementById('conquistasDisponiveisSection');
             
             if (conquistasSection) conquistasSection.style.display = 'block';
             if (conquistasDisponiveisSection) conquistasDisponiveisSection.style.display = 'block';
-
+            
+            // Esconder mensagens de login
+            const mensagemMinhasIdeias = document.getElementById('mensagemMinhasIdeias');
+            const mensagemTodasIdeias = document.getElementById('mensagemTodasIdeias');
+            if (mensagemMinhasIdeias) mensagemMinhasIdeias.style.display = 'none';
+            if (mensagemTodasIdeias) mensagemTodasIdeias.style.display = 'none';
+            
+            // Mostrar paginação
+            const paginacaoTodas = document.getElementById('paginacaoTodasIdeias');
+            const paginacaoMinhas = document.getElementById('paginacaoMinhasIdeias');
+            if (paginacaoTodas) paginacaoTodas.style.display = 'block';
+            if (paginacaoMinhas) paginacaoMinhas.style.display = 'block';
+            
             showMessage(`✅ Bem-vindo, ${usuarioLogado.nome}!`, 'success');
             
             // Carregar dados
@@ -1150,17 +1155,10 @@ if (mensagemTodasIdeias) mensagemTodasIdeias.style.display = 'none';
             await carregarConquistas();
             await carregarConquistasDisponiveis();
             carregarEstadoConquistas();
-
+            
             if (typeof carregarDashboardPessoal === 'function') {
                 await carregarDashboardPessoal();
             }
-
-            // Esconder mensagens de login
-            const mensagemMinhasIdeias = document.getElementById('mensagemMinhasIdeias');
-            const mensagemTodasIdeias = document.getElementById('mensagemTodasIdeias');
-            if (mensagemMinhasIdeias) mensagemMinhasIdeias.style.display = 'none';
-            if (mensagemTodasIdeias) mensagemTodasIdeias.style.display = 'none';
-
         } else {
             showMessage(data.erro || 'Email ou senha incorretos!', 'error');
         }
