@@ -20,20 +20,12 @@ const path = require('path');
 const fs = require('fs');
 const nodemailer = require('nodemailer');
 const cron = require('node-cron');
-const { createCleint } = require('@supabase/supabase.js');
-const port = 3000;
-const supabase = createclient(process.env.SUPABASE_URL, process.SUPABASE_KEY);
 
 // ==========================================
 // 3. CRIAR APP E CONFIGURAR MIDDLEWARES BÁSICOS
 // ==========================================
 const app = express();
-const port = process.env.PORT || 3000;
-
-app.post('/')
-app.listen(port, () => {
-    console.log(`🚀 Servidor rodando em http://localhost:${port}`);
-});
+const port = 3000;
 
 app.use(express.json());
 app.use(express.static('public'));
@@ -4405,6 +4397,11 @@ app.post('/upload/documento', (req, res) => {
             url: `/uploads/documentos/${req.file.filename}` 
         });
     });
+});
+
+// ... (suas outras rotas aqui)
+app.listen(port, () => {
+    console.log(`🚀 Servidor rodando em http://localhost:${port}`);
 });
 
 // Rota de teste para verificar usuário (remover depois)
