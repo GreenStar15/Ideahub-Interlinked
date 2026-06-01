@@ -47,6 +47,26 @@ app.use(session({
     }
 }));
 
+app.use((req, res, next) => {
+    // Desabilitar cache completamente
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    res.setHeader('Surrogate-Control', 'no-store');
+    next();
+});
+// ==========================================
+// MIDDLEWARE DE AUTENTICAÇÃO
+// ==========================================
+const verificarAutenticacao = (req, res, next) => {
+    // Verificar se o usuário tem sessão ativa
+    if (req.session && req.session.usuarioId) {
+        next();
+    } else {
+        res.status(401).json({ erro: 'Usuário não autenticado' });
+    }
+};
+
 console.log('✅ Middleware de sessão configurado!');
 
 // ==========================================
@@ -506,39 +526,25 @@ app.post('/login', async (req, res) => {
     console.log('=========================================');
     console.log('🔐 Tentativa de login recebida');
     console.log('📧 Email:', email);
-    console.log('🔑 Senha:', senha ? '***' : 'vazio');
     console.log('=========================================');
     
     if (!email || !senha) {
-        console.log('❌ Login falhou: email ou senha vazio');
         return res.status(400).json({ erro: 'Email e senha são obrigatórios' });
     }
     
     try {
-        // Buscar o usuário no banco
         const result = await pool.query(
             'SELECT id, nome, email, cargo, ativo FROM usuarios WHERE email = $1 AND senha = $2',
             [email, senha]
         );
         
-        console.log('📊 Resultado da consulta:', result.rows.length, 'usuário(s) encontrado(s)');
-        
         if (result.rows.length === 0) {
-            // Verificar se o email existe (para debug)
-            const emailExiste = await pool.query('SELECT id, email FROM usuarios WHERE email = $1', [email]);
-            if (emailExiste.rows.length > 0) {
-                console.log('⚠️ Email existe, mas senha incorreta para:', email);
-            } else {
-                console.log('⚠️ Email não encontrado:', email);
-            }
-            
             return res.status(401).json({ erro: 'Email ou senha incorretos!' });
         }
         
         const usuario = result.rows[0];
         
         if (!usuario.ativo) {
-            console.log('❌ Login falhou: usuário desativado');
             return res.status(401).json({ erro: 'Usuário desativado. Contate o administrador.' });
         }
         
@@ -547,14 +553,14 @@ app.post('/login', async (req, res) => {
         
         console.log('✅ Login bem-sucedido para:', usuario.email);
         
+        // ✅ NÃO ENVIAR O EMAIL - APENAS ID, NOME E CARGO
         res.json({ 
             sucesso: true, 
             usuario: {
                 id: usuario.id,
                 nome: usuario.nome,
-                email: usuario.email,
-                cargo: usuario.cargo,
-                ativo: usuario.ativo
+                cargo: usuario.cargo
+                // email NÃO é enviado
             }
         });
         
