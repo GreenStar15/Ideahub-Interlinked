@@ -503,7 +503,11 @@ app.post('/cadastrar', async (req, res) => {
 app.post('/login', async (req, res) => {
     const { email, senha } = req.body;
     
-    console.log('🔐 Tentativa de login recebida:', { email, senha: senha ? '***' : 'vazio' });
+    console.log('=========================================');
+    console.log('🔐 Tentativa de login recebida');
+    console.log('📧 Email:', email);
+    console.log('🔑 Senha:', senha ? '***' : 'vazio');
+    console.log('=========================================');
     
     if (!email || !senha) {
         console.log('❌ Login falhou: email ou senha vazio');
@@ -511,6 +515,7 @@ app.post('/login', async (req, res) => {
     }
     
     try {
+        // Buscar o usuário no banco
         const result = await pool.query(
             'SELECT id, nome, email, cargo, ativo FROM usuarios WHERE email = $1 AND senha = $2',
             [email, senha]
@@ -519,15 +524,39 @@ app.post('/login', async (req, res) => {
         console.log('📊 Resultado da consulta:', result.rows.length, 'usuário(s) encontrado(s)');
         
         if (result.rows.length === 0) {
-            console.log('❌ Login falhou: credenciais inválidas');
+            // Verificar se o email existe (para debug)
+            const emailExiste = await pool.query('SELECT id, email FROM usuarios WHERE email = $1', [email]);
+            if (emailExiste.rows.length > 0) {
+                console.log('⚠️ Email existe, mas senha incorreta para:', email);
+            } else {
+                console.log('⚠️ Email não encontrado:', email);
+            }
+            
             return res.status(401).json({ erro: 'Email ou senha incorretos!' });
         }
         
-        // Atualizar último acesso
-        await pool.query('UPDATE usuarios SET ultimo_acesso = NOW() WHERE id = $1', [result.rows[0].id]);
+        const usuario = result.rows[0];
         
-        console.log('✅ Login bem-sucedido para:', result.rows[0].email);
-        res.json({ sucesso: true, usuario: result.rows[0] });
+        if (!usuario.ativo) {
+            console.log('❌ Login falhou: usuário desativado');
+            return res.status(401).json({ erro: 'Usuário desativado. Contate o administrador.' });
+        }
+        
+        // Atualizar último acesso
+        await pool.query('UPDATE usuarios SET ultimo_acesso = NOW() WHERE id = $1', [usuario.id]);
+        
+        console.log('✅ Login bem-sucedido para:', usuario.email);
+        
+        res.json({ 
+            sucesso: true, 
+            usuario: {
+                id: usuario.id,
+                nome: usuario.nome,
+                email: usuario.email,
+                cargo: usuario.cargo,
+                ativo: usuario.ativo
+            }
+        });
         
     } catch (err) {
         console.error('❌ Erro no login:', err);
