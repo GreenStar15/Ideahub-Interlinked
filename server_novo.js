@@ -22,20 +22,14 @@ const nodemailer = require('nodemailer');
 const cron = require('node-cron');
 const cors = require('cors');
 
-// Permite requisições de qualquer origem (mais simples para teste)
-app.use(cors());
-
-// Ou, para mais segurança, permita apenas as origens do seu site:
-// app.use(cors({
-//     origin: 'https://ideahub-interlinked.onrender.com'
-// }));
-
 // ==========================================
 // 3. CRIAR APP E CONFIGURAR MIDDLEWARES BÁSICOS
 // ==========================================
 const app = express();
 // ✅ CORRETO - Usa a porta que o Render define
 const port = process.env.PORT || 3000;
+
+app.use(cors());
 
 app.use(express.json());
 app.use(express.static('public'));
@@ -59,11 +53,10 @@ console.log('✅ Middleware de sessão configurado!');
 // 5. CONEXÃO COM POSTGRESQL
 // ==========================================
 const pool = new Pool({
-    user: 'postgres',
-    host: 'localhost',
-    database: 'ideahub_postgres',
-    password: '01022006',
-    port: 5432,
+    connectionString: process.env.DATABASE_URL,
+    ssl: {
+        rejectUnauthorized: false
+    }
 });
 
 pool.connect((err, client, release) => {
@@ -4425,16 +4418,6 @@ app.get('/', (req, res) => {
 app.get('/pages/:page.html', (req, res) => {
     const page = req.params.page;
     res.sendFile(path.join(__dirname, 'Public', 'pages', `${page}.html`));
-});
-
-pool.connect((err, client, release) => {
-    if (err) {
-        console.error('❌ Erro ao conectar ao PostgreSQL:', err.message);
-        // Não encerre o servidor, apenas registre o erro
-        return;
-    }
-    console.log('✅ Conectado ao PostgreSQL!');
-    release();
 });
 
 app.listen(port, '0.0.0.0', () => {
