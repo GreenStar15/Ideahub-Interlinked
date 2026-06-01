@@ -95,13 +95,41 @@ function verificarParametroURL() {
 // ==================== UTILITÁRIOS ====================
 function showMessage(message, type = 'success') {
     const alert = document.getElementById('alert');
-    if (!alert) return;
-    alert.className = `alert alert-${type}`;
+    if (!alert) {
+        console.warn('Elemento #alert não encontrado');
+        return;
+    }
+    
+    // Definir classes baseadas no tipo
+    let alertClass = 'alert';
+    switch(type) {
+        case 'success':
+            alertClass += ' alert-success';
+            break;
+        case 'error':
+            alertClass += ' alert-error';
+            break;
+        case 'warning':
+            alertClass += ' alert-warning';
+            break;
+        case 'info':
+            alertClass += ' alert-info';
+            break;
+        default:
+            alertClass += ' alert-info';
+    }
+    
+    alert.className = alertClass;
     alert.textContent = message;
     alert.style.display = 'block';
+    
+    // Scroll suave para a mensagem
+    alert.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    
+    // Esconder após 5 segundos
     setTimeout(() => {
         alert.style.display = 'none';
-    }, 3000);
+    }, 5000);
 }
 
 function showLoading(show) {
