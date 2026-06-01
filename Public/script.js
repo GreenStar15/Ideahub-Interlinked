@@ -1078,12 +1078,24 @@ async function fazerLogin() {
     const email = document.getElementById('loginEmail')?.value.trim();
     const senha = document.getElementById('loginSenha')?.value;
     
-    if (!email || !senha) {
-        showMessage('Preencha email e senha!', 'error');
+    // Validação básica
+    if (!email && !senha) {
+        showMessage('❌ Todos os campos estão vazios! Por favor, preencha seu email e senha.', 'error');
+        return;
+    }
+    
+    if (!email) {
+        showMessage('📧 O campo de email está vazio! Digite seu email para continuar.', 'error');
+        return;
+    }
+    
+    if (!senha) {
+        showMessage('🔐 O campo de senha está vazio! Digite sua senha para continuar.', 'error');
         return;
     }
     
     showLoading(true);
+    
     try {
         const response = await fetch('/login', {
             method: 'POST',
@@ -1096,6 +1108,9 @@ async function fazerLogin() {
         
         if (response.ok && data.sucesso) {
             usuarioLogado = data.usuario;
+            
+            // Mostrar mensagem de boas-vindas
+            showMessage(data.mensagem || `✅ Bem-vindo, ${usuarioLogado.nome}!`, 'success');
             
             // Atualizar interface
             document.getElementById('userName').textContent = usuarioLogado.nome;
@@ -1143,8 +1158,6 @@ async function fazerLogin() {
             if (paginacaoTodas) paginacaoTodas.style.display = 'block';
             if (paginacaoMinhas) paginacaoMinhas.style.display = 'block';
             
-            showMessage(`✅ Bem-vindo, ${usuarioLogado.nome}!`, 'success');
-            
             // Carregar dados
             await carregarCategorias();
             await carregarLocais();
@@ -1160,11 +1173,15 @@ async function fazerLogin() {
                 await carregarDashboardPessoal();
             }
         } else {
-            showMessage(data.erro || 'Email ou senha incorretos!', 'error');
+            // Exibir mensagem de erro personalizada do servidor
+            showMessage(data.mensagem || data.erro || '❌ Email ou senha incorretos!', 'error');
+            
+            // Limpar o campo de senha por segurança
+            document.getElementById('loginSenha').value = '';
         }
     } catch (error) {
         console.error('❌ Erro no login:', error);
-        showMessage('Erro de conexão', 'error');
+        showMessage('⚠️ Erro de conexão! Verifique sua internet e tente novamente.', 'error');
     } finally {
         showLoading(false);
     }

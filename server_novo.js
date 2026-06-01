@@ -529,44 +529,69 @@ app.post('/login', async (req, res) => {
     console.log('=========================================');
     
     if (!email || !senha) {
-        return res.status(400).json({ erro: 'Email e senha são obrigatórios' });
+        return res.status(400).json({ 
+            erro: '❌ Campos obrigatórios',
+            mensagem: 'Preencha tanto o email quanto a senha para fazer login.'
+        });
     }
     
     try {
-        const result = await pool.query(
-            'SELECT id, nome, email, cargo, ativo FROM usuarios WHERE email = $1 AND senha = $2',
-            [email, senha]
+        // 1. VERIFICAR SE O EMAIL EXISTE
+        const emailExiste = await pool.query(
+            'SELECT id, email, senha, nome, cargo, ativo FROM usuarios WHERE email = $1',
+            [email]
         );
         
-        if (result.rows.length === 0) {
-            return res.status(401).json({ erro: 'Email ou senha incorretos!' });
+        // CASO 1: EMAIL NÃO EXISTE
+        if (emailExiste.rows.length === 0) {
+            console.log('❌ Login falhou: Email não encontrado');
+            return res.status(401).json({ 
+                erro: '📧 Email não encontrado',
+                mensagem: 'Este email não está cadastrado em nossa plataforma. Verifique o email digitado ou cadastre-se para criar uma conta.'
+            });
         }
         
-        const usuario = result.rows[0];
+        const usuario = emailExiste.rows[0];
         
+        // CASO 2: EMAIL EXISTE, MAS SENHA ESTÁ INCORRETA
+        if (usuario.senha !== senha) {
+            console.log('❌ Login falhou: Senha incorreta para o email:', email);
+            return res.status(401).json({ 
+                erro: '🔐 Senha incorreta',
+                mensagem: 'A senha digitada está incorreta. Tente novamente ou clique em "Esqueci minha senha" para recuperar o acesso.'
+            });
+        }
+        
+        // CASO 3: USUÁRIO DESATIVADO
         if (!usuario.ativo) {
-            return res.status(401).json({ erro: 'Usuário desativado. Contate o administrador.' });
+            console.log('❌ Login falhou: Usuário desativado');
+            return res.status(401).json({ 
+                erro: '🚫 Usuário desativado',
+                mensagem: 'Sua conta está desativada. Entre em contato com o administrador do sistema para reativar seu acesso.'
+            });
         }
         
-        // Atualizar último acesso
+        // CASO 4: SUCESSO - TUDO CERTO
         await pool.query('UPDATE usuarios SET ultimo_acesso = NOW() WHERE id = $1', [usuario.id]);
         
         console.log('✅ Login bem-sucedido para:', usuario.email);
         
-        // ✅ NÃO ENVIAR O EMAIL - APENAS ID, NOME E CARGO
         res.json({ 
             sucesso: true, 
             usuario: {
                 id: usuario.id,
                 nome: usuario.nome,
                 cargo: usuario.cargo
-                // email NÃO é enviado
-            }
+            },
+            mensagem: `🎉 Bem-vindo de volta, ${usuario.nome}!`
         });
         
     } catch (err) {
         console.error('❌ Erro no login:', err);
-        res.status(500).json({ erro: 'Erro no servidor' });
+        res.status(500).json({ 
+            erro: '⚠️ Erro interno',
+            mensagem: 'Ocorreu um erro inesperado no servidor. Tente novamente mais tarde.'
+        });
     }
 });
 
