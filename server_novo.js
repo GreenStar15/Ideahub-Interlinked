@@ -20,6 +20,9 @@ const path = require('path');
 const fs = require('fs');
 const nodemailer = require('nodemailer');
 const cron = require('node-cron');
+const { createCleint } = require('@supabase/supabase.js');
+const port = 3000;
+const supabase = createclient(process.env.SUPABASE_URL, process.SUPABASE_KEY);
 
 // ==========================================
 // 3. CRIAR APP E CONFIGURAR MIDDLEWARES BÁSICOS
@@ -27,6 +30,7 @@ const cron = require('node-cron');
 const app = express();
 const port = process.env.PORT || 3000;
 
+app.post('/')
 app.listen(port, () => {
     console.log(`🚀 Servidor rodando em http://localhost:${port}`);
 });
