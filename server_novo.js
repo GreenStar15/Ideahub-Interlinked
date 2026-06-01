@@ -4403,17 +4403,18 @@ app.post('/upload/documento', (req, res) => {
 // CONFIGURAÇÃO DE ARQUIVOS ESTÁTICOS
 // ==========================================
 // Servir arquivos estáticos da pasta public
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static('Public'));
+app.use(express.static(path.join(__dirname, 'Public')));
 
-// Rota principal (raiz) - serve o index.html da pasta public
+// Rota principal
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+    res.sendFile(path.join(__dirname, 'Public', 'index.html'));
 });
 
-// Rota para páginas dentro da pasta pages
-app.get('/pages/:page', (req, res) => {
+// Rota para páginas
+app.get('/pages/:page.html', (req, res) => {
     const page = req.params.page;
-    res.sendFile(path.join(__dirname, 'public', 'pages', page));
+    res.sendFile(path.join(__dirname, 'Public', 'pages', `${page}.html`));
 });
 
 // ... (suas outras rotas aqui)
