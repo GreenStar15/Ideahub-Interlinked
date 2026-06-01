@@ -4399,9 +4399,29 @@ app.post('/upload/documento', (req, res) => {
     });
 });
 
+// ==========================================
+// CONFIGURAÇÃO DE ARQUIVOS ESTÁTICOS
+// ==========================================
+// Servir arquivos da raiz
+app.use(express.static(__dirname));
+
+// Servir arquivos da pasta public (se existir)
+app.use(express.static(path.join(__dirname, 'public')));
+
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
 // ... (suas outras rotas aqui)
 app.listen(port, () => {
     console.log(`🚀 Servidor rodando em http://localhost:${port}`);
+});
+
+// Para todas as outras rotas HTML
+app.get('/pages/:page', (req, res) => {
+    const page = req.params.page;
+    const filePath = path.join(__dirname, 'pages', page);
+    res.sendFile(filePath);
 });
 
 // Rota de teste para verificar usuário (remover depois)
