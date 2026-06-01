@@ -503,27 +503,34 @@ app.post('/cadastrar', async (req, res) => {
 app.post('/login', async (req, res) => {
     const { email, senha } = req.body;
     
+    console.log('🔐 Tentativa de login recebida:', { email, senha: senha ? '***' : 'vazio' });
+    
+    if (!email || !senha) {
+        console.log('❌ Login falhou: email ou senha vazio');
+        return res.status(400).json({ erro: 'Email e senha são obrigatórios' });
+    }
+    
     try {
         const result = await pool.query(
             'SELECT id, nome, email, cargo, ativo FROM usuarios WHERE email = $1 AND senha = $2',
             [email, senha]
         );
         
-        if (result.rows.length === 0) {
-            return res.status(401).json({ erro: 'Email ou senha incorretos!' });
-        }
+        console.log('📊 Resultado da consulta:', result.rows.length, 'usuário(s) encontrado(s)');
         
-        if (!result.rows[0].ativo) {
-            return res.status(401).json({ erro: 'Usuário desativado. Contate o administrador.' });
+        if (result.rows.length === 0) {
+            console.log('❌ Login falhou: credenciais inválidas');
+            return res.status(401).json({ erro: 'Email ou senha incorretos!' });
         }
         
         // Atualizar último acesso
         await pool.query('UPDATE usuarios SET ultimo_acesso = NOW() WHERE id = $1', [result.rows[0].id]);
         
+        console.log('✅ Login bem-sucedido para:', result.rows[0].email);
         res.json({ sucesso: true, usuario: result.rows[0] });
         
     } catch (err) {
-        console.error('Erro:', err);
+        console.error('❌ Erro no login:', err);
         res.status(500).json({ erro: 'Erro no servidor' });
     }
 });
