@@ -6243,3 +6243,556 @@ textarea {
         transform: translateY(0);
     }
 }
+/* ==========================================
+   DESIGN RESPONSIVO - IDEAHUB
+   ========================================== */
+
+/* Variáveis de breakpoints */
+:root {
+    --breakpoint-sm: 576px;
+    --breakpoint-md: 768px;
+    --breakpoint-lg: 992px;
+    --breakpoint-xl: 1200px;
+}
+
+/* ==========================================
+   TABLETS (768px - 991px)
+   ========================================== */
+@media (max-width: 991px) {
+    /* Container */
+    .container {
+        padding: 0 20px;
+    }
+    
+    /* Dashboard cards */
+    .dashboard-cards {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+    }
+    
+    .dashboard-card-mini {
+        padding: 15px;
+    }
+    
+    .dashboard-card-mini .card-value {
+        font-size: 1.5em;
+    }
+    
+    /* Grid de ideias */
+    .ideias-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+    }
+    
+    /* Galeria de imagens */
+    .carrossel-imagem img {
+        max-height: 300px;
+    }
+    
+    /* Modal */
+    .modal-content {
+        width: 90%;
+        margin: 20px auto;
+        max-height: 85vh;
+    }
+    
+    /* Tabelas */
+    .ranking-table, .usuarios-table, .logs-table {
+        font-size: 12px;
+    }
+    
+    .ranking-table th, .ranking-table td,
+    .usuarios-table th, .usuarios-table td,
+    .logs-table th, .logs-table td {
+        padding: 8px 6px;
+    }
+    
+    /* Mapa */
+    .mapa-content {
+        flex-direction: column;
+    }
+    
+    #mapa {
+        height: 400px;
+    }
+    
+    .lista-ideias-mapa {
+        max-height: 300px;
+    }
+    
+    /* Cabeçalho do usuário */
+    .user-info {
+        flex-direction: column;
+        text-align: center;
+        gap: 10px;
+    }
+    
+    .user-actions {
+        justify-content: center;
+    }
+    
+    /* Filtros */
+    .filters {
+        flex-wrap: wrap;
+    }
+    
+    .search-bar {
+        flex-direction: column;
+    }
+    
+    .search-input {
+        width: 100%;
+    }
+    
+    /* Notificações */
+    .notificacao-header {
+        flex-direction: column;
+        gap: 10px;
+        align-items: flex-start;
+    }
+    
+    .notificacao-header-right {
+        width: 100%;
+        justify-content: flex-start;
+    }
+}
+
+/* ==========================================
+   CELULARES GRANDES (576px - 767px)
+   ========================================== */
+@media (max-width: 767px) {
+    /* Container */
+    .container {
+        padding: 0 15px;
+    }
+    
+    /* Títulos */
+    h1 {
+        font-size: 1.5em;
+        text-align: center;
+    }
+    
+    .subtitle {
+        font-size: 0.9em;
+        text-align: center;
+    }
+    
+    /* Dashboard cards */
+    .dashboard-cards {
+        grid-template-columns: 1fr;
+    }
+    
+    .dashboard-card-mini {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        text-align: left;
+        padding: 12px 15px;
+    }
+    
+    .dashboard-card-mini .card-icon {
+        margin-bottom: 0;
+        font-size: 1.5em;
+    }
+    
+    .dashboard-card-mini .card-info {
+        text-align: right;
+    }
+    
+    /* Grid de ideias */
+    .ideias-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    /* Cards de ideias */
+    .ideia-card {
+        padding: 15px;
+    }
+    
+    .ideia-card h3 {
+        font-size: 1.1em;
+    }
+    
+    .ideia-meta {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .meta-linha {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    
+    .ideia-imagem img {
+        max-height: 150px;
+    }
+    
+    /* Formulários */
+    .form-group input,
+    .form-group textarea,
+    .form-group select {
+        font-size: 16px; /* Evita zoom no iOS */
+        padding: 10px;
+    }
+    
+    .btn-primary, .btn-secundario, .btn-logout {
+        width: 100%;
+        margin: 5px 0;
+        text-align: center;
+    }
+    
+    /* Botões de ação */
+    .ideia-actions {
+        flex-direction: column;
+    }
+    
+    .ideia-actions button {
+        width: 100%;
+    }
+    
+    /* Abas (comentários/histórico) */
+    .tabs-ideia {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .tab-ideia-btn {
+        width: 100%;
+        text-align: center;
+    }
+    
+    /* Comentários */
+    .comentario-card {
+        padding: 12px;
+    }
+    
+    .comentario-header {
+        flex-direction: column;
+        gap: 5px;
+    }
+    
+    .comentario-autor {
+        flex-wrap: wrap;
+    }
+    
+    /* Galeria de imagens */
+    .carrossel {
+        flex-direction: column;
+    }
+    
+    .carrossel-btn {
+        position: static;
+        transform: none;
+        width: 40px;
+        margin: 5px auto;
+    }
+    
+    .carrossel-imagem img {
+        max-height: 200px;
+    }
+    
+    /* Modal */
+    .modal-content {
+        width: 95%;
+        padding: 20px;
+    }
+    
+    .modal-header {
+        flex-direction: column;
+        gap: 10px;
+        text-align: center;
+    }
+    
+    /* Tabelas */
+    .ranking-table, .usuarios-table, .logs-table {
+        font-size: 10px;
+    }
+    
+    .ranking-table th, .ranking-table td,
+    .usuarios-table th, .usuarios-table td,
+    .logs-table th, .logs-table td {
+        padding: 6px 4px;
+    }
+    
+    /* Tabela responsiva - scroll horizontal */
+    .painel-section {
+        overflow-x: auto;
+    }
+    
+    .ranking-table, .usuarios-table, .logs-table {
+        min-width: 600px;
+    }
+    
+    /* Botões de ação na tabela */
+    .btn-editar, .btn-aprovar, .btn-converter {
+        padding: 4px 8px;
+        font-size: 10px;
+        white-space: nowrap;
+    }
+    
+    /* Paginação */
+    .pagination-controls {
+        flex-wrap: wrap;
+        gap: 5px;
+    }
+    
+    .page-btn {
+        padding: 5px 10px;
+        font-size: 11px;
+    }
+    
+    /* Mapa */
+    #mapa {
+        height: 300px;
+    }
+    
+    .mapa-filtros {
+        flex-direction: column;
+    }
+    
+    .mapa-filtros select,
+    .mapa-filtros button {
+        width: 100%;
+    }
+    
+    /* Notificações */
+    .notificacao-item {
+        flex-direction: column;
+    }
+    
+    .notificacao-conteudo {
+        margin-right: 0;
+        margin-bottom: 10px;
+    }
+    
+    .notificacao-acoes {
+        text-align: right;
+    }
+    
+    /* Toast notifications */
+    .notification-toast {
+        min-width: 90%;
+        max-width: 90%;
+        right: 5%;
+        left: 5%;
+    }
+    
+    /* Login/Cadastro */
+    .auth-area {
+        padding: 20px;
+    }
+    
+    .tab-buttons {
+        flex-direction: column;
+        gap: 5px;
+    }
+    
+    .tab-btn {
+        width: 100%;
+        text-align: center;
+    }
+    
+    /* Footer */
+    .regras-eticas ul {
+        padding-left: 20px;
+    }
+    
+    .regras-eticas li {
+        font-size: 12px;
+    }
+}
+
+/* ==========================================
+   CELULARES PEQUENOS (até 375px)
+   ========================================== */
+@media (max-width: 480px) {
+    .container {
+        padding: 0 10px;
+    }
+    
+    h1 {
+        font-size: 1.3em;
+    }
+    
+    .logo {
+        max-width: 150px;
+    }
+    
+    .dashboard-cards {
+        gap: 10px;
+    }
+    
+    .dashboard-card-mini {
+        padding: 10px;
+    }
+    
+    .dashboard-card-mini .card-value {
+        font-size: 1.2em;
+    }
+    
+    .ideia-card h3 {
+        font-size: 1em;
+    }
+    
+    .ideia-card p {
+        font-size: 0.85em;
+    }
+    
+    .ideia-meta {
+        font-size: 0.8em;
+    }
+    
+    .btn-primary, .btn-secundario {
+        font-size: 14px;
+        padding: 10px;
+    }
+    
+    .modal-content {
+        padding: 15px;
+    }
+    
+    .modal-header h3 {
+        font-size: 1.1em;
+    }
+    
+    .comentario-texto p {
+        font-size: 0.85em;
+    }
+    
+    .versao-card {
+        padding: 12px;
+    }
+    
+    .versao-titulo {
+        font-size: 0.9em;
+    }
+}
+
+/* ==========================================
+   TABELAS RESPONSIVAS (SCROLL)
+   ========================================== */
+@media (max-width: 768px) {
+    .table-responsive {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    .ranking-table,
+    .usuarios-table,
+    .logs-table {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+    }
+}
+
+/* ==========================================
+   MELHORIAS PARA TOUCH (Mobile)
+   ========================================== */
+@media (max-width: 768px) {
+    /* Aumentar área de clique para botões */
+    button, 
+    .btn-primary, 
+    .btn-secundario,
+    .btn-filtro,
+    .page-btn,
+    .tab-btn,
+    .ideia-card,
+    .comentario-card {
+        cursor: pointer;
+        min-height: 44px; /* Tamanho mínimo recomendado para toque */
+    }
+    
+    /* Remover hover em mobile */
+    .ideia-card:hover,
+    .btn-primary:hover,
+    .page-btn:hover {
+        transform: none;
+    }
+    
+    /* Ajustar input de busca */
+    .search-input {
+        font-size: 16px;
+        padding: 12px;
+    }
+    
+    /* Ajustar selects */
+    .filter-select {
+        font-size: 14px;
+        padding: 10px;
+        min-height: 44px;
+    }
+}
+
+/* ==========================================
+   ORIENTAÇÃO PAISAGEM (Landscape)
+   ========================================== */
+@media (max-width: 900px) and (orientation: landscape) {
+    .modal-content {
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+    
+    .ideias-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    #mapa {
+        height: 250px;
+    }
+}
+
+/* ==========================================
+   IMPRESSÃO (Print)
+   ========================================== */
+@media print {
+    .btn-primary, 
+    .btn-logout, 
+    .btn-voltar,
+    .notificacao-area,
+    .filtro-visualizacao,
+    .busca-area,
+    .btn-adicionar-imagem,
+    .modal,
+    .user-actions button {
+        display: none !important;
+    }
+    
+    body {
+        background: white;
+    }
+    
+    .ideia-card {
+        break-inside: avoid;
+        page-break-inside: avoid;
+    }
+}
+/* Botões responsivos */
+@media (max-width: 768px) {
+    .user-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        width: 100%;
+    }
+    
+    .user-actions a,
+    .user-actions button {
+        width: 100%;
+        text-align: center;
+        justify-content: center;
+    }
+}
+/* Dashboard cards responsivos */
+.dashboard-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+@media (max-width: 767px) {
+    .dashboard-cards {
+        grid-template-columns: 1fr;
+    }
+}
