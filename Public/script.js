@@ -2761,9 +2761,7 @@ function forcarModoVisitante() {
     const dashboardPessoal = document.getElementById('dashboardPessoal');
     const paginacaoTodasIdeias = document.getElementById('paginacaoTodasIdeias');
     const paginacaoMinhasIdeias = document.getElementById('paginacaoMinhasIdeias');
-    
-    // ❌ REMOVA ESTA LINHA - NÃO ESCONDER O FILTRO
-    // const filtroVisualizacao = document.querySelector('.filtro-visualizacao');
+    const filtroVisualizacao = document.querySelector('.filtro-visualizacao');
     
     if (authArea) authArea.style.display = 'block';
     if (ideiaArea) ideiaArea.style.display = 'none';
@@ -2777,6 +2775,7 @@ function forcarModoVisitante() {
     if (dashboardPessoal) dashboardPessoal.style.display = 'none';
     if (paginacaoTodasIdeias) paginacaoTodasIdeias.style.display = 'none';
     if (paginacaoMinhasIdeias) paginacaoMinhasIdeias.style.display = 'none';
+    if (filtroVisualizacao) filtroVisualizacao.style.display = 'none'; // ← GARANTIR QUE ESTÁ AQUI
     
     // Mostrar mensagens de login
     const mensagemMinhasIdeias = document.getElementById('mensagemMinhasIdeias');
