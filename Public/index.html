@@ -27,37 +27,44 @@
     // ... (seu script bloqueador original aqui)
 })();
 
-// 🔥 CORREÇÃO: Preservar sessão ao retornar do admin
-(function() {
-    // Verificar se estamos voltando do admin
-    const urlParams = new URLSearchParams(window.location.search);
-    const isReturningFromAdmin = urlParams.has('adminReturn') || document.referrer.includes('admin.html');
-    
-    // Só limpar se NÃO estiver voltando do admin e NÃO tiver token
-    const tokenExistente = sessionStorage.getItem('ideaHubToken') || localStorage.getItem('ideaHubToken');
-    
-    if (!tokenExistente && !isReturningFromAdmin) {
-        // Primeira visita SEM token - limpar tudo (comportamento normal)
+    // 🔥 SISTEMA DE AUTENTICAÇÃO CORRIGIDO
+    (function() {
+        // Tentar recuperar sessão de qualquer lugar
+        let tokenSalvo = sessionStorage.getItem('ideaHubToken');
+        
+        // Se não tiver no sessionStorage, tentar localStorage
+        if (!tokenSalvo) {
+            tokenSalvo = localStorage.getItem('ideaHubToken');
+            if (tokenSalvo) {
+                // Restaurar para sessionStorage
+                sessionStorage.setItem('ideaHubToken', tokenSalvo);
+                console.log('🔄 Token restaurado do localStorage para sessionStorage');
+            }
+        }
+        
+        // Se tem token, validar e manter logado
+        if (tokenSalvo) {
+            try {
+                const user = JSON.parse(tokenSalvo);
+                if (user && user.id) {
+                    console.log('✅ Usuário já está logado:', user.nome);
+                    // NÃO LIMPAR NADA! Manter a sessão
+                    sessionStorage.setItem('paginaInicialVisitada', 'true');
+                    return; // Sair do script - manter tudo
+                }
+            } catch(e) {
+                console.error('Erro ao parsear token:', e);
+            }
+        }
+        
+        // Só limpa se NÃO houver token (primeira visita sem login)
         if (sessionStorage.getItem('paginaInicialVisitada') !== 'true') {
             localStorage.clear();
             sessionStorage.clear();
             sessionStorage.setItem('paginaInicialVisitada', 'true');
-            console.log('🧹 Limpeza de sessão na primeira visita');
+            console.log('🧹 Primeira visita - ambiente limpo');
         }
-    } else if (tokenExistente && isReturningFromAdmin) {
-        // Voltando do admin com token - NÃO limpar!
-        console.log('✅ Retornando do admin, preservando sessão');
-        
-        // Garantir que o token está no sessionStorage
-        if (localStorage.getItem('ideaHubToken') && !sessionStorage.getItem('ideaHubToken')) {
-            sessionStorage.setItem('ideaHubToken', localStorage.getItem('ideaHubToken'));
-        }
-    }
-    
-    // NÃO bloquear mais o salvamento do token - REMOVER O BLOQUEIO
-    // (O bloqueio original impedia o login de funcionar corretamente)
-    console.log('🔓 Sistema de autenticação normalizado');
-})();
+    })();
 </script>
 </head>
 <body>
