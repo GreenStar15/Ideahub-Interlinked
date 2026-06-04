@@ -134,6 +134,20 @@ if (tokenSalvo) {
     window.location.href = '../index.html';
 }
 </script>
+<script>
+(function verificarAutenticacao() {
+    const tokenSalvo = sessionStorage.getItem('ideaHubToken');
+    if (!tokenSalvo) {
+        window.location.href = '../index.html';
+        return;
+    }
+    try {
+        window.usuarioLogado = JSON.parse(tokenSalvo);
+    } catch(e) {
+        window.location.href = '../index.html';
+    }
+})();
+</script>
 </head>
 <body>
     <div class="container">

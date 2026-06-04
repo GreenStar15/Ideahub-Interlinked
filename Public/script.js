@@ -100,33 +100,18 @@ function showMessage(message, type = 'success') {
         return;
     }
     
-    // Definir classes baseadas no tipo
     let alertClass = 'alert';
     switch(type) {
-        case 'success':
-            alertClass += ' alert-success';
-            break;
-        case 'error':
-            alertClass += ' alert-error';
-            break;
-        case 'warning':
-            alertClass += ' alert-warning';
-            break;
-        case 'info':
-            alertClass += ' alert-info';
-            break;
-        default:
-            alertClass += ' alert-info';
+        case 'success': alertClass += ' alert-success'; break;
+        case 'error': alertClass += ' alert-error'; break;
+        case 'warning': alertClass += ' alert-warning'; break;
+        default: alertClass += ' alert-info';
     }
     
     alert.className = alertClass;
     alert.textContent = message;
     alert.style.display = 'block';
     
-    // Scroll suave para a mensagem
-    alert.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    
-    // Esconder após 5 segundos
     setTimeout(() => {
         alert.style.display = 'none';
     }, 5000);
@@ -134,9 +119,7 @@ function showMessage(message, type = 'success') {
 
 function showLoading(show) {
     const loading = document.getElementById('loading');
-    if (loading) {
-        loading.style.display = show ? 'flex' : 'none';
-    }
+    if (loading) loading.style.display = show ? 'flex' : 'none';
 }
 
 function formatarData(data) {
@@ -144,15 +127,10 @@ function formatarData(data) {
     try {
         const date = new Date(data);
         return date.toLocaleDateString('pt-BR', {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
+            day: '2-digit', month: '2-digit', year: 'numeric',
+            hour: '2-digit', minute: '2-digit'
         });
-    } catch (e) {
-        return data;
-    }
+    } catch (e) { return data; }
 }
 
 function escapeHtml(text) {
@@ -441,27 +419,17 @@ function inicializarPreviews() {
 
 // ==================== AUTENTICAÇÃO ====================
 function showLogin() {
-    const loginForm = document.getElementById('loginForm');
-    const cadastroForm = document.getElementById('cadastroForm');
-    const btnLogin = document.getElementById('btnLoginTab');
-    const btnCadastro = document.getElementById('btnCadastroTab');
-    
-    if (loginForm) loginForm.style.display = 'block';
-    if (cadastroForm) cadastroForm.style.display = 'none';
-    if (btnLogin) btnLogin.classList.add('active');
-    if (btnCadastro) btnCadastro.classList.remove('active');
+    document.getElementById('loginForm').style.display = 'block';
+    document.getElementById('cadastroForm').style.display = 'none';
+    document.getElementById('btnLoginTab').classList.add('active');
+    document.getElementById('btnCadastroTab').classList.remove('active');
 }
 
 function showCadastro() {
-    const loginForm = document.getElementById('loginForm');
-    const cadastroForm = document.getElementById('cadastroForm');
-    const btnLogin = document.getElementById('btnLoginTab');
-    const btnCadastro = document.getElementById('btnCadastroTab');
-    
-    if (loginForm) loginForm.style.display = 'none';
-    if (cadastroForm) cadastroForm.style.display = 'block';
-    if (btnCadastro) btnCadastro.classList.add('active');
-    if (btnLogin) btnLogin.classList.remove('active');
+    document.getElementById('loginForm').style.display = 'none';
+    document.getElementById('cadastroForm').style.display = 'block';
+    document.getElementById('btnCadastroTab').classList.add('active');
+    document.getElementById('btnLoginTab').classList.remove('active');
 }
 
 async function fazerCadastro() {
@@ -473,7 +441,6 @@ async function fazerCadastro() {
         showMessage('Preencha todos os campos!', 'error');
         return;
     }
-    
     if (senha.length < 6) {
         showMessage('A senha deve ter pelo menos 6 caracteres!', 'error');
         return;
@@ -489,7 +456,7 @@ async function fazerCadastro() {
         const data = await response.json();
         
         if (response.ok && data.sucesso) {
-            showMessage('✅ Cadastro realizado! Faça login.');
+            showMessage('✅ Cadastro realizado! Faça login.', 'success');
             document.getElementById('cadastroNome').value = '';
             document.getElementById('cadastroEmail').value = '';
             document.getElementById('cadastroSenha').value = '';
@@ -1106,29 +1073,17 @@ async function fazerLogin() {
     const email = document.getElementById('loginEmail')?.value.trim();
     const senha = document.getElementById('loginSenha')?.value;
     
-    if (!email && !senha) {
-        showMessage('❌ Todos os campos estão vazios!', 'error');
-        return;
-    }
-    
-    if (!email) {
-        showMessage('📧 Digite seu email para continuar.', 'error');
-        return;
-    }
-    
-    if (!senha) {
-        showMessage('🔐 Digite sua senha para continuar.', 'error');
+    if (!email || !senha) {
+        showMessage('Preencha email e senha!', 'error');
         return;
     }
     
     showLoading(true);
-    
     try {
         const response = await fetch('/login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, senha }),
-            credentials: 'include'
+            body: JSON.stringify({ email, senha })
         });
         
         const data = await response.json();
@@ -1136,7 +1091,7 @@ async function fazerLogin() {
         if (response.ok && data.sucesso) {
             usuarioLogado = data.usuario;
             
-            // ✅ USAR sessionStorage (não localStorage) para manter sessão apenas na aba
+            // Salvar apenas no sessionStorage (vai embora quando fechar a aba)
             sessionStorage.setItem('ideaHubToken', JSON.stringify({
                 id: usuarioLogado.id,
                 nome: usuarioLogado.nome,
@@ -1156,10 +1111,7 @@ async function fazerLogin() {
             
             const isAdmin = usuarioLogado.cargo === 'gestor' || usuarioLogado.cargo === 'ti_staff';
             const adminLink = document.getElementById('adminLink');
-            const projetosLink = document.getElementById('projetosLink');
-            
             if (adminLink) adminLink.style.display = isAdmin ? 'inline-block' : 'none';
-            if (projetosLink) projetosLink.style.display = isAdmin ? 'inline-block' : 'none';
             
             // Mostrar áreas logadas
             document.getElementById('authArea').style.display = 'none';
@@ -1172,30 +1124,24 @@ async function fazerLogin() {
             const todasIdeiasHeader = document.querySelector('.todas-ideias-header');
             if (todasIdeiasHeader) todasIdeiasHeader.style.display = 'block';
             
-            // Mostrar conquistas
             const conquistasSection = document.getElementById('conquistasSection');
             const conquistasDisponiveisSection = document.getElementById('conquistasDisponiveisSection');
-            
             if (conquistasSection) conquistasSection.style.display = 'block';
             if (conquistasDisponiveisSection) conquistasDisponiveisSection.style.display = 'block';
             
-            // Esconder mensagens de login
             const mensagemMinhasIdeias = document.getElementById('mensagemMinhasIdeias');
             const mensagemTodasIdeias = document.getElementById('mensagemTodasIdeias');
             if (mensagemMinhasIdeias) mensagemMinhasIdeias.style.display = 'none';
             if (mensagemTodasIdeias) mensagemTodasIdeias.style.display = 'none';
             
-            // Mostrar paginação
             const paginacaoTodas = document.getElementById('paginacaoTodasIdeias');
             const paginacaoMinhas = document.getElementById('paginacaoMinhasIdeias');
             if (paginacaoTodas) paginacaoTodas.style.display = 'block';
             if (paginacaoMinhas) paginacaoMinhas.style.display = 'block';
             
-            // Mostrar filtro
             const filtroVisualizacao = document.querySelector('.filtro-visualizacao');
             if (filtroVisualizacao) filtroVisualizacao.style.display = 'flex';
             
-            // Carregar dados
             await carregarCategorias();
             await carregarLocais();
             await carregarIdeias();
@@ -1210,15 +1156,21 @@ async function fazerLogin() {
                 await carregarDashboardPessoal();
             }
         } else {
-            showMessage(data.mensagem || data.erro || '❌ Email ou senha incorretos!', 'error');
+            showMessage(data.erro || 'Email ou senha incorretos!', 'error');
             document.getElementById('loginSenha').value = '';
         }
     } catch (error) {
         console.error('❌ Erro no login:', error);
-        showMessage('⚠️ Erro de conexão! Tente novamente.', 'error');
+        showMessage('Erro de conexão', 'error');
     } finally {
         showLoading(false);
     }
+}
+
+function fazerLogout() {
+    usuarioLogado = null;
+    sessionStorage.clear();
+    window.location.href = '../index.html';
 }
 
 async function carregarNivelUsuario() {
@@ -2220,13 +2172,8 @@ function irPagina(pagina) {
 }
 
 function getStatusText(status) {
-    const statusMap = {
-        'pendente': '⏳ Pendente',
-        'aprovada': '✅ Aprovada',
-        'convertida': '🚀 Convertida',
-        'rejeitada': '❌ Rejeitada'
-    };
-    return statusMap[status] || status;
+    const map = { 'pendente': '⏳ Pendente', 'aprovada': '✅ Aprovada', 'convertida': '🚀 Convertida', 'rejeitada': '❌ Rejeitada' };
+    return map[status] || status;
 }
 
 function testarConquistas() {
@@ -2831,19 +2778,8 @@ function restaurarSessao() {
     return false;
 }
 
-// ==================== INICIALIZAÇÃO ====================
-document.addEventListener('DOMContentLoaded', () => {
-    // NÃO LIMPAR O LOCALSTORAGE - apenas restaurar sessão do sessionStorage
-    usuarioLogado = null;
-
-    // Configurar botão de adicionar imagem
-    const btnAdicionar = document.getElementById('btnAdicionarImagem');
-    if (btnAdicionar) {
-        btnAdicionar.addEventListener('click', () => adicionarCampoImagem());
-    }
-    atualizarContador();
-    
-    // Tentar restaurar sessão do sessionStorage
+document.addEventListener('DOMContentLoaded', async () => {
+    // Tentar restaurar sessão
     const tokenSalvo = sessionStorage.getItem('ideaHubToken');
     
     if (tokenSalvo) {
@@ -2851,7 +2787,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const user = JSON.parse(tokenSalvo);
             usuarioLogado = user;
             
-            // Atualizar interface para usuário logado
+            // Atualizar interface
             document.getElementById('userName').textContent = user.nome;
             
             const cargoBadge = document.getElementById('userCargoBadge');
@@ -2861,8 +2797,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             
             const isAdmin = user.cargo === 'gestor' || user.cargo === 'ti_staff';
-            const adminLink = document.getElementById('adminLink');
-            if (adminLink) adminLink.style.display = isAdmin ? 'inline-block' : 'none';
+            document.getElementById('adminLink').style.display = isAdmin ? 'inline-block' : 'none';
             
             document.getElementById('authArea').style.display = 'none';
             document.getElementById('ideiaArea').style.display = 'block';
@@ -2876,25 +2811,34 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('paginacaoTodasIdeias').style.display = 'block';
             document.getElementById('paginacaoMinhasIdeias').style.display = 'block';
             
-            // Carregar dados
-            carregarCategorias();
-            carregarLocais();
-            carregarIdeias();
-            carregarMinhasIdeias();
-            carregarNotificacoes();
-            carregarConquistas();
-            carregarConquistasDisponiveis();
+            const mensagemMinhasIdeias = document.getElementById('mensagemMinhasIdeias');
+            const mensagemTodasIdeias = document.getElementById('mensagemTodasIdeias');
+            if (mensagemMinhasIdeias) mensagemMinhasIdeias.style.display = 'none';
+            if (mensagemTodasIdeias) mensagemTodasIdeias.style.display = 'none';
+            
+            await carregarCategorias();
+            await carregarLocais();
+            await carregarIdeias();
+            await carregarMinhasIdeias();
+            await carregarNotificacoes();
+            await carregarConquistas();
+            await carregarConquistasDisponiveis();
             carregarEstadoConquistas();
             
             if (typeof carregarDashboardPessoal === 'function') {
-                carregarDashboardPessoal();
+                await carregarDashboardPessoal();
             }
         } catch(e) {
             console.error('Erro ao restaurar sessão:', e);
             sessionStorage.clear();
-            forcarModoVisitante();
         }
-    } else {
-        forcarModoVisitante();
     }
+    
+    // Configurar botão de adicionar imagem
+    const btnAdicionar = document.getElementById('btnAdicionarImagem');
+    if (btnAdicionar) {
+        btnAdicionar.addEventListener('click', () => adicionarCampoImagem());
+    }
+    atualizarContador();
+    carregarCategorias();
 });
