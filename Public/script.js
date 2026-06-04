@@ -78,18 +78,6 @@ try {
 
 console.log('🔍 LocalStorage após limpeza:', localStorage.getItem('ideaHubToken'));
 
-function debugSessao() {
-    console.log('===== DEBUG DE SESSÃO =====');
-    console.log('sessionStorage token:', sessionStorage.getItem('ideaHubToken'));
-    console.log('localStorage token:', localStorage.getItem('ideaHubToken'));
-    console.log('usuarioLogado:', usuarioLogado);
-    console.log('Cookies:', document.cookie);
-    console.log('==========================');
-}
-
-// Executar debug a cada 2 segundos
-setInterval(debugSessao, 5000);
-
 // Verificar se voltou de alguma página
 function verificarParametroURL() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -112,18 +100,33 @@ function showMessage(message, type = 'success') {
         return;
     }
     
+    // Definir classes baseadas no tipo
     let alertClass = 'alert';
     switch(type) {
-        case 'success': alertClass += ' alert-success'; break;
-        case 'error': alertClass += ' alert-error'; break;
-        case 'warning': alertClass += ' alert-warning'; break;
-        default: alertClass += ' alert-info';
+        case 'success':
+            alertClass += ' alert-success';
+            break;
+        case 'error':
+            alertClass += ' alert-error';
+            break;
+        case 'warning':
+            alertClass += ' alert-warning';
+            break;
+        case 'info':
+            alertClass += ' alert-info';
+            break;
+        default:
+            alertClass += ' alert-info';
     }
     
     alert.className = alertClass;
     alert.textContent = message;
     alert.style.display = 'block';
     
+    // Scroll suave para a mensagem
+    alert.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    
+    // Esconder após 5 segundos
     setTimeout(() => {
         alert.style.display = 'none';
     }, 5000);
@@ -131,7 +134,9 @@ function showMessage(message, type = 'success') {
 
 function showLoading(show) {
     const loading = document.getElementById('loading');
-    if (loading) loading.style.display = show ? 'flex' : 'none';
+    if (loading) {
+        loading.style.display = show ? 'flex' : 'none';
+    }
 }
 
 function formatarData(data) {
@@ -139,10 +144,15 @@ function formatarData(data) {
     try {
         const date = new Date(data);
         return date.toLocaleDateString('pt-BR', {
-            day: '2-digit', month: '2-digit', year: 'numeric',
-            hour: '2-digit', minute: '2-digit'
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
         });
-    } catch (e) { return data; }
+    } catch (e) {
+        return data;
+    }
 }
 
 function escapeHtml(text) {
@@ -155,6 +165,7 @@ function escapeHtml(text) {
 // ========== FILTRO DE VISUALIZAÇÃO ==========
 let visualizacaoAtual = 'ambas'; // 'ambas', 'minhas', 'comunidade'
 
+// ========== FUNÇÃO PARA FILTRAR VISUALIZAÇÃO ==========
 function filtrarVisualizacao(tipo) {
     if (!usuarioLogado) {
         mostrarMensagemLogin('todasIdeias', 'mensagemTodasIdeias', 'grid');
@@ -254,6 +265,7 @@ function adicionarCampoImagem() {
 function selecionarCapa(index) {
     capaSelecionada = index;
     
+    // Atualizar visual dos radio buttons
     const radios = document.querySelectorAll('input[name="capa"]');
     radios.forEach((radio, i) => {
         if (parseInt(radio.value) === index) {
@@ -339,6 +351,7 @@ function removerCampoImagem(btn, indexRemovido) {
         item.remove();
         totalImagens--;
         
+        // Reordenar os índices
         const items = document.querySelectorAll('.imagem-item');
         items.forEach((item, newIndex) => {
             item.setAttribute('data-index', newIndex);
@@ -349,6 +362,7 @@ function removerCampoImagem(btn, indexRemovido) {
             if (radio) radio.value = newIndex;
         });
         
+        // Ajustar capa selecionada
         if (capaSelecionada === indexRemovido) {
             capaSelecionada = totalImagens > 0 ? 0 : -1;
             if (totalImagens > 0) {
@@ -366,36 +380,16 @@ function removerCampoImagem(btn, indexRemovido) {
 function previewImagem(fileInput) {
     const item = fileInput.closest('.imagem-item');
     const previewDiv = item.querySelector('.imagem-preview');
-    const avisoDiv = item.querySelector('.aviso-tamanho-item');
-    const maxSizeMB = 5;
-    const maxSizeBytes = maxSizeMB * 1024 * 1024;
     
     if (fileInput.files && fileInput.files[0]) {
         const file = fileInput.files[0];
-        const fileSize = file.size;
-        const fileSizeMB = (fileSize / (1024 * 1024)).toFixed(2);
-        
-        if (fileSize > maxSizeBytes) {
-            avisoDiv.innerHTML = `<i class="fas fa-exclamation-triangle"></i> Imagem muito grande! Tamanho: ${fileSizeMB}MB (máximo: ${maxSizeMB}MB)`;
-            avisoDiv.style.display = 'block';
-            fileInput.value = '';
-            previewDiv.innerHTML = '';
-            return;
-        }
-        
-        avisoDiv.style.display = 'none';
-        
         const reader = new FileReader();
+        
         reader.onload = function(e) {
-            previewDiv.innerHTML = `<img src="${e.target.result}" alt="Preview" style="max-width: 100%; max-height: 100px; object-fit: cover; border-radius: 8px;">`;
+            previewDiv.innerHTML = `<img src="${e.target.result}" style="max-width: 100%; max-height: 100px; object-fit: cover; border-radius: 8px;">`;
         };
-        reader.onerror = function(e) {
-            console.error('Erro ao ler arquivo:', e);
-            previewDiv.innerHTML = '<span style="color:#dc3545; font-size:12px;">❌ Erro ao carregar imagem</span>';
-        };
+        
         reader.readAsDataURL(file);
-    } else {
-        previewDiv.innerHTML = '';
     }
 }
 
@@ -403,6 +397,7 @@ function previewLink(linkInput, previewDiv) {
     const url = linkInput.value.trim();
     
     if (url && (url.startsWith('http://') || url.startsWith('https://'))) {
+        // Verificar se é uma imagem válida
         const img = new Image();
         img.onload = function() {
             previewDiv.innerHTML = `<img src="${url}" alt="Preview" style="max-width: 100%; max-height: 100px; object-fit: cover; border-radius: 8px;">`;
@@ -424,6 +419,7 @@ function atualizarContador() {
         contadorSpan.textContent = totalImagens;
     }
     
+    // Mostrar aviso de tamanho se tiver pelo menos uma imagem
     const avisoTamanho = document.getElementById('avisoTamanho');
     if (avisoTamanho && totalImagens > 0) {
         avisoTamanho.style.display = 'flex';
@@ -445,17 +441,27 @@ function inicializarPreviews() {
 
 // ==================== AUTENTICAÇÃO ====================
 function showLogin() {
-    document.getElementById('loginForm').style.display = 'block';
-    document.getElementById('cadastroForm').style.display = 'none';
-    document.getElementById('btnLoginTab').classList.add('active');
-    document.getElementById('btnCadastroTab').classList.remove('active');
+    const loginForm = document.getElementById('loginForm');
+    const cadastroForm = document.getElementById('cadastroForm');
+    const btnLogin = document.getElementById('btnLoginTab');
+    const btnCadastro = document.getElementById('btnCadastroTab');
+    
+    if (loginForm) loginForm.style.display = 'block';
+    if (cadastroForm) cadastroForm.style.display = 'none';
+    if (btnLogin) btnLogin.classList.add('active');
+    if (btnCadastro) btnCadastro.classList.remove('active');
 }
 
 function showCadastro() {
-    document.getElementById('loginForm').style.display = 'none';
-    document.getElementById('cadastroForm').style.display = 'block';
-    document.getElementById('btnCadastroTab').classList.add('active');
-    document.getElementById('btnLoginTab').classList.remove('active');
+    const loginForm = document.getElementById('loginForm');
+    const cadastroForm = document.getElementById('cadastroForm');
+    const btnLogin = document.getElementById('btnLoginTab');
+    const btnCadastro = document.getElementById('btnCadastroTab');
+    
+    if (loginForm) loginForm.style.display = 'none';
+    if (cadastroForm) cadastroForm.style.display = 'block';
+    if (btnCadastro) btnCadastro.classList.add('active');
+    if (btnLogin) btnLogin.classList.remove('active');
 }
 
 async function fazerCadastro() {
@@ -467,6 +473,7 @@ async function fazerCadastro() {
         showMessage('Preencha todos os campos!', 'error');
         return;
     }
+    
     if (senha.length < 6) {
         showMessage('A senha deve ter pelo menos 6 caracteres!', 'error');
         return;
@@ -482,7 +489,7 @@ async function fazerCadastro() {
         const data = await response.json();
         
         if (response.ok && data.sucesso) {
-            showMessage('✅ Cadastro realizado! Faça login.', 'success');
+            showMessage('✅ Cadastro realizado! Faça login.');
             document.getElementById('cadastroNome').value = '';
             document.getElementById('cadastroEmail').value = '';
             document.getElementById('cadastroSenha').value = '';
@@ -1095,37 +1102,33 @@ async function carregarNotificacoes() {
     }
 }
 
-function salvarSessao(usuario) {
-    if (!usuario) return;
-    
-    const tokenData = JSON.stringify({
-        id: usuario.id,
-        nome: usuario.nome,
-        email: usuario.email,
-        cargo: usuario.cargo
-    });
-    
-    // Salvar em ambos os storages
-    sessionStorage.setItem('ideaHubToken', tokenData);
-    localStorage.setItem('ideaHubToken', tokenData);
-    console.log('💾 Sessão salva:', usuario.nome);
-}
-
 async function fazerLogin() {
     const email = document.getElementById('loginEmail')?.value.trim();
     const senha = document.getElementById('loginSenha')?.value;
     
-    if (!email || !senha) {
-        showMessage('Preencha email e senha!', 'error');
+    if (!email && !senha) {
+        showMessage('❌ Todos os campos estão vazios!', 'error');
+        return;
+    }
+    
+    if (!email) {
+        showMessage('📧 Digite seu email para continuar.', 'error');
+        return;
+    }
+    
+    if (!senha) {
+        showMessage('🔐 Digite sua senha para continuar.', 'error');
         return;
     }
     
     showLoading(true);
+    
     try {
         const response = await fetch('/login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, senha })
+            body: JSON.stringify({ email, senha }),
+            credentials: 'include'
         });
         
         const data = await response.json();
@@ -1133,8 +1136,12 @@ async function fazerLogin() {
         if (response.ok && data.sucesso) {
             usuarioLogado = data.usuario;
             
-            // SALVAR SESSÃO (agora permitido!)
-            salvarSessao(usuarioLogado);
+            // ✅ SALVAR NO LOCALSTORAGE PARA MANTER SESSÃO
+            localStorage.setItem('ideaHubToken', JSON.stringify({
+                id: usuarioLogado.id,
+                nome: usuarioLogado.nome,
+                cargo: usuarioLogado.cargo
+            }));
             
             showMessage(`✅ Bem-vindo, ${usuarioLogado.nome}!`, 'success');
             
@@ -1149,7 +1156,10 @@ async function fazerLogin() {
             
             const isAdmin = usuarioLogado.cargo === 'gestor' || usuarioLogado.cargo === 'ti_staff';
             const adminLink = document.getElementById('adminLink');
+            const projetosLink = document.getElementById('projetosLink');
+            
             if (adminLink) adminLink.style.display = isAdmin ? 'inline-block' : 'none';
+            if (projetosLink) projetosLink.style.display = isAdmin ? 'inline-block' : 'none';
             
             // Mostrar áreas logadas
             document.getElementById('authArea').style.display = 'none';
@@ -1162,24 +1172,30 @@ async function fazerLogin() {
             const todasIdeiasHeader = document.querySelector('.todas-ideias-header');
             if (todasIdeiasHeader) todasIdeiasHeader.style.display = 'block';
             
+            // Mostrar conquistas
             const conquistasSection = document.getElementById('conquistasSection');
             const conquistasDisponiveisSection = document.getElementById('conquistasDisponiveisSection');
+            
             if (conquistasSection) conquistasSection.style.display = 'block';
             if (conquistasDisponiveisSection) conquistasDisponiveisSection.style.display = 'block';
             
+            // Esconder mensagens de login
             const mensagemMinhasIdeias = document.getElementById('mensagemMinhasIdeias');
             const mensagemTodasIdeias = document.getElementById('mensagemTodasIdeias');
             if (mensagemMinhasIdeias) mensagemMinhasIdeias.style.display = 'none';
             if (mensagemTodasIdeias) mensagemTodasIdeias.style.display = 'none';
             
+            // Mostrar paginação
             const paginacaoTodas = document.getElementById('paginacaoTodasIdeias');
             const paginacaoMinhas = document.getElementById('paginacaoMinhasIdeias');
             if (paginacaoTodas) paginacaoTodas.style.display = 'block';
             if (paginacaoMinhas) paginacaoMinhas.style.display = 'block';
             
+            // Mostrar filtro
             const filtroVisualizacao = document.querySelector('.filtro-visualizacao');
             if (filtroVisualizacao) filtroVisualizacao.style.display = 'flex';
             
+            // Carregar dados
             await carregarCategorias();
             await carregarLocais();
             await carregarIdeias();
@@ -1194,12 +1210,12 @@ async function fazerLogin() {
                 await carregarDashboardPessoal();
             }
         } else {
-            showMessage(data.erro || 'Email ou senha incorretos!', 'error');
+            showMessage(data.mensagem || data.erro || '❌ Email ou senha incorretos!', 'error');
             document.getElementById('loginSenha').value = '';
         }
     } catch (error) {
         console.error('❌ Erro no login:', error);
-        showMessage('Erro de conexão', 'error');
+        showMessage('⚠️ Erro de conexão! Tente novamente.', 'error');
     } finally {
         showLoading(false);
     }
@@ -1224,7 +1240,11 @@ function fazerLogout() {
         pararPollingNotificacoes();
     }
     
-    limparSessao();
+    usuarioLogado = null;
+    
+    // Limpar localStorage
+    localStorage.removeItem('ideaHubToken');
+    sessionStorage.clear();
     
     console.log('🔒 Logout realizado');
     
@@ -1234,6 +1254,13 @@ function fazerLogout() {
     
     if (conquistasSection) conquistasSection.style.display = 'none';
     if (conquistasDisponiveisSection) conquistasDisponiveisSection.style.display = 'none';
+    
+    // Limpar dados de conquistas
+    const conquistasList = document.getElementById('conquistasList');
+    const conquistasDisponiveisList = document.getElementById('conquistasDisponiveisList');
+    
+    if (conquistasList) conquistasList.innerHTML = '<div class="loading">Faça login para ver suas conquistas</div>';
+    if (conquistasDisponiveisList) conquistasDisponiveisList.innerHTML = '<div class="loading">Faça login para ver conquistas disponíveis</div>';
     
     // Resetar pontos e nível
     const pontosTotais = document.getElementById('pontosTotais');
@@ -1260,9 +1287,42 @@ function fazerLogout() {
     
     showMessage('✅ Logout realizado!', 'success');
     
-    // Recarregar a página
+    // Resetar filtros
+    paginaAtual = 1;
+    filtrosAtuais = { q: '', categoria_id: 'todos', autor: 'todos', orderBy: 'votos' };
+    
+    const searchInput = document.getElementById('searchInput');
+    const categoriaFilter = document.getElementById('categoriaFilter');
+    const orderBy = document.getElementById('orderBy');
+    
+    if (searchInput) searchInput.value = '';
+    if (categoriaFilter) categoriaFilter.value = 'todos';
+    if (orderBy) orderBy.value = 'votos';
+    
+    // Esconder paginação
+    const paginacaoTodasIdeias = document.getElementById('paginacaoTodasIdeias');
+    const paginacaoMinhasIdeias = document.getElementById('paginacaoMinhasIdeias');
+    if (paginacaoTodasIdeias) paginacaoTodasIdeias.style.display = 'none';
+    if (paginacaoMinhasIdeias) paginacaoMinhasIdeias.style.display = 'none';
+    
+    // Esconder filtro
+    const filtroVisualizacao = document.querySelector('.filtro-visualizacao');
+    if (filtroVisualizacao) filtroVisualizacao.style.display = 'none';
+    
+    // Mostrar mensagens de login
+    const mensagemMinhasIdeias = document.getElementById('mensagemMinhasIdeias');
+    const mensagemTodasIdeias = document.getElementById('mensagemTodasIdeias');
+    if (mensagemMinhasIdeias) {
+        mensagemMinhasIdeias.style.display = 'block';
+    }
+    if (mensagemTodasIdeias) {
+        mensagemTodasIdeias.style.display = 'block';
+    }
+    
+    // Redirecionar para o index
     window.location.href = '../index.html';
 }
+
 // ==================== CATEGORIAS ====================
 async function carregarCategorias() {
 
@@ -2162,8 +2222,13 @@ function irPagina(pagina) {
 }
 
 function getStatusText(status) {
-    const map = { 'pendente': '⏳ Pendente', 'aprovada': '✅ Aprovada', 'convertida': '🚀 Convertida', 'rejeitada': '❌ Rejeitada' };
-    return map[status] || status;
+    const statusMap = {
+        'pendente': '⏳ Pendente',
+        'aprovada': '✅ Aprovada',
+        'convertida': '🚀 Convertida',
+        'rejeitada': '❌ Rejeitada'
+    };
+    return statusMap[status] || status;
 }
 
 function testarConquistas() {
@@ -2640,10 +2705,25 @@ function getCargoText(cargo) {
 }
 
 function limparSessao() {
-    sessionStorage.removeItem('ideaHubToken');
-    localStorage.removeItem('ideaHubToken');
-    usuarioLogado = null;
-    console.log('🔓 Sessão limpa');
+    if (confirm('⚠️ Tem certeza que deseja limpar a sessão?\n\nVocê será desconectado e todos os dados de login serão removidos.')) {
+        // Limpar localStorage
+        localStorage.removeItem('ideaHubToken');
+        localStorage.removeItem('sessionToken');
+        
+        // Limpar sessionStorage
+        sessionStorage.clear();
+        
+        // Resetar variável global
+        usuarioLogado = null;
+        
+        // Mostrar mensagem
+        showMessage('✅ Sessão limpa! A página será recarregada.', 'success');
+        
+        // Recarregar a página após 1 segundo
+        setTimeout(() => {
+            window.location.reload();
+        }, 1000);
+    }
 }
 
 function mostrarMensagemLogin(containerId, mensagemId, tipo) {
@@ -2738,123 +2818,45 @@ function modoVisitante() {
     carregarCategorias();
 }
 
+// Função para restaurar sessão em outras páginas (admin, ideia, perfil)
 function restaurarSessao() {
-    // Tentar sessionStorage primeiro
-    let tokenSalvo = sessionStorage.getItem('ideaHubToken');
-    
-    // Se não tiver, tentar localStorage
-    if (!tokenSalvo) {
-        tokenSalvo = localStorage.getItem('ideaHubToken');
-        if (tokenSalvo) {
-            // Restaurar para sessionStorage
-            sessionStorage.setItem('ideaHubToken', tokenSalvo);
-        }
-    }
-    
+    const tokenSalvo = localStorage.getItem('ideaHubToken');
     if (tokenSalvo) {
         try {
             const user = JSON.parse(tokenSalvo);
-            if (user && user.id) {
-                usuarioLogado = user;
-                console.log('✅ Sessão restaurada:', usuarioLogado.nome);
-                return true;
-            }
+            usuarioLogado = user;
+            return true;
         } catch(e) {
-            console.error('Erro ao restaurar sessão:', e);
-            sessionStorage.removeItem('ideaHubToken');
-            localStorage.removeItem('ideaHubToken');
+            return false;
         }
     }
     return false;
-}       
+}
 
-document.addEventListener('DOMContentLoaded', async () => {
-    // Tentar restaurar sessão primeiro
-    const sessaoRestaurada = restaurarSessao();
-    
-    if (sessaoRestaurada && usuarioLogado) {
-        // Usuário já logado - restaurar interface
-        console.log('🔄 Sessão restaurada automaticamente:', usuarioLogado.nome);
-        
-        document.getElementById('userName').textContent = usuarioLogado.nome;
-        
-        const cargoBadge = document.getElementById('userCargoBadge');
-        if (cargoBadge) {
-            cargoBadge.className = `cargo-badge ${usuarioLogado.cargo}`;
-            cargoBadge.textContent = getCargoText(usuarioLogado.cargo);
-        }
-        
-        const isAdmin = usuarioLogado.cargo === 'gestor' || usuarioLogado.cargo === 'ti_staff';
-        const adminLink = document.getElementById('adminLink');
-        if (adminLink) adminLink.style.display = isAdmin ? 'inline-block' : 'none';
-        
-        document.getElementById('authArea').style.display = 'none';
-        document.getElementById('ideiaArea').style.display = 'block';
-        document.getElementById('buscaArea').style.display = 'block';
-        document.getElementById('notificacaoArea').style.display = 'block';
-        document.getElementById('minhasIdeiasArea').style.display = 'block';
-        document.getElementById('todasIdeias').style.display = 'grid';
-        
-        const todasIdeiasHeader = document.querySelector('.todas-ideias-header');
-        if (todasIdeiasHeader) todasIdeiasHeader.style.display = 'block';
-        
-        const filtroVisualizacao = document.querySelector('.filtro-visualizacao');
-        if (filtroVisualizacao) filtroVisualizacao.style.display = 'flex';
-        
-        const paginacaoTodas = document.getElementById('paginacaoTodasIdeias');
-        const paginacaoMinhas = document.getElementById('paginacaoMinhasIdeias');
-        if (paginacaoTodas) paginacaoTodas.style.display = 'block';
-        if (paginacaoMinhas) paginacaoMinhas.style.display = 'block';
-        
-        const mensagemMinhasIdeias = document.getElementById('mensagemMinhasIdeias');
-        const mensagemTodasIdeias = document.getElementById('mensagemTodasIdeias');
-        if (mensagemMinhasIdeias) mensagemMinhasIdeias.style.display = 'none';
-        if (mensagemTodasIdeias) mensagemTodasIdeias.style.display = 'none';
-        
-        await carregarCategorias();
-        await carregarLocais();
-        await carregarIdeias();
-        await carregarMinhasIdeias();
-        await carregarNotificacoes();
-        await carregarConquistas();
-        await carregarConquistasDisponiveis();
-        carregarEstadoConquistas();
-        
-        if (typeof carregarDashboardPessoal === 'function') {
-            await carregarDashboardPessoal();
-        }
-    } else {
-        // Usuário não logado - modo visitante
-        document.getElementById('authArea').style.display = 'block';
-        document.getElementById('ideiaArea').style.display = 'none';
-        document.getElementById('buscaArea').style.display = 'none';
-        document.getElementById('notificacaoArea').style.display = 'none';
-        document.getElementById('minhasIdeiasArea').style.display = 'none';
-        document.getElementById('todasIdeias').style.display = 'none';
-        
-        const todasIdeiasHeader = document.querySelector('.todas-ideias-header');
-        if (todasIdeiasHeader) todasIdeiasHeader.style.display = 'none';
-        
-        const filtroVisualizacao = document.querySelector('.filtro-visualizacao');
-        if (filtroVisualizacao) filtroVisualizacao.style.display = 'none';
-        
-        const paginacaoTodas = document.getElementById('paginacaoTodasIdeias');
-        const paginacaoMinhas = document.getElementById('paginacaoMinhasIdeias');
-        if (paginacaoTodas) paginacaoTodas.style.display = 'none';
-        if (paginacaoMinhas) paginacaoMinhas.style.display = 'none';
-        
-        const mensagemMinhasIdeias = document.getElementById('mensagemMinhasIdeias');
-        const mensagemTodasIdeias = document.getElementById('mensagemTodasIdeias');
-        if (mensagemMinhasIdeias) mensagemMinhasIdeias.style.display = 'block';
-        if (mensagemTodasIdeias) mensagemTodasIdeias.style.display = 'block';
-        
-        carregarCategorias();
-    }
-    
+// ==================== INICIALIZAÇÃO ====================
+document.addEventListener('DOMContentLoaded', () => {
+    // NÃO LIMPAR O LOCALSTORAGE AQUI!
+    // usuarioLogado = null; ← PODE MANTER
+    usuarioLogado = null
+
     // Configurar botão de adicionar imagem
     const btnAdicionar = document.getElementById('btnAdicionarImagem');
     if (btnAdicionar) {
         btnAdicionar.addEventListener('click', () => adicionarCampoImagem());
     }
     atualizarContador();
+    
+    // NÃO CHAMAR forcarModoVisitante se já estiver logado
+    const tokenSalvo = localStorage.getItem('ideaHubToken');
+    if (tokenSalvo) {
+        try {
+            const user = JSON.parse(tokenSalvo);
+            usuarioLogado = user;
+            atualizarInterfaceComLogin(user);
+        } catch(e) {
+            forcarModoVisitante();
+        }
+    } else {
+        forcarModoVisitante();
+    }
 });

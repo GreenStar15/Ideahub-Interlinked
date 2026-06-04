@@ -496,9 +496,9 @@
     <div class="container">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
     <h1><i class="fas fa-chart-line"></i> Painel Administrativo</h1>
-    <button onclick="voltarParaIdeias()" class="btn-voltar">
-    <i class="fas fa-arrow-left"></i> Voltar para as Ideias
-</button>
+    <button onclick="window.location.href='../index.html'" class="btn-voltar">
+        <i class="fas fa-arrow-left"></i> Voltar para as Ideias
+    </button>
 </div>
         
 <!-- Dashboard de Inovação -->
@@ -899,91 +899,47 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 });
         
-function voltarParaIdeias() {
-    // SALVAR SESSÃO DE TODAS AS FORMAS POSSÍVEIS
-    if (usuarioLogado) {
-        const tokenData = JSON.stringify({
-            id: usuarioLogado.id,
-            nome: usuarioLogado.nome,
-            email: usuarioLogado.email,
-            cargo: usuarioLogado.cargo
-        });
-        
-        // Salvar em TODOS os lugares possíveis
-        sessionStorage.setItem('ideaHubToken', tokenData);
-        localStorage.setItem('ideaHubToken', tokenData);
-        
-        // Também salvar como cookie como último recurso
-        document.cookie = `ideaHubToken=${encodeURIComponent(tokenData)}; path=/; max-age=86400`;
-        
-        console.log('💾 Sessão GARANTIDA em todos os storages');
-        console.log('👤 Usuário:', usuarioLogado.nome);
-        console.log('📦 Token salvo com sucesso');
-    }
-    
-    // Voltar para o index com parâmetro especial
-    window.location.href = '../index.html?keepSession=true&t=' + Date.now();
-}
-
-// Verificar autenticação ao carregar a página
-(function verificarAutenticacao() {
-    const tokenSalvo = sessionStorage.getItem('ideaHubToken');
-    if (!tokenSalvo) {
-        window.location.href = '../index.html';
-        return;
-    }
-    try {
-        window.usuarioLogado = JSON.parse(tokenSalvo);
-    } catch(e) {
-        window.location.href = '../index.html';
-    }
-})();
-
         async function verificarLogin() {
-    // Tentar recuperar usuário do sessionStorage
-    const tokenSalvo = sessionStorage.getItem('ideaHubToken');
+    // Tentar recuperar usuário do localStorage
+    const tokenSalvo = localStorage.getItem('ideaHubToken');
     
     if (tokenSalvo) {
         try {
             const user = JSON.parse(tokenSalvo);
             usuarioLogado = user;
-            console.log('Usuário recuperado do sessionStorage:', usuarioLogado);
             
             // Verificar permissão
             if (usuarioLogado.cargo === 'gestor' || usuarioLogado.cargo === 'ti_staff') {
-                console.log('✅ Acesso permitido - Cargo:', usuarioLogado.cargo);
                 return true;
             } else {
-                console.log('❌ Acesso negado - Cargo:', usuarioLogado.cargo);
                 alert('Acesso negado. Você não tem permissão para acessar esta página.');
                 window.location.href = '../index.html';
                 return false;
             }
         } catch (e) {
-            console.error('Erro ao parsear usuário:', e);
-            localStorage.removeItem('ideaHubToken');
-            sessionStorage.removeItem('ideaHubToken');
+            console.error('Erro ao recuperar usuário:', e);
         }
     }
     
-    // Tentar buscar do localStorage (fallback)
-    const tokenLocal = localStorage.getItem('ideaHubToken');
-    if (tokenLocal) {
-        try {
-            const user = JSON.parse(tokenLocal);
-            usuarioLogado = user;
+    // Se não tiver token, tentar buscar do servidor
+    try {
+        const response = await fetch('/validar-sessao', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ token: localStorage.getItem('sessionToken') })
+        });
+        const data = await response.json();
+        
+        if (data.valid && data.usuario) {
+            usuarioLogado = data.usuario;
+            localStorage.setItem('ideaHubToken', JSON.stringify(usuarioLogado));
             
             if (usuarioLogado.cargo === 'gestor' || usuarioLogado.cargo === 'ti_staff') {
-                // Salvar no sessionStorage para usar em outras páginas
-                sessionStorage.setItem('ideaHubToken', JSON.stringify({
-                    id: usuarioLogado.id,
-                    nome: usuarioLogado.nome,
-                    cargo: usuarioLogado.cargo
-                }));
-                console.log('✅ Acesso permitido via localStorage');
                 return true;
             }
-        } catch(e) {}
+        }
+    } catch (error) {
+        console.error('Erro na verificação:', error);
     }
     
     alert('Acesso negado. Você não tem permissão para acessar esta página.');
@@ -991,7 +947,62 @@ function voltarParaIdeias() {
     return false;
 }
         
-// ==========================================
+        async function carregarDashboard() {
+    try {
+        const response = await fetch('/admin/dashboard', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ usuarioId: usuarioLogado.id })
+        });
+        const data = await response.json();
+        
+        // ✅ VERIFICAR SE OS ELEMENTOS EXISTEM ANTES DE USAR
+        const totalIdeiasEl = document.getElementById('totalIdeias');
+        const totalUsuariosEl = document.getElementById('totalUsuarios');
+        const ideiasAprovadasEl = document.getElementById('ideiasAprovadas');
+        const ideiasConvertidasEl = document.getElementById('ideiasConvertidas');
+        const ideiasPendentesEl = document.getElementById('ideiasPendentes');
+        
+        if (totalIdeiasEl) totalIdeiasEl.textContent = data.totalIdeias;
+        if (totalUsuariosEl) totalUsuariosEl.textContent = data.totalUsuarios;
+        if (ideiasAprovadasEl) ideiasAprovadasEl.textContent = data.ideiasAprovadas;
+        if (ideiasConvertidasEl) ideiasConvertidasEl.textContent = data.ideiasConvertidas;
+        if (ideiasPendentesEl) ideiasPendentesEl.textContent = data.ideiasPendentes;
+        
+        // ✅ VERIFICAR SE O CANVAS EXISTE
+        const ctx = document.getElementById('categoriasChart')?.getContext('2d');
+        if (!ctx) {
+            console.warn('⚠️ Canvas "categoriasChart" não encontrado');
+            return;
+        }
+        
+        const categorias = data.ideiasPorCategoria || [];
+        
+        if (categoriasChart) categoriasChart.destroy();
+        categoriasChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: categorias.map(c => `${c.icone} ${c.nome}`),
+                datasets: [{
+                    label: 'Número de Ideias',
+                    data: categorias.map(c => c.total),
+                    backgroundColor: 'rgba(102, 126, 234, 0.6)',
+                    borderColor: '#667eea',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                scales: { y: { beginAtZero: true, stepSize: 1 } }
+            }
+        });
+    } catch (error) {
+        console.error('Erro no dashboard:', error);
+    }
+}
+        
+        // ==========================================
 // US18 - MAPA DE CALOR
 // ==========================================
 let mapa = null;

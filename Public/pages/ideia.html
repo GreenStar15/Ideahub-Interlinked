@@ -1176,22 +1176,6 @@
     const urlParams = new URLSearchParams(window.location.search);
     const ideiaId = urlParams.get('id');
     
-    // Verificar autenticação ao carregar a página
-// Verificar autenticação ao carregar a página
-(function verificarAutenticacao() {
-    const tokenSalvo = sessionStorage.getItem('ideaHubToken');
-    if (!tokenSalvo) {
-        // Redirecionar para o index se não estiver logado
-        window.location.href = '../index.html';
-        return;
-    }
-    try {
-        window.usuarioLogado = JSON.parse(tokenSalvo);
-        console.log('Usuário autenticado:', window.usuarioLogado.nome);
-    } catch(e) {
-        window.location.href = '../index.html';
-    }
-})();
     window.deletarIdeia = async function(ideiaId) {
         
         if (!confirm('⚠️ Tem certeza que deseja deletar esta ideia?\n\nTodas as imagens, votos e comentários serão removidos permanentemente!')) {
