@@ -1136,8 +1136,8 @@ async function fazerLogin() {
         if (response.ok && data.sucesso) {
             usuarioLogado = data.usuario;
             
-            // ✅ SALVAR NO LOCALSTORAGE PARA MANTER SESSÃO
-            localStorage.setItem('ideaHubToken', JSON.stringify({
+            // ✅ USAR sessionStorage (não localStorage) para manter sessão apenas na aba
+            sessionStorage.setItem('ideaHubToken', JSON.stringify({
                 id: usuarioLogado.id,
                 nome: usuarioLogado.nome,
                 cargo: usuarioLogado.cargo
@@ -1242,9 +1242,8 @@ function fazerLogout() {
     
     usuarioLogado = null;
     
-    // Limpar localStorage
-    localStorage.removeItem('ideaHubToken');
-    sessionStorage.clear();
+    // Limpar sessionStorage (não localStorage)
+    sessionStorage.removeItem('ideaHubToken');
     
     console.log('🔒 Logout realizado');
     
@@ -1322,7 +1321,6 @@ function fazerLogout() {
     // Redirecionar para o index
     window.location.href = '../index.html';
 }
-
 // ==================== CATEGORIAS ====================
 async function carregarCategorias() {
 
@@ -2835,9 +2833,8 @@ function restaurarSessao() {
 
 // ==================== INICIALIZAÇÃO ====================
 document.addEventListener('DOMContentLoaded', () => {
-    // NÃO LIMPAR O LOCALSTORAGE AQUI!
-    // usuarioLogado = null; ← PODE MANTER
-    usuarioLogado = null
+    // NÃO LIMPAR O LOCALSTORAGE - apenas restaurar sessão do sessionStorage
+    usuarioLogado = null;
 
     // Configurar botão de adicionar imagem
     const btnAdicionar = document.getElementById('btnAdicionarImagem');
@@ -2846,14 +2843,55 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     atualizarContador();
     
-    // NÃO CHAMAR forcarModoVisitante se já estiver logado
-    const tokenSalvo = localStorage.getItem('ideaHubToken');
+    // Tentar restaurar sessão do sessionStorage
+    const tokenSalvo = sessionStorage.getItem('ideaHubToken');
+    
     if (tokenSalvo) {
         try {
             const user = JSON.parse(tokenSalvo);
             usuarioLogado = user;
-            atualizarInterfaceComLogin(user);
+            
+            // Atualizar interface para usuário logado
+            document.getElementById('userName').textContent = user.nome;
+            
+            const cargoBadge = document.getElementById('userCargoBadge');
+            if (cargoBadge) {
+                cargoBadge.className = `cargo-badge ${user.cargo}`;
+                cargoBadge.textContent = getCargoText(user.cargo);
+            }
+            
+            const isAdmin = user.cargo === 'gestor' || user.cargo === 'ti_staff';
+            const adminLink = document.getElementById('adminLink');
+            if (adminLink) adminLink.style.display = isAdmin ? 'inline-block' : 'none';
+            
+            document.getElementById('authArea').style.display = 'none';
+            document.getElementById('ideiaArea').style.display = 'block';
+            document.getElementById('buscaArea').style.display = 'block';
+            document.getElementById('notificacaoArea').style.display = 'block';
+            document.getElementById('minhasIdeiasArea').style.display = 'block';
+            document.getElementById('todasIdeias').style.display = 'grid';
+            document.querySelector('.todas-ideias-header').style.display = 'block';
+            document.querySelector('.filtro-visualizacao').style.display = 'flex';
+            
+            document.getElementById('paginacaoTodasIdeias').style.display = 'block';
+            document.getElementById('paginacaoMinhasIdeias').style.display = 'block';
+            
+            // Carregar dados
+            carregarCategorias();
+            carregarLocais();
+            carregarIdeias();
+            carregarMinhasIdeias();
+            carregarNotificacoes();
+            carregarConquistas();
+            carregarConquistasDisponiveis();
+            carregarEstadoConquistas();
+            
+            if (typeof carregarDashboardPessoal === 'function') {
+                carregarDashboardPessoal();
+            }
         } catch(e) {
+            console.error('Erro ao restaurar sessão:', e);
+            sessionStorage.clear();
             forcarModoVisitante();
         }
     } else {
