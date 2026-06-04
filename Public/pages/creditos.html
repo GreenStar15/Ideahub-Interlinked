@@ -120,6 +120,20 @@
             .creditos-grid { grid-template-columns: 1fr; }
         }
     </style>
+    <script>
+    const tokenSalvo = sessionStorage.getItem('ideaHubToken');
+if (tokenSalvo) {
+    try {
+        const user = JSON.parse(tokenSalvo);
+        usuarioLogado = user;
+    } catch(e) {
+        console.error('Erro ao restaurar sessão');
+    }
+} else {
+    // Se não estiver logado, redirecionar para o index
+    window.location.href = '../index.html';
+}
+</script>
 </head>
 <body>
     <div class="container">
