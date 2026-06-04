@@ -1089,14 +1089,14 @@ async function fazerLogin() {
         const data = await response.json();
         
         if (response.ok && data.sucesso) {
-            usuarioLogado = data.usuario;
-            
-            // Salvar apenas no sessionStorage (vai embora quando fechar a aba)
-            sessionStorage.setItem('ideaHubToken', JSON.stringify({
-                id: usuarioLogado.id,
-                nome: usuarioLogado.nome,
-                cargo: usuarioLogado.cargo
-            }));
+    usuarioLogado = data.usuario;
+    
+    // ✅ SALVAR NO SESSIONSTORAGE (não localStorage)
+    sessionStorage.setItem('ideaHubToken', JSON.stringify({
+        id: usuarioLogado.id,
+        nome: usuarioLogado.nome,
+        cargo: usuarioLogado.cargo
+    }));
             
             showMessage(`✅ Bem-vindo, ${usuarioLogado.nome}!`, 'success');
             
