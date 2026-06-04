@@ -12,26 +12,26 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    // 🔥 BLOQUEIO EXTREMO - EXECUTA ANTES DE TUDO
+    // 🔥 BLOQUEIO APENAS PARA A PÁGINA INICIAL
     (function() {
-        // Limpar tudo imediatamente
-        localStorage.clear();
-        sessionStorage.clear();
+        // Limpar apenas na primeira visita à página inicial
+        if (sessionStorage.getItem('paginaInicialVisitada') !== 'true') {
+            localStorage.clear();
+            sessionStorage.clear();
+            localStorage.removeItem('ideaHubToken');
+            sessionStorage.setItem('paginaInicialVisitada', 'true');
+            console.log('🧹 Limpeza de sessão na página inicial');
+        }
         
-        // IMPEDIR QUALQUER TENTATIVA DE SALVAR
+        // Bloquear apenas tentativas de salvar token (proteção)
         const originalSetItem = localStorage.setItem;
         localStorage.setItem = function(key, value) {
-            // Bloquear especificamente o token
             if (key === 'ideaHubToken') {
-                console.warn('🚫 BLOQUEADO: Tentativa de salvar token:', key);
+                console.warn('🚫 BLOQUEADO: Tentativa de salvar token');
                 return;
             }
-            // Permitir outras chaves
             originalSetItem.apply(this, arguments);
         };
-        
-        console.log('🛡️ BLOQUEIO DE TOKEN ATIVADO');
-        console.log('Token atual:', localStorage.getItem('ideaHubToken'));
     })();
 </script>
 </head>

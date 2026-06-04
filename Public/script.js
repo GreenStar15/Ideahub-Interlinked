@@ -1106,19 +1106,18 @@ async function fazerLogin() {
     const email = document.getElementById('loginEmail')?.value.trim();
     const senha = document.getElementById('loginSenha')?.value;
     
-    // Validação básica
     if (!email && !senha) {
-        showMessage('❌ Todos os campos estão vazios! Por favor, preencha seu email e senha.', 'error');
+        showMessage('❌ Todos os campos estão vazios!', 'error');
         return;
     }
     
     if (!email) {
-        showMessage('📧 O campo de email está vazio! Digite seu email para continuar.', 'error');
+        showMessage('📧 Digite seu email para continuar.', 'error');
         return;
     }
     
     if (!senha) {
-        showMessage('🔐 O campo de senha está vazio! Digite sua senha para continuar.', 'error');
+        showMessage('🔐 Digite sua senha para continuar.', 'error');
         return;
     }
     
@@ -1137,8 +1136,14 @@ async function fazerLogin() {
         if (response.ok && data.sucesso) {
             usuarioLogado = data.usuario;
             
-            // Mostrar mensagem de boas-vindas
-            showMessage(data.mensagem || `✅ Bem-vindo, ${usuarioLogado.nome}!`, 'success');
+            // ✅ SALVAR NO LOCALSTORAGE PARA MANTER SESSÃO
+            localStorage.setItem('ideaHubToken', JSON.stringify({
+                id: usuarioLogado.id,
+                nome: usuarioLogado.nome,
+                cargo: usuarioLogado.cargo
+            }));
+            
+            showMessage(`✅ Bem-vindo, ${usuarioLogado.nome}!`, 'success');
             
             // Atualizar interface
             document.getElementById('userName').textContent = usuarioLogado.nome;
@@ -1186,10 +1191,9 @@ async function fazerLogin() {
             if (paginacaoTodas) paginacaoTodas.style.display = 'block';
             if (paginacaoMinhas) paginacaoMinhas.style.display = 'block';
             
-            // ========== PASSO 2: MOSTRAR FILTRO DE VISUALIZAÇÃO ==========
+            // Mostrar filtro
             const filtroVisualizacao = document.querySelector('.filtro-visualizacao');
             if (filtroVisualizacao) filtroVisualizacao.style.display = 'flex';
-            // ============================================================
             
             // Carregar dados
             await carregarCategorias();
@@ -1206,16 +1210,12 @@ async function fazerLogin() {
                 await carregarDashboardPessoal();
             }
         } else {
-            // Exibir mensagem de erro personalizada do servidor
             showMessage(data.mensagem || data.erro || '❌ Email ou senha incorretos!', 'error');
-            
-            // ========== PASSO 3: LIMPAR O CAMPO DE SENHA ==========
             document.getElementById('loginSenha').value = '';
-            // ======================================================
         }
     } catch (error) {
         console.error('❌ Erro no login:', error);
-        showMessage('⚠️ Erro de conexão! Verifique sua internet e tente novamente.', 'error');
+        showMessage('⚠️ Erro de conexão! Tente novamente.', 'error');
     } finally {
         showLoading(false);
     }
@@ -1236,19 +1236,17 @@ async function carregarNivelUsuario() {
 }
 
 function fazerLogout() {
-    // Parar polling de notificações
     if (typeof pararPollingNotificacoes === 'function') {
         pararPollingNotificacoes();
     }
     
-    // 🔥 LIMPAR TUDO
     usuarioLogado = null;
-    localStorage.clear();
-    sessionStorage.clear();
-    localStorage.removeItem('ideaHubToken');
-    localStorage.removeItem('sessionToken');
     
-    console.log('🔒 Logout - localStorage limpo:', localStorage.getItem('ideaHubToken'));
+    // Limpar localStorage
+    localStorage.removeItem('ideaHubToken');
+    sessionStorage.clear();
+    
+    console.log('🔒 Logout realizado');
     
     // Limpar áreas de conquistas
     const conquistasSection = document.getElementById('conquistasSection');
@@ -1307,22 +1305,22 @@ function fazerLogout() {
     if (paginacaoTodasIdeias) paginacaoTodasIdeias.style.display = 'none';
     if (paginacaoMinhasIdeias) paginacaoMinhasIdeias.style.display = 'none';
     
-    // ========== PASSO 4: ESCONDER FILTRO DE VISUALIZAÇÃO ==========
+    // Esconder filtro
     const filtroVisualizacao = document.querySelector('.filtro-visualizacao');
     if (filtroVisualizacao) filtroVisualizacao.style.display = 'none';
-    // ===============================================================
     
     // Mostrar mensagens de login
     const mensagemMinhasIdeias = document.getElementById('mensagemMinhasIdeias');
     const mensagemTodasIdeias = document.getElementById('mensagemTodasIdeias');
     if (mensagemMinhasIdeias) {
         mensagemMinhasIdeias.style.display = 'block';
-        mensagemMinhasIdeias.innerHTML = `<h3 style="color: #2d3748;">🔒 Acesso Restrito</h3><p style="color: #4a5568;">Faça login para ver suas ideias!</p>`;
     }
     if (mensagemTodasIdeias) {
         mensagemTodasIdeias.style.display = 'block';
-        mensagemTodasIdeias.innerHTML = `<h2 style="color: #2d3748;">🔒 Acesso Restrito</h2><p style="color: #4a5568;">Faça login para ver as ideias da comunidade!</p>`;
     }
+    
+    // Redirecionar para o index
+    window.location.href = '../index.html';
 }
 
 // ==================== CATEGORIAS ====================
@@ -2744,9 +2742,8 @@ function mostrarMensagemLogin(containerId, mensagemId, tipo) {
 function forcarModoVisitante() {
     usuarioLogado = null;
     
-    // Limpar storages
-    localStorage.clear();
-    sessionStorage.clear();
+    // NÃO LIMPAR localStorage AQUI!
+    // Apenas esconder as áreas logadas
     
     // Forçar exibição apenas da área de login
     const authArea = document.getElementById('authArea');
@@ -2775,7 +2772,7 @@ function forcarModoVisitante() {
     if (dashboardPessoal) dashboardPessoal.style.display = 'none';
     if (paginacaoTodasIdeias) paginacaoTodasIdeias.style.display = 'none';
     if (paginacaoMinhasIdeias) paginacaoMinhasIdeias.style.display = 'none';
-    if (filtroVisualizacao) filtroVisualizacao.style.display = 'none'; // ← GARANTIR QUE ESTÁ AQUI
+    if (filtroVisualizacao) filtroVisualizacao.style.display = 'none';
     
     // Mostrar mensagens de login
     const mensagemMinhasIdeias = document.getElementById('mensagemMinhasIdeias');
@@ -2783,18 +2780,10 @@ function forcarModoVisitante() {
     
     if (mensagemMinhasIdeias) {
         mensagemMinhasIdeias.style.display = 'block';
-        mensagemMinhasIdeias.innerHTML = `
-            <h3 style="color: #2d3748;">🔒 Acesso Restrito</h3>
-            <p style="color: #4a5568;">Faça login para ver suas ideias!</p>
-        `;
     }
     
     if (mensagemTodasIdeias) {
         mensagemTodasIdeias.style.display = 'block';
-        mensagemTodasIdeias.innerHTML = `
-            <h2 style="color: #2d3748;">🔒 Acesso Restrito</h2>
-            <p style="color: #4a5568;">Faça login para ver as ideias da comunidade!</p>
-        `;
     }
     
     // Recarregar apenas categorias
@@ -2829,19 +2818,27 @@ function modoVisitante() {
     carregarCategorias();
 }
 
+// Função para restaurar sessão em outras páginas (admin, ideia, perfil)
+function restaurarSessao() {
+    const tokenSalvo = localStorage.getItem('ideaHubToken');
+    if (tokenSalvo) {
+        try {
+            const user = JSON.parse(tokenSalvo);
+            usuarioLogado = user;
+            return true;
+        } catch(e) {
+            return false;
+        }
+    }
+    return false;
+}
+
 // ==================== INICIALIZAÇÃO ====================
 document.addEventListener('DOMContentLoaded', () => {
-    // 🔒 FORÇAR LOGOUT IMEDIATAMENTE
-    usuarioLogado = null;
-    
-    // Limpar storages novamente
-    localStorage.clear();
-    sessionStorage.clear();
-    localStorage.removeItem('ideaHubToken');
-    localStorage.removeItem('sessionToken');
-    
-    console.log('🔒 DOMContentLoaded - Usuário forçado a estar deslogado');
-    
+    // NÃO LIMPAR O LOCALSTORAGE AQUI!
+    // usuarioLogado = null; ← PODE MANTER
+    usuarioLogado = null
+
     // Configurar botão de adicionar imagem
     const btnAdicionar = document.getElementById('btnAdicionarImagem');
     if (btnAdicionar) {
@@ -2849,6 +2846,17 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     atualizarContador();
     
-    // FORÇAR MODO VISITANTE
-    forcarModoVisitante();
+    // NÃO CHAMAR forcarModoVisitante se já estiver logado
+    const tokenSalvo = localStorage.getItem('ideaHubToken');
+    if (tokenSalvo) {
+        try {
+            const user = JSON.parse(tokenSalvo);
+            usuarioLogado = user;
+            atualizarInterfaceComLogin(user);
+        } catch(e) {
+            forcarModoVisitante();
+        }
+    } else {
+        forcarModoVisitante();
+    }
 });
