@@ -11,27 +11,53 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    // 🔥 BLOQUEIO APENAS PARA A PÁGINA INICIAL
-    (function() {
-        // Limpar apenas na primeira visita à página inicial
+// Adicione NO INÍCIO do index.html, antes do script bloqueador
+(function verificarSessaoRetorno() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const manterSessao = urlParams.has('keepSession') || urlParams.has('adminReturn');
+    
+    if (manterSessao) {
+        // Não limpar a sessão, preservar tudo
+        console.log('🔄 Preservando sessão - retorno do admin');
+        sessionStorage.setItem('paginaInicialVisitada', 'true');
+        return; // Sai do script bloqueador original
+    }
+    
+    // Se não tem parâmetro, executar o script bloqueador normal
+    // ... (seu script bloqueador original aqui)
+})();
+
+// 🔥 CORREÇÃO: Preservar sessão ao retornar do admin
+(function() {
+    // Verificar se estamos voltando do admin
+    const urlParams = new URLSearchParams(window.location.search);
+    const isReturningFromAdmin = urlParams.has('adminReturn') || document.referrer.includes('admin.html');
+    
+    // Só limpar se NÃO estiver voltando do admin e NÃO tiver token
+    const tokenExistente = sessionStorage.getItem('ideaHubToken') || localStorage.getItem('ideaHubToken');
+    
+    if (!tokenExistente && !isReturningFromAdmin) {
+        // Primeira visita SEM token - limpar tudo (comportamento normal)
         if (sessionStorage.getItem('paginaInicialVisitada') !== 'true') {
             localStorage.clear();
             sessionStorage.clear();
-            localStorage.removeItem('ideaHubToken');
             sessionStorage.setItem('paginaInicialVisitada', 'true');
-            console.log('🧹 Limpeza de sessão na página inicial');
+            console.log('🧹 Limpeza de sessão na primeira visita');
         }
+    } else if (tokenExistente && isReturningFromAdmin) {
+        // Voltando do admin com token - NÃO limpar!
+        console.log('✅ Retornando do admin, preservando sessão');
         
-        // Bloquear apenas tentativas de salvar token (proteção)
-        const originalSetItem = localStorage.setItem;
-        localStorage.setItem = function(key, value) {
-            if (key === 'ideaHubToken') {
-                console.warn('🚫 BLOQUEADO: Tentativa de salvar token');
-                return;
-            }
-            originalSetItem.apply(this, arguments);
-        };
-    })();
+        // Garantir que o token está no sessionStorage
+        if (localStorage.getItem('ideaHubToken') && !sessionStorage.getItem('ideaHubToken')) {
+            sessionStorage.setItem('ideaHubToken', localStorage.getItem('ideaHubToken'));
+        }
+    }
+    
+    // NÃO bloquear mais o salvamento do token - REMOVER O BLOQUEIO
+    // (O bloqueio original impedia o login de funcionar corretamente)
+    console.log('🔓 Sistema de autenticação normalizado');
+})();
 </script>
 </head>
 <body>

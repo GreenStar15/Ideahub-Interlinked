@@ -900,8 +900,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
         
 function voltarParaIdeias() {
-    // Não perder a sessão - apenas navegar
-    window.location.href = '../index.html';
+    // Salvar sessão no localStorage como backup
+    if (usuarioLogado) {
+        localStorage.setItem('ideaHubToken', JSON.stringify(usuarioLogado));
+        sessionStorage.setItem('ideaHubToken', JSON.stringify(usuarioLogado));
+    }
+    
+    // Redirecionar com parâmetro especial
+    window.location.href = '../index.html?keepSession=true';
 }
 
 // Verificar autenticação ao carregar a página
