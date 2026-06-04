@@ -900,7 +900,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
         
 function voltarParaIdeias() {
-    // Salvar sessão
+    // SALVAR SESSÃO DE TODAS AS FORMAS POSSÍVEIS
     if (usuarioLogado) {
         const tokenData = JSON.stringify({
             id: usuarioLogado.id,
@@ -908,15 +908,21 @@ function voltarParaIdeias() {
             email: usuarioLogado.email,
             cargo: usuarioLogado.cargo
         });
+        
+        // Salvar em TODOS os lugares possíveis
         sessionStorage.setItem('ideaHubToken', tokenData);
         localStorage.setItem('ideaHubToken', tokenData);
+        
+        // Também salvar como cookie como último recurso
+        document.cookie = `ideaHubToken=${encodeURIComponent(tokenData)}; path=/; max-age=86400`;
+        
+        console.log('💾 Sessão GARANTIDA em todos os storages');
+        console.log('👤 Usuário:', usuarioLogado.nome);
+        console.log('📦 Token salvo com sucesso');
     }
     
-    // Abrir em nova ABA em vez de substituir
-    window.open('../index.html?keepSession=true', '_blank');
-    
-    // Mostrar instrução
-    alert('✅ Página inicial aberta em nova aba! Use a nova aba para continuar logado.\n\nFeche esta aba do admin quando terminar.');
+    // Voltar para o index com parâmetro especial
+    window.location.href = '../index.html?keepSession=true&t=' + Date.now();
 }
 
 // Verificar autenticação ao carregar a página
