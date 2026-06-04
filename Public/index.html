@@ -11,58 +11,67 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-// Adicione NO INÍCIO do index.html, antes do script bloqueador
-(function verificarSessaoRetorno() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const manterSessao = urlParams.has('keepSession') || urlParams.has('adminReturn');
+    // ==========================================
+    // SISTEMA DE AUTENTICAÇÃO SIMPLIFICADO
+    // ==========================================
     
-    if (manterSessao) {
-        // Não limpar a sessão, preservar tudo
-        console.log('🔄 Preservando sessão - retorno do admin');
-        sessionStorage.setItem('paginaInicialVisitada', 'true');
-        return; // Sai do script bloqueador original
-    }
-    
-    // Se não tem parâmetro, executar o script bloqueador normal
-    // ... (seu script bloqueador original aqui)
-})();
-
-    // 🔥 SISTEMA DE AUTENTICAÇÃO CORRIGIDO
+    // Função para verificar e restaurar sessão IMEDIATAMENTE
     (function() {
+        console.log('🔍 Verificando sessão existente...');
+        
         // Tentar recuperar sessão de qualquer lugar
-        let tokenSalvo = sessionStorage.getItem('ideaHubToken');
+        let token = null;
+        let usuario = null;
         
-        // Se não tiver no sessionStorage, tentar localStorage
-        if (!tokenSalvo) {
-            tokenSalvo = localStorage.getItem('ideaHubToken');
-            if (tokenSalvo) {
-                // Restaurar para sessionStorage
-                sessionStorage.setItem('ideaHubToken', tokenSalvo);
-                console.log('🔄 Token restaurado do localStorage para sessionStorage');
-            }
-        }
-        
-        // Se tem token, validar e manter logado
-        if (tokenSalvo) {
+        // 1. Tentar sessionStorage
+        token = sessionStorage.getItem('ideaHubToken');
+        if (token) {
             try {
-                const user = JSON.parse(tokenSalvo);
-                if (user && user.id) {
-                    console.log('✅ Usuário já está logado:', user.nome);
-                    // NÃO LIMPAR NADA! Manter a sessão
-                    sessionStorage.setItem('paginaInicialVisitada', 'true');
-                    return; // Sair do script - manter tudo
-                }
-            } catch(e) {
-                console.error('Erro ao parsear token:', e);
+                usuario = JSON.parse(token);
+                console.log('✅ Sessão encontrada no sessionStorage:', usuario.nome);
+            } catch(e) {}
+        }
+        
+        // 2. Se não tiver, tentar localStorage
+        if (!usuario) {
+            token = localStorage.getItem('ideaHubToken');
+            if (token) {
+                try {
+                    usuario = JSON.parse(token);
+                    console.log('✅ Sessão encontrada no localStorage:', usuario.nome);
+                    // Restaurar para sessionStorage
+                    sessionStorage.setItem('ideaHubToken', token);
+                } catch(e) {}
             }
         }
         
-        // Só limpa se NÃO houver token (primeira visita sem login)
-        if (sessionStorage.getItem('paginaInicialVisitada') !== 'true') {
+        // 3. Verificar parâmetro na URL (vindo do admin)
+        const urlParams = new URLSearchParams(window.location.search);
+        const keepSession = urlParams.has('keepSession') || urlParams.has('adminReturn');
+        
+        if (keepSession && usuario) {
+            console.log('🔄 Retornando do admin - preservando sessão');
+            // Garantir que a sessão está salva
+            sessionStorage.setItem('ideaHubToken', JSON.stringify(usuario));
+            localStorage.setItem('ideaHubToken', JSON.stringify(usuario));
+        }
+        
+        // 4. Se tem usuário, NÃO LIMPAR NADA
+        if (usuario && usuario.id) {
+            console.log('🔓 USUÁRIO LOGADO - Mantendo sessão:', usuario.nome);
+            // Marcar que a página já foi visitada
+            sessionStorage.setItem('paginaInicialVisitada', 'true');
+            return; // Sair imediatamente - NÃO LIMPAR!
+        }
+        
+        // 5. Só limpa se NÃO houver usuário E for primeira visita
+        if (!usuario && sessionStorage.getItem('paginaInicialVisitada') !== 'true') {
+            console.log('🧹 Primeira visita sem login - limpando ambiente');
             localStorage.clear();
             sessionStorage.clear();
             sessionStorage.setItem('paginaInicialVisitada', 'true');
-            console.log('🧹 Primeira visita - ambiente limpo');
+        } else {
+            console.log('ℹ️ Mantendo estado atual - sem alterações');
         }
     })();
 </script>

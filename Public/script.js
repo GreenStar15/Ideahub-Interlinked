@@ -78,6 +78,18 @@ try {
 
 console.log('🔍 LocalStorage após limpeza:', localStorage.getItem('ideaHubToken'));
 
+function debugSessao() {
+    console.log('===== DEBUG DE SESSÃO =====');
+    console.log('sessionStorage token:', sessionStorage.getItem('ideaHubToken'));
+    console.log('localStorage token:', localStorage.getItem('ideaHubToken'));
+    console.log('usuarioLogado:', usuarioLogado);
+    console.log('Cookies:', document.cookie);
+    console.log('==========================');
+}
+
+// Executar debug a cada 2 segundos
+setInterval(debugSessao, 5000);
+
 // Verificar se voltou de alguma página
 function verificarParametroURL() {
     const urlParams = new URLSearchParams(window.location.search);

@@ -900,7 +900,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
         
 function voltarParaIdeias() {
-    // GARANTIR que a sessão está salva antes de sair
+    // SALVAR SESSÃO DE TODAS AS FORMAS POSSÍVEIS
     if (usuarioLogado) {
         const tokenData = JSON.stringify({
             id: usuarioLogado.id,
@@ -909,17 +909,20 @@ function voltarParaIdeias() {
             cargo: usuarioLogado.cargo
         });
         
-        // Salvar em AMBOS os storages
-        localStorage.setItem('ideaHubToken', tokenData);
+        // Salvar em TODOS os lugares possíveis
         sessionStorage.setItem('ideaHubToken', tokenData);
+        localStorage.setItem('ideaHubToken', tokenData);
         
-        console.log('💾 Sessão GARANTIDA antes de sair do admin');
+        // Também salvar como cookie como último recurso
+        document.cookie = `ideaHubToken=${encodeURIComponent(tokenData)}; path=/; max-age=86400`;
+        
+        console.log('💾 Sessão GARANTIDA em todos os storages');
         console.log('👤 Usuário:', usuarioLogado.nome);
-        console.log('📦 Token salvo no localStorage e sessionStorage');
+        console.log('📦 Token salvo com sucesso');
     }
     
-    // Voltar para o index SEM parâmetros (mas com a sessão garantida)
-    window.location.href = '../index.html';
+    // Voltar para o index com parâmetro especial
+    window.location.href = '../index.html?keepSession=true&t=' + Date.now();
 }
 
 // Verificar autenticação ao carregar a página
