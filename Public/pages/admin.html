@@ -34,6 +34,58 @@
         document.head.appendChild(script);
     }
 </script>
+<script src="/js/session-check.js"></script>
+<script>
+    // Verificação de sessão e permissão de admin
+    (function() {
+        const userSalvo = sessionStorage.getItem('ideaHubUser');
+        
+        if (!userSalvo) {
+            alert('❌ Faça login primeiro!');
+            window.location.href = '../index.html';
+            return;
+        }
+        
+        let usuario = null;
+        try {
+            usuario = JSON.parse(userSalvo);
+        } catch(e) {
+            alert('❌ Sessão inválida. Faça login novamente.');
+            window.location.href = '../index.html';
+            return;
+        }
+        
+        // Verificar se é admin
+        const isAdmin = usuario.cargo === 'gestor' || usuario.cargo === 'ti_staff';
+        if (!isAdmin) {
+            alert('❌ Acesso negado! Você não tem permissão de administrador.');
+            window.location.href = '../index.html';
+            return;
+        }
+        
+        // Salvar globalmente
+        window.usuarioLogado = usuario;
+        
+        // Mostrar nome do admin
+        const adminNameEl = document.getElementById('adminName');
+        if (adminNameEl) {
+            adminNameEl.textContent = usuario.nome;
+        }
+        
+        console.log('✅ Admin logado:', usuario.nome);
+        
+        // Carregar dados do dashboard após verificação
+        document.addEventListener('DOMContentLoaded', function() {
+            carregarDashboardInovacao();
+            carregarMapaCalor();
+            carregarUsuarios();
+            carregarLogs();
+            carregarReports();
+            carregarReportsComentarios();
+            carregarTemplates();
+        });
+    })();
+</script>
     <style>
         /* Estilos específicos do admin */
         .dashboard-grid {
@@ -898,54 +950,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         window.location.href = '../index.html';
     }
 });
-        
-        async function verificarLogin() {
-    // Tentar recuperar usuário do localStorage
-    const tokenSalvo = localStorage.getItem('ideaHubToken');
-    
-    if (tokenSalvo) {
-        try {
-            const user = JSON.parse(tokenSalvo);
-            usuarioLogado = user;
-            
-            // Verificar permissão
-            if (usuarioLogado.cargo === 'gestor' || usuarioLogado.cargo === 'ti_staff') {
-                return true;
-            } else {
-                alert('Acesso negado. Você não tem permissão para acessar esta página.');
-                window.location.href = '../index.html';
-                return false;
-            }
-        } catch (e) {
-            console.error('Erro ao recuperar usuário:', e);
-        }
-    }
-    
-    // Se não tiver token, tentar buscar do servidor
-    try {
-        const response = await fetch('/validar-sessao', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ token: localStorage.getItem('sessionToken') })
-        });
-        const data = await response.json();
-        
-        if (data.valid && data.usuario) {
-            usuarioLogado = data.usuario;
-            localStorage.setItem('ideaHubToken', JSON.stringify(usuarioLogado));
-            
-            if (usuarioLogado.cargo === 'gestor' || usuarioLogado.cargo === 'ti_staff') {
-                return true;
-            }
-        }
-    } catch (error) {
-        console.error('Erro na verificação:', error);
-    }
-    
-    alert('Acesso negado. Você não tem permissão para acessar esta página.');
-    window.location.href = '../index.html';
-    return false;
-}
         
         async function carregarDashboard() {
     try {
@@ -3115,26 +3119,6 @@ async function carregarReports() {
         }
     }
 }
-    
-// Atualizar a inicialização
-document.addEventListener('DOMContentLoaded', async () => {
-    await verificarLogin();
-    if (usuarioLogado && (usuarioLogado.cargo === 'gestor' || usuarioLogado.cargo === 'ti_staff')) {
-        carregarMetricas();
-        carregarLogs();
-        carregarUsuariosInativos();
-        carregarUsuariosParaFiltro();
-        carregarDashboard();
-        carregarRanking();
-        carregarUsuarios();
-        carregarAtividades();
-        carregarReports();
-        carregarReportsComentarios();
-    } else {
-        alert('Acesso negado. Você não tem permissão.');
-        window.location.href = '../index.html';
-    }
-});
         
         function fecharModal(modalId) {
             document.getElementById(modalId).style.display = 'none';

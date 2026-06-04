@@ -10,29 +10,6 @@
     <link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-    // 🔥 BLOQUEIO APENAS PARA A PÁGINA INICIAL
-    (function() {
-        // Limpar apenas na primeira visita à página inicial
-        if (sessionStorage.getItem('paginaInicialVisitada') !== 'true') {
-            localStorage.clear();
-            sessionStorage.clear();
-            localStorage.removeItem('ideaHubToken');
-            sessionStorage.setItem('paginaInicialVisitada', 'true');
-            console.log('🧹 Limpeza de sessão na página inicial');
-        }
-        
-        // Bloquear apenas tentativas de salvar token (proteção)
-        const originalSetItem = localStorage.setItem;
-        localStorage.setItem = function(key, value) {
-            if (key === 'ideaHubToken') {
-                console.warn('🚫 BLOQUEADO: Tentativa de salvar token');
-                return;
-            }
-            originalSetItem.apply(this, arguments);
-        };
-    })();
-</script>
 </head>
 <body>
     <div class="logo-container">

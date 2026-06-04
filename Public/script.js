@@ -12,71 +12,19 @@ let filtrosAtuais = {
 };
 
 // ==========================================
-// LIMPEZA TOTAL E ABSOLUTA DO LOCALSTORAGE
+// LIMPEZA LEVE - APENAS SESSIONSTORAGE
 // ==========================================
-// Isso executa ANTES de qualquer outra coisa
-// ==========================================
-// LIMPEZA EXTREMA - EXECUTA ANTES DE TUDO
-// ==========================================
-// Isso garante que não haja nada salvo
-(function bloqueioTotal() {
-    // 1. Sobrescrever localStorage.setItem para bloquear tokens
-    const originalSetItem = localStorage.setItem;
-    localStorage.setItem = function(key, value) {
-        // Bloquear qualquer chave relacionada a token/sessão
-        const chavesBloqueadas = ['ideaHubToken', 'sessionToken', 'token', 'authToken', 'userToken', 'loginToken'];
-        const deveBloquear = chavesBloqueadas.some(chave => 
-            key === chave || key.toLowerCase().includes('token') || key.toLowerCase().includes('sessao')
-        );
-        
-        if (deveBloquear) {
-            console.warn('🚫 BLOQUEADO: Tentativa de salvar no localStorage:', key);
-            return;
-        }
-        
-        // Permitir outras chaves
-        originalSetItem.apply(this, arguments);
-    };
-    
-    // 2. Limpar tudo existente
-    localStorage.clear();
-    sessionStorage.clear();
-    localStorage.removeItem('ideaHubToken');
-    localStorage.removeItem('sessionToken');
-    localStorage.removeItem('conquistasMinimizadas');
-    
-    // 3. Limpar qualquer chave suspeita
-    for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        if (key && (key.includes('token') || key.includes('Token') || key.includes('sessao') || key.includes('login'))) {
-            localStorage.removeItem(key);
-            console.log('🗑️ Removida chave suspeita:', key);
-        }
+(function() {
+    // NÃO bloquear localStorage!
+    // Apenas limpar sessionStorage na primeira visita
+    if (sessionStorage.getItem('paginaInicialVisitada') !== 'true') {
+        sessionStorage.clear();
+        sessionStorage.setItem('paginaInicialVisitada', 'true');
+        console.log('🧹 Limpeza de sessão na página inicial');
     }
-    
-    console.log('🛡️ BLOQUEIO TOTAL ATIVADO - Nenhum token será salvo!');
-    console.log('🔍 Token atual:', localStorage.getItem('ideaHubToken'));
 })();
-try {
-    localStorage.clear();
-    sessionStorage.clear();
-    localStorage.removeItem('ideaHubToken');
-    localStorage.removeItem('sessionToken');
-    localStorage.removeItem('conquistasMinimizadas');
-    
-    // Limpar qualquer chave suspeita
-    for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        if (key && (key.includes('token') || key.includes('Token') || key.includes('sessao') || key.includes('login') || key.includes('user'))) {
-            localStorage.removeItem(key);
-            console.log('🗑️ Removida chave suspeita:', key);
-        }
-    }
-} catch(e) {
-    console.warn('Erro ao limpar storage:', e);
-}
 
-console.log('🔍 LocalStorage após limpeza:', localStorage.getItem('ideaHubToken'));
+console.log('🔍 SessionStorage:', sessionStorage.getItem('ideaHubUser'));
 
 // Verificar se voltou de alguma página
 function verificarParametroURL() {
@@ -1136,8 +1084,8 @@ async function fazerLogin() {
         if (response.ok && data.sucesso) {
             usuarioLogado = data.usuario;
             
-            // ✅ SALVAR NO LOCALSTORAGE PARA MANTER SESSÃO
-            localStorage.setItem('ideaHubToken', JSON.stringify({
+            // Salvar no sessionStorage
+            sessionStorage.setItem('ideaHubUser', JSON.stringify({
                 id: usuarioLogado.id,
                 nome: usuarioLogado.nome,
                 cargo: usuarioLogado.cargo
@@ -1145,15 +1093,18 @@ async function fazerLogin() {
             
             showMessage(`✅ Bem-vindo, ${usuarioLogado.nome}!`, 'success');
             
-            // Atualizar interface
+            // ========== ATUALIZAR INTERFACE DIRETAMENTE ==========
+            // Mostrar nome do usuário
             document.getElementById('userName').textContent = usuarioLogado.nome;
             
+            // Mostrar badge do cargo
             const cargoBadge = document.getElementById('userCargoBadge');
             if (cargoBadge) {
                 cargoBadge.className = `cargo-badge ${usuarioLogado.cargo}`;
                 cargoBadge.textContent = getCargoText(usuarioLogado.cargo);
             }
             
+            // Mostrar links de admin e projetos
             const isAdmin = usuarioLogado.cargo === 'gestor' || usuarioLogado.cargo === 'ti_staff';
             const adminLink = document.getElementById('adminLink');
             const projetosLink = document.getElementById('projetosLink');
@@ -1161,7 +1112,7 @@ async function fazerLogin() {
             if (adminLink) adminLink.style.display = isAdmin ? 'inline-block' : 'none';
             if (projetosLink) projetosLink.style.display = isAdmin ? 'inline-block' : 'none';
             
-            // Mostrar áreas logadas
+            // Esconder área de login e mostrar áreas logadas
             document.getElementById('authArea').style.display = 'none';
             document.getElementById('ideiaArea').style.display = 'block';
             document.getElementById('buscaArea').style.display = 'block';
@@ -1169,10 +1120,11 @@ async function fazerLogin() {
             document.getElementById('minhasIdeiasArea').style.display = 'block';
             document.getElementById('todasIdeias').style.display = 'grid';
             
+            // Mostrar header das ideias da comunidade
             const todasIdeiasHeader = document.querySelector('.todas-ideias-header');
             if (todasIdeiasHeader) todasIdeiasHeader.style.display = 'block';
             
-            // Mostrar conquistas
+            // Mostrar seções de conquistas
             const conquistasSection = document.getElementById('conquistasSection');
             const conquistasDisponiveisSection = document.getElementById('conquistasDisponiveisSection');
             
@@ -1191,7 +1143,7 @@ async function fazerLogin() {
             if (paginacaoTodas) paginacaoTodas.style.display = 'block';
             if (paginacaoMinhas) paginacaoMinhas.style.display = 'block';
             
-            // Mostrar filtro
+            // Mostrar filtro de visualização
             const filtroVisualizacao = document.querySelector('.filtro-visualizacao');
             if (filtroVisualizacao) filtroVisualizacao.style.display = 'flex';
             
@@ -1209,6 +1161,7 @@ async function fazerLogin() {
             if (typeof carregarDashboardPessoal === 'function') {
                 await carregarDashboardPessoal();
             }
+            
         } else {
             showMessage(data.mensagem || data.erro || '❌ Email ou senha incorretos!', 'error');
             document.getElementById('loginSenha').value = '';
@@ -1242,85 +1195,14 @@ function fazerLogout() {
     
     usuarioLogado = null;
     
-    // Limpar localStorage
-    localStorage.removeItem('ideaHubToken');
+    // ✅ Limpar sessionStorage
+    sessionStorage.removeItem('ideaHubUser');
     sessionStorage.clear();
     
     console.log('🔒 Logout realizado');
     
-    // Limpar áreas de conquistas
-    const conquistasSection = document.getElementById('conquistasSection');
-    const conquistasDisponiveisSection = document.getElementById('conquistasDisponiveisSection');
-    
-    if (conquistasSection) conquistasSection.style.display = 'none';
-    if (conquistasDisponiveisSection) conquistasDisponiveisSection.style.display = 'none';
-    
-    // Limpar dados de conquistas
-    const conquistasList = document.getElementById('conquistasList');
-    const conquistasDisponiveisList = document.getElementById('conquistasDisponiveisList');
-    
-    if (conquistasList) conquistasList.innerHTML = '<div class="loading">Faça login para ver suas conquistas</div>';
-    if (conquistasDisponiveisList) conquistasDisponiveisList.innerHTML = '<div class="loading">Faça login para ver conquistas disponíveis</div>';
-    
-    // Resetar pontos e nível
-    const pontosTotais = document.getElementById('pontosTotais');
-    const nivelUsuario = document.getElementById('nivelUsuario');
-    if (pontosTotais) pontosTotais.textContent = '0';
-    if (nivelUsuario) nivelUsuario.textContent = '1';
-    
-    // Esconder áreas logadas
-    const authArea = document.getElementById('authArea');
-    const ideiaArea = document.getElementById('ideiaArea');
-    const minhasIdeiasArea = document.getElementById('minhasIdeiasArea');
-    const buscaArea = document.getElementById('buscaArea');
-    const notificacaoArea = document.getElementById('notificacaoArea');
-    const todasIdeias = document.getElementById('todasIdeias');
-    const todasIdeiasHeader = document.querySelector('.todas-ideias-header');
-    
-    if (authArea) authArea.style.display = 'block';
-    if (ideiaArea) ideiaArea.style.display = 'none';
-    if (minhasIdeiasArea) minhasIdeiasArea.style.display = 'none';
-    if (buscaArea) buscaArea.style.display = 'none';
-    if (notificacaoArea) notificacaoArea.style.display = 'none';
-    if (todasIdeias) todasIdeias.style.display = 'none';
-    if (todasIdeiasHeader) todasIdeiasHeader.style.display = 'none';
-    
-    showMessage('✅ Logout realizado!', 'success');
-    
-    // Resetar filtros
-    paginaAtual = 1;
-    filtrosAtuais = { q: '', categoria_id: 'todos', autor: 'todos', orderBy: 'votos' };
-    
-    const searchInput = document.getElementById('searchInput');
-    const categoriaFilter = document.getElementById('categoriaFilter');
-    const orderBy = document.getElementById('orderBy');
-    
-    if (searchInput) searchInput.value = '';
-    if (categoriaFilter) categoriaFilter.value = 'todos';
-    if (orderBy) orderBy.value = 'votos';
-    
-    // Esconder paginação
-    const paginacaoTodasIdeias = document.getElementById('paginacaoTodasIdeias');
-    const paginacaoMinhasIdeias = document.getElementById('paginacaoMinhasIdeias');
-    if (paginacaoTodasIdeias) paginacaoTodasIdeias.style.display = 'none';
-    if (paginacaoMinhasIdeias) paginacaoMinhasIdeias.style.display = 'none';
-    
-    // Esconder filtro
-    const filtroVisualizacao = document.querySelector('.filtro-visualizacao');
-    if (filtroVisualizacao) filtroVisualizacao.style.display = 'none';
-    
-    // Mostrar mensagens de login
-    const mensagemMinhasIdeias = document.getElementById('mensagemMinhasIdeias');
-    const mensagemTodasIdeias = document.getElementById('mensagemTodasIdeias');
-    if (mensagemMinhasIdeias) {
-        mensagemMinhasIdeias.style.display = 'block';
-    }
-    if (mensagemTodasIdeias) {
-        mensagemTodasIdeias.style.display = 'block';
-    }
-    
-    // Redirecionar para o index
-    window.location.href = '../index.html';
+    // Recarregar a página para mostrar modo visitante
+    window.location.reload();
 }
 
 // ==================== CATEGORIAS ====================
@@ -2098,37 +1980,85 @@ function renderizarPaginacaoTodasIdeias(totalItens) {
     container.innerHTML = html;
 }
 
-/*
-function verificarSessao() {
-    // 🔒 NÃO RESTAURAR SESSÃO - SEMPRE COMEÇAR DESLOGADO
-    usuarioLogado = null;
+// ✅ FUNÇÃO CORRETA - USANDO SESSIONSTORAGE
+function restaurarSessao() {
+    const userSalvo = sessionStorage.getItem('ideaHubUser');
     
-    // Esconder todas as áreas logadas
-    const authArea = document.getElementById('authArea');
-    const ideiaArea = document.getElementById('ideiaArea');
-    const minhasIdeiasArea = document.getElementById('minhasIdeiasArea');
-    const buscaArea = document.getElementById('buscaArea');
-    const notificacaoArea = document.getElementById('notificacaoArea');
-    const todasIdeias = document.getElementById('todasIdeias');
-    const todasIdeiasHeader = document.querySelector('.todas-ideias-header');
+    console.log('🔍 Verificando sessão salva:', userSalvo);
     
-    if (authArea) authArea.style.display = 'block';
-    if (ideiaArea) ideiaArea.style.display = 'none';
-    if (minhasIdeiasArea) minhasIdeiasArea.style.display = 'none';
-    if (buscaArea) buscaArea.style.display = 'none';
-    if (notificacaoArea) notificacaoArea.style.display = 'none';
-    if (todasIdeias) todasIdeias.style.display = 'none';
-    if (todasIdeiasHeader) todasIdeiasHeader.style.display = 'none';
-    
-    // Limpar localStorage
-    localStorage.removeItem('ideaHubToken');
-    
-    // Carregar apenas categorias para cadastro
-    carregarCategorias();
-    
+    if (userSalvo) {
+        try {
+            usuarioLogado = JSON.parse(userSalvo);
+            console.log('✅ Sessão restaurada:', usuarioLogado);
+            
+            // Atualizar interface
+            document.getElementById('userName').textContent = usuarioLogado.nome;
+            
+            const cargoBadge = document.getElementById('userCargoBadge');
+            if (cargoBadge) {
+                cargoBadge.className = `cargo-badge ${usuarioLogado.cargo}`;
+                cargoBadge.textContent = getCargoText(usuarioLogado.cargo);
+            }
+            
+            const isAdmin = usuarioLogado.cargo === 'gestor' || usuarioLogado.cargo === 'ti_staff';
+            const adminLink = document.getElementById('adminLink');
+            const projetosLink = document.getElementById('projetosLink');
+            
+            if (adminLink) adminLink.style.display = isAdmin ? 'inline-block' : 'none';
+            if (projetosLink) projetosLink.style.display = isAdmin ? 'inline-block' : 'none';
+            
+            document.getElementById('authArea').style.display = 'none';
+            document.getElementById('ideiaArea').style.display = 'block';
+            document.getElementById('buscaArea').style.display = 'block';
+            document.getElementById('notificacaoArea').style.display = 'block';
+            document.getElementById('minhasIdeiasArea').style.display = 'block';
+            document.getElementById('todasIdeias').style.display = 'grid';
+            
+            const todasIdeiasHeader = document.querySelector('.todas-ideias-header');
+            if (todasIdeiasHeader) todasIdeiasHeader.style.display = 'block';
+            
+            const conquistasSection = document.getElementById('conquistasSection');
+            const conquistasDisponiveisSection = document.getElementById('conquistasDisponiveisSection');
+            
+            if (conquistasSection) conquistasSection.style.display = 'block';
+            if (conquistasDisponiveisSection) conquistasDisponiveisSection.style.display = 'block';
+            
+            const mensagemMinhasIdeias = document.getElementById('mensagemMinhasIdeias');
+            const mensagemTodasIdeias = document.getElementById('mensagemTodasIdeias');
+            if (mensagemMinhasIdeias) mensagemMinhasIdeias.style.display = 'none';
+            if (mensagemTodasIdeias) mensagemTodasIdeias.style.display = 'none';
+            
+            const paginacaoTodas = document.getElementById('paginacaoTodasIdeias');
+            const paginacaoMinhas = document.getElementById('paginacaoMinhasIdeias');
+            if (paginacaoTodas) paginacaoTodas.style.display = 'block';
+            if (paginacaoMinhas) paginacaoMinhas.style.display = 'block';
+            
+            const filtroVisualizacao = document.querySelector('.filtro-visualizacao');
+            if (filtroVisualizacao) filtroVisualizacao.style.display = 'flex';
+            
+            // Carregar dados
+            carregarCategorias();
+            carregarLocais();
+            carregarIdeias();
+            carregarMinhasIdeias();
+            carregarNotificacoes();
+            iniciarPollingNotificacoes();
+            carregarConquistas();
+            carregarConquistasDisponiveis();
+            carregarEstadoConquistas();
+            
+            if (typeof carregarDashboardPessoal === 'function') {
+                carregarDashboardPessoal();
+            }
+            
+            return true;
+        } catch(e) {
+            console.error('❌ Erro ao restaurar sessão:', e);
+            return false;
+        }
+    }
     return false;
 }
-*/
 
 function mudarOrdenacao() {
     if (!usuarioLogado) {
@@ -2742,10 +2672,6 @@ function mostrarMensagemLogin(containerId, mensagemId, tipo) {
 function forcarModoVisitante() {
     usuarioLogado = null;
     
-    // NÃO LIMPAR localStorage AQUI!
-    // Apenas esconder as áreas logadas
-    
-    // Forçar exibição apenas da área de login
     const authArea = document.getElementById('authArea');
     const ideiaArea = document.getElementById('ideiaArea');
     const minhasIdeiasArea = document.getElementById('minhasIdeiasArea');
@@ -2778,15 +2704,9 @@ function forcarModoVisitante() {
     const mensagemMinhasIdeias = document.getElementById('mensagemMinhasIdeias');
     const mensagemTodasIdeias = document.getElementById('mensagemTodasIdeias');
     
-    if (mensagemMinhasIdeias) {
-        mensagemMinhasIdeias.style.display = 'block';
-    }
+    if (mensagemMinhasIdeias) mensagemMinhasIdeias.style.display = 'block';
+    if (mensagemTodasIdeias) mensagemTodasIdeias.style.display = 'block';
     
-    if (mensagemTodasIdeias) {
-        mensagemTodasIdeias.style.display = 'block';
-    }
-    
-    // Recarregar apenas categorias
     carregarCategorias();
 }
 
@@ -2818,27 +2738,11 @@ function modoVisitante() {
     carregarCategorias();
 }
 
-// Função para restaurar sessão em outras páginas (admin, ideia, perfil)
-function restaurarSessao() {
-    const tokenSalvo = localStorage.getItem('ideaHubToken');
-    if (tokenSalvo) {
-        try {
-            const user = JSON.parse(tokenSalvo);
-            usuarioLogado = user;
-            return true;
-        } catch(e) {
-            return false;
-        }
-    }
-    return false;
-}
-
+// ==================== INICIALIZAÇÃO ====================
 // ==================== INICIALIZAÇÃO ====================
 document.addEventListener('DOMContentLoaded', () => {
-    // NÃO LIMPAR O LOCALSTORAGE AQUI!
-    // usuarioLogado = null; ← PODE MANTER
-    usuarioLogado = null
-
+    console.log('🚀 Página carregada, restaurando sessão...');
+    
     // Configurar botão de adicionar imagem
     const btnAdicionar = document.getElementById('btnAdicionarImagem');
     if (btnAdicionar) {
@@ -2846,17 +2750,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     atualizarContador();
     
-    // NÃO CHAMAR forcarModoVisitante se já estiver logado
-    const tokenSalvo = localStorage.getItem('ideaHubToken');
-    if (tokenSalvo) {
-        try {
-            const user = JSON.parse(tokenSalvo);
-            usuarioLogado = user;
-            atualizarInterfaceComLogin(user);
-        } catch(e) {
-            forcarModoVisitante();
-        }
-    } else {
+    // Tentar restaurar sessão primeiro
+    const sessaoRestaurada = restaurarSessao();
+    
+    // Se não conseguiu restaurar, mostrar modo visitante
+    if (!sessaoRestaurada) {
+        console.log('🔓 Nenhuma sessão encontrada, modo visitante');
         forcarModoVisitante();
     }
 });
