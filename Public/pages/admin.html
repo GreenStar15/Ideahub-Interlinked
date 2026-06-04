@@ -496,9 +496,9 @@
     <div class="container">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
     <h1><i class="fas fa-chart-line"></i> Painel Administrativo</h1>
-    <button onclick="window.location.href='../index.html'" class="btn-voltar">
-        <i class="fas fa-arrow-left"></i> Voltar para as Ideias
-    </button>
+    <button onclick="voltarParaIdeias()" class="btn-voltar">
+    <i class="fas fa-arrow-left"></i> Voltar para as Ideias
+</button>
 </div>
         
 <!-- Dashboard de Inovação -->
@@ -899,6 +899,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 });
         
+function voltarParaIdeias() {
+    // Não perder a sessão - apenas navegar
+    window.location.href = '../index.html';
+}
+
 // Verificar autenticação ao carregar a página
 (function verificarAutenticacao() {
     const tokenSalvo = sessionStorage.getItem('ideaHubToken');
@@ -965,7 +970,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     return false;
 }
         
-        // ==========================================
+// ==========================================
 // US18 - MAPA DE CALOR
 // ==========================================
 let mapa = null;

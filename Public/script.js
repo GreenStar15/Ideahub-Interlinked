@@ -2779,7 +2779,7 @@ function restaurarSessao() {
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
-    // Tentar restaurar sessão
+    // Tentar restaurar sessão do sessionStorage
     const tokenSalvo = sessionStorage.getItem('ideaHubToken');
     
     if (tokenSalvo) {
@@ -2787,7 +2787,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const user = JSON.parse(tokenSalvo);
             usuarioLogado = user;
             
-            // Atualizar interface
+            // Atualizar interface para usuário logado
             document.getElementById('userName').textContent = user.nome;
             
             const cargoBadge = document.getElementById('userCargoBadge');
@@ -2832,6 +2832,20 @@ document.addEventListener('DOMContentLoaded', async () => {
             console.error('Erro ao restaurar sessão:', e);
             sessionStorage.clear();
         }
+    } else {
+        // Usuário não logado - modo visitante
+        document.getElementById('authArea').style.display = 'block';
+        document.getElementById('ideiaArea').style.display = 'none';
+        document.getElementById('buscaArea').style.display = 'none';
+        document.getElementById('notificacaoArea').style.display = 'none';
+        document.getElementById('minhasIdeiasArea').style.display = 'none';
+        document.getElementById('todasIdeias').style.display = 'none';
+        document.querySelector('.todas-ideias-header').style.display = 'none';
+        document.querySelector('.filtro-visualizacao').style.display = 'none';
+        document.getElementById('paginacaoTodasIdeias').style.display = 'none';
+        document.getElementById('paginacaoMinhasIdeias').style.display = 'none';
+        
+        carregarCategorias();
     }
     
     // Configurar botão de adicionar imagem
@@ -2840,5 +2854,4 @@ document.addEventListener('DOMContentLoaded', async () => {
         btnAdicionar.addEventListener('click', () => adicionarCampoImagem());
     }
     atualizarContador();
-    carregarCategorias();
 });
