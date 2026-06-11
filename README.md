@@ -4,6 +4,62 @@
 [![Node.js](https://img.shields.io/badge/Node.js-20.x-green.svg)](https://nodejs.org/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15.x-blue.svg)](https://www.postgresql.org/)
 
+### ✨ Contribuidores
+
+<table>
+  <tr>
+    <td align="center">
+      <a href="https://github.com/GreenStar15">
+        <img src="https://avatars.githubusercontent.com/GreenStar15" width="100px;" alt=""/>
+        <br />
+        <sub><b>GreenStar15</b></sub>
+      </a>
+    </td>
+    <td align="center">
+      <a href="https://github.com/Henrique331">
+        <img src="https://avatars.githubusercontent.com/Henrique331" width="100px;" alt=""/>
+        <br />
+        <sub><b>Henrique331</b></sub>
+      </a>
+    </td>
+    <td align="center">
+      <a href="https://github.com/LF-bit">
+        <img src="https://avatars.githubusercontent.com/LF-bit" width="100px;" alt=""/>
+        <br />
+        <sub><b>LF-bit</b></sub>
+      </a>
+    </td>
+    <td align="center">
+      <a href="https://github.com/joao232005">
+        <img src="https://avatars.githubusercontent.com/joao232005" width="100px;" alt=""/>
+        <br />
+        <sub><b>joao232005</b></sub>
+      </a>
+    </td>
+    <td align="center">
+      <a href="https://github.com/Levi-Matheus">
+        <img src="https://avatars.githubusercontent.com/Levi-Matheus" width="100px;" alt=""/>
+        <br />
+        <sub><b>Levi-Matheus</b></sub>
+      </a>
+    </td>
+    <td align="center">
+      <a href="Nathy">
+        <img src="https://avatars.githubusercontent.com/Nathy" width="100px;" alt=""/>
+        <br />
+        <sub><b>Nathy*Placeholder</b></sub>
+      </a>
+    </td>
+    <td align="center">
+      <a href="Albano">
+        <img src="https://avatars.githubusercontent.com/Albano" width="100px;" alt=""/>
+        <br />
+        <sub><b>Albano*Placeholder</b></sub>
+      </a>
+    </td>
+  </tr>
+</table>
+
 ### 📋 Sobre o Projeto
 
 O **IdeaHub Interlinked** é uma plataforma colaborativa de inovação que permite aos usuários compartilhar, votar e comentar ideias, além de gerenciar projetos e documentação técnica. Desenvolvido para ambientes educacionais e corporativos, o sistema incentiva a participação ativa através de um sistema de gamificação com conquistas e níveis.
