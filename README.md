@@ -162,8 +162,9 @@ https://ideahub-interlinked.onrender.com
 
 1. **Clone o repositório**
 ```python
-def saudacao():
-    print("Olá, GitHub!")
+bash
+git clone https://github.com/seu-usuario/ideahub.git
+cd ideahub
 ```
 
 2. **Instale as dependências**
