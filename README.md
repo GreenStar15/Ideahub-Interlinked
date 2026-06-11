@@ -51,10 +51,10 @@
       </a>
     </td>
     <td align="center">
-      <a href="Albano">
-        <img src="https://avatars.githubusercontent.com/Albano" width="100px;" alt=""/>
+      <a href="https://github.com/albaninho762">
+        <img src="https://avatars.githubusercontent.com/albaninho762" width="100px;" alt=""/>
         <br />
-        <sub><b>Albano*Placeholder</b></sub>
+        <sub><b>albaninho762</b></sub>
       </a>
     </td>
   </tr>
