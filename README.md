@@ -44,10 +44,10 @@
       </a>
     </td>
     <td align="center">
-      <a href="Nathy">
-        <img src="https://avatars.githubusercontent.com/Nathy" width="100px;" alt=""/>
+      <a href="https://github.com/Nathi-Macarini">
+        <img src="https://avatars.githubusercontent.com/Nathi-Macarini" width="100px;" alt=""/>
         <br />
-        <sub><b>Nathy*Placeholder</b></sub>
+        <sub><b>Nathi-Macarini</b></sub>
       </a>
     </td>
     <td align="center">
