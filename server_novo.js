@@ -72,12 +72,30 @@ console.log('✅ Middleware de sessão configurado!');
 // ==========================================
 // 5. CONEXÃO COM POSTGRESQL
 // ==========================================
-const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-    ssl: {
-        rejectUnauthorized: false
-    }
-});
+let pool;
+
+// Verificar se está em produção (Render) ou desenvolvimento (local)
+const isProduction = process.env.NODE_ENV === 'production' || process.env.DATABASE_URL?.includes('render.com');
+
+if (isProduction) {
+    // Produção: usa SSL
+    pool = new Pool({
+        connectionString: process.env.DATABASE_URL,
+        ssl: {
+            rejectUnauthorized: false
+        }
+    });
+} else {
+    // Desenvolvimento LOCAL: sem SSL
+    pool = new Pool({
+        user: process.env.DB_USER || 'postgres',
+        host: process.env.DB_HOST || 'localhost',
+        database: process.env.DB_NAME || 'ideahub',
+        password: process.env.DB_PASSWORD || 'postgres',
+        port: process.env.DB_PORT || 5432
+        // SEM SSL para conexão local!
+    });
+}
 
 pool.connect((err, client, release) => {
     if (err) {
@@ -129,11 +147,31 @@ if (!fs.existsSync(documentosDir)) {
     fs.mkdirSync(documentosDir, { recursive: true });
 }
 
+// Rota de logout
+app.post('/logout', (req, res) => {
+    req.session.destroy((err) => {
+        if (err) {
+            console.error('Erro no logout:', err);
+            return res.status(500).json({ erro: 'Erro ao fazer logout' });
+        }
+        res.json({ sucesso: true, mensagem: 'Logout realizado' });
+    });
+});
+
 // ==========================================
 // 7. ROTA DE TESTE
 // ==========================================
 app.get('/teste', (req, res) => {
     res.json({ mensagem: 'Servidor funcionando!', status: 'ok' });
+});
+
+// Rota para verificar se o usuário está logado (para o admin.html)
+app.get('/api/verificar-sessao', (req, res) => {
+    if (req.session && req.session.usuarioId) {
+        res.json({ logado: true });
+    } else {
+        res.json({ logado: false });
+    }
 });
 
 // ==========================================
@@ -4476,34 +4514,114 @@ app.post('/upload/documento', (req, res) => {
 app.use(express.static('Public'));
 app.use(express.static(path.join(__dirname, 'Public')));
 
-// Rota principal
+// Servir arquivos estáticos da pasta uploads
+app.use('/uploads', express.static('uploads'));
+
+// Rota principal - Login
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'Public', 'index.html'));
 });
 
-// Rota para páginas
-app.get('/pages/:page.html', (req, res) => {
-    const page = req.params.page;
-    res.sendFile(path.join(__dirname, 'Public', 'pages', `${page}.html`));
+// ========== ROTAS PARA PÁGINAS (CORRIGIDAS) ==========
+// Rota para home.html (PÁGINA PRINCIPAPÓS-LOGIN)
+app.get('/home', (req, res) => {
+    res.sendFile(path.join(__dirname, 'Public', 'pages', 'home.html'));
 });
 
-app.listen(port, '0.0.0.0', () => {
-    console.log(`🚀 Servidor rodando em http://localhost:${port}`);
+app.get('/pages/home.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'Public', 'pages', 'home.html'));
 });
 
-// Para todas as outras rotas HTML
+// Rota genérica para páginas na pasta pages
 app.get('/pages/:page', (req, res) => {
     const page = req.params.page;
-    const filePath = path.join(__dirname, 'pages', page);
-    res.sendFile(filePath);
+    // Remover extensão .html se vier na URL
+    const pageName = page.replace('.html', '');
+    const filePath = path.join(__dirname, 'Public', 'pages', `${pageName}.html`);
+    
+    // Verificar se o arquivo existe
+    if (fs.existsSync(filePath)) {
+        res.sendFile(filePath);
+    } else {
+        res.status(404).send('Página não encontrada');
+    }
 });
 
-// Rota de teste para verificar usuário (remover depois)
-app.get('/debug/usuario', async (req, res) => {
-    try {
-        const result = await pool.query('SELECT id, nome, email, cargo FROM usuarios WHERE email = $1', ['admin@ideahub.com']);
-        res.json(result.rows[0]);
-    } catch (err) {
-        res.json({ erro: err.message });
+// Também aceitar com .html explícito
+app.get('/pages/:page.html', (req, res) => {
+    const page = req.params.page;
+    const filePath = path.join(__dirname, 'Public', 'pages', `${page}.html`);
+    
+    if (fs.existsSync(filePath)) {
+        res.sendFile(filePath);
+    } else {
+        res.status(404).send('Página não encontrada');
     }
+});
+
+// Rota para admin.html (garantir que funciona)
+app.get('/admin', (req, res) => {
+    res.sendFile(path.join(__dirname, 'Public', 'pages', 'admin.html'));
+});
+
+app.get('/pages/admin.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'Public', 'pages', 'admin.html'));
+});
+
+// Rota para perfil.html
+app.get('/perfil', (req, res) => {
+    res.sendFile(path.join(__dirname, 'Public', 'pages', 'perfil.html'));
+});
+
+app.get('/pages/perfil.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'Public', 'pages', 'perfil.html'));
+});
+
+// Rota para projetos.html
+app.get('/projetos', (req, res) => {
+    res.sendFile(path.join(__dirname, 'Public', 'pages', 'projetos.html'));
+});
+
+app.get('/pages/projetos.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'Public', 'pages', 'projetos.html'));
+});
+
+// Rota para ideia.html
+app.get('/ideia', (req, res) => {
+    res.sendFile(path.join(__dirname, 'Public', 'pages', 'ideia.html'));
+});
+
+app.get('/pages/ideia.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'Public', 'pages', 'ideia.html'));
+});
+
+// Fallback para rotas não encontradas (API)
+app.use('/api/*', (req, res) => {
+    res.status(404).json({ erro: 'Rota API não encontrada' });
+});
+
+// Fallback para páginas HTML não encontradas
+app.use((req, res) => {
+    // Se for uma requisição de página HTML (não API)
+    if (!req.path.startsWith('/api/') && !req.path.startsWith('/uploads/')) {
+        // Verificar se o arquivo existe na pasta pages
+        const possiblePage = path.join(__dirname, 'Public', 'pages', req.path.replace('/', ''));
+        if (fs.existsSync(possiblePage)) {
+            res.sendFile(possiblePage);
+        } else {
+            res.status(404).sendFile(path.join(__dirname, 'Public', '404.html'));
+        }
+    } else {
+        res.status(404).json({ erro: 'Rota não encontrada' });
+    }
+});
+
+// Iniciar servidor
+app.listen(port, '0.0.0.0', () => {
+    console.log(`🚀 Servidor rodando em http://localhost:${port}`);
+    console.log(`📁 Páginas disponíveis:`);
+    console.log(`   - Login: http://localhost:${port}/`);
+    console.log(`   - Home: http://localhost:${port}/home`);
+    console.log(`   - Admin: http://localhost:${port}/admin`);
+    console.log(`   - Perfil: http://localhost:${port}/perfil`);
 });

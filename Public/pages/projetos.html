@@ -6,6 +6,7 @@
     <title>IdeaHub - Projetos</title>
     <link rel="stylesheet" href="../style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="/js/session-check.js"></script>
     <style>
         .projetos-grid {
             display: grid;
@@ -162,61 +163,66 @@
 <body>
     <div class="container">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-    <h1><i class="fas fa-project-diagram"></i> Projetos</h1>
-    <button onclick="window.location.href='../index.html'" class="btn-voltar">
-        <i class="fas fa-arrow-left"></i> Voltar para as Ideias
-    </button>
-</div>
-        <!-- Abas -->
-<div class="tabs-projetos">
-    <button class="tab-projeto active" onclick="mostrarAprovadas()">
-    <i class="fas fa-check-circle"></i> Ideias Aprovadas
-</button>
-<button class="tab-projeto" onclick="mostrarAtivos()">
-    <i class="fas fa-list"></i> Projetos Ativos
-</button>
-<button class="tab-projeto" onclick="mostrarLixeira()">
-    <i class="fas fa-trash-alt"></i> Lixeira
-</button>
-</div>
-
-<!-- Ideias Aprovadas -->
-<div id="aprovadasSection" class="tab-pane" style="display: block;">
-    <div class="section-header">
-        <h3><i class="fas fa-check-circle"></i> Ideias Aprovadas</h3>
-        <p class="section-subtitle">Ideias aprovadas pela moderação que aguardam conversão em projetos</p>
-    </div>
-    <div id="aprovadasList" class="projetos-grid">
-        <div class="empty-state">Carregando ideias aprovadas...</div>
-    </div>
-</div>
-
-<!-- Projetos Ativos -->
-<div id="ativosSection" class="tab-pane" style="display: none;">
-    <div class="section-header">
-        <h3><i class="fas fa-project-diagram"></i> Projetos Ativos</h3>
-        <p class="section-subtitle">Projetos em andamento ou concluídos</p>
-    </div>
-    <div id="projetosList" class="projetos-grid">
-        <div class="empty-state">Carregando projetos...</div>
-    </div>
-</div>
-
-<!-- Lixeira -->
-<div id="lixeiraSection" class="tab-pane" style="display: none;">
-    <div class="lixeira-header">
-        <div class="section-header">
-            <h3><i class="fas fa-trash-alt"></i> Projetos Descartados</h3>
-            <p class="section-subtitle">Projetos movidos para a lixeira</p>
+            <h1><i class="fas fa-project-diagram"></i> Projetos</h1>
+            <button onclick="window.location.href='../index.html'" class="btn-voltar">
+                <i class="fas fa-arrow-left"></i> Voltar para as Ideias
+            </button>
         </div>
-        <button onclick="limparLixeira()" class="btn-limpar-lixeira">
-            <i class="fas fa-trash"></i> Limpar Lixeira Permanentemente
-        </button>
+        
+        <!-- Abas -->
+        <div class="tabs-projetos">
+            <button class="tab-projeto active" onclick="mostrarAprovadas()">
+                <i class="fas fa-check-circle"></i> Ideias Aprovadas
+                <span id="aprovadasCount" class="badge-count">0</span>
+            </button>
+            <button class="tab-projeto" onclick="mostrarAtivos()">
+                <i class="fas fa-list"></i> Projetos Ativos
+                <span id="ativosCount" class="badge-count">0</span>
+            </button>
+            <button class="tab-projeto" onclick="mostrarLixeira()">
+                <i class="fas fa-trash-alt"></i> Lixeira
+                <span id="lixeiraCount" class="badge-count">0</span>
+            </button>
+        </div>
+
+        <!-- Ideias Aprovadas -->
+        <div id="aprovadasSection" class="tab-pane" style="display: block;">
+            <div class="section-header">
+                <h3><i class="fas fa-check-circle"></i> Ideias Aprovadas</h3>
+                <p class="section-subtitle">Ideias aprovadas pela moderação que aguardam conversão em projetos</p>
+            </div>
+            <div id="aprovadasList" class="projetos-grid">
+                <div class="empty-state">Carregando ideias aprovadas...</div>
+            </div>
+        </div>
+
+        <!-- Projetos Ativos -->
+        <div id="ativosSection" class="tab-pane" style="display: none;">
+            <div class="section-header">
+                <h3><i class="fas fa-project-diagram"></i> Projetos Ativos</h3>
+                <p class="section-subtitle">Projetos em andamento ou concluídos</p>
+            </div>
+            <div id="projetosList" class="projetos-grid">
+                <div class="empty-state">Carregando projetos...</div>
+            </div>
+        </div>
+
+        <!-- Lixeira -->
+        <div id="lixeiraSection" class="tab-pane" style="display: none;">
+            <div class="lixeira-header">
+                <div class="section-header">
+                    <h3><i class="fas fa-trash-alt"></i> Projetos Descartados</h3>
+                    <p class="section-subtitle">Projetos movidos para a lixeira</p>
+                </div>
+                <button onclick="limparLixeira()" class="btn-limpar-lixeira">
+                    <i class="fas fa-trash"></i> Limpar Lixeira Permanentemente
+                </button>
+            </div>
+            <div id="lixeiraList" class="projetos-grid">
+                <div class="empty-state">Carregando...</div>
+            </div>
+        </div>
     </div>
-    <div id="lixeiraList" class="projetos-grid">
-        <div class="empty-state">Carregando...</div>
-    </div>
-</div>
     
     <div id="loading" class="loading">
         <div class="spinner"></div>
@@ -224,92 +230,184 @@
     </div>
     
     <!-- Modal de Conversão -->
-<div id="conversaoModal" class="modal" style="display: none;">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h3><i class="fas fa-project-diagram"></i> Converter Ideia em Projeto</h3>
-            <span onclick="fecharModalConversao()" class="modal-close">&times;</span>
+    <div id="conversaoModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-project-diagram"></i> Converter Ideia em Projeto</h3>
+                <span onclick="fecharModalConversao()" class="modal-close">&times;</span>
+            </div>
+            <form id="conversaoForm">
+                <input type="hidden" id="conversaoIdeiaId">
+                <div class="form-group">
+                    <label>Nome do Projeto</label>
+                    <input type="text" id="projetoNome" class="input-field" required>
+                </div>
+                <div class="form-group">
+                    <label>Descrição do Escopo</label>
+                    <textarea id="projetoDescricao" rows="3" class="input-field"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Responsável</label>
+                    <input type="text" id="projetoResponsavel" class="input-field">
+                </div>
+                <div class="form-group">
+                    <label>Data de Início</label>
+                    <input type="date" id="projetoDataInicio" class="input-field">
+                </div>
+                <div class="form-group">
+                    <label>Prioridade</label>
+                    <select id="projetoPrioridade" class="filter-select">
+                        <option value="alta">🔴 Alta Prioridade</option>
+                        <option value="media" selected>🟡 Média Prioridade</option>
+                        <option value="baixa">🟢 Baixa Prioridade</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn-primary">Converter em Projeto</button>
+            </form>
         </div>
-        <form id="conversaoForm">
-            <input type="hidden" id="conversaoIdeiaId">
-            <div class="form-group">
-                <label>Nome do Projeto</label>
-                <input type="text" id="projetoNome" class="input-field" required>
-            </div>
-            <div class="form-group">
-                <label>Descrição do Escopo</label>
-                <textarea id="projetoDescricao" rows="3" class="input-field"></textarea>
-            </div>
-            <div class="form-group">
-                <label>Responsável</label>
-                <input type="text" id="projetoResponsavel" class="input-field">
-            </div>
-            <div class="form-group">
-                <label>Data de Início</label>
-                <input type="date" id="projetoDataInicio" class="input-field">
-            </div>
-            <div class="form-group">
-                <label>Prioridade</label>
-                <select id="projetoPrioridade" class="filter-select">
-                    <option value="alta">🔴 Alta Prioridade</option>
-                    <option value="media">🟡 Média Prioridade</option>
-                    <option value="baixa">🟢 Baixa Prioridade</option>
-                </select>
-            </div>
-            <button type="submit" class="btn-primary">Converter em Projeto</button>
-        </form>
     </div>
-</div>
 
     <script>
         let usuarioLogado = null;
-        let modoAtivo = true;
         
+        // Verificar sessão ao carregar
         document.addEventListener('DOMContentLoaded', async () => {
-    await verificarLogin();
-    if (usuarioLogado && (usuarioLogado.cargo === 'gestor' || usuarioLogado.cargo === 'ti_staff')) {
-        // Iniciar com a aba de ideias aprovadas
-        switchTab('aprovadas');
-        carregarContagemLixeira();
-    } else {
-        alert('Acesso negado. Você não tem permissão.');
-        window.location.href = '../index.html';
-    }
-});
-        
-        async function verificarLogin() {
-            const tokenSalvo = localStorage.getItem('ideaHubToken');
-            if (tokenSalvo) {
-                try {
-                    usuarioLogado = JSON.parse(tokenSalvo);
-                } catch(e) {
+            // Verificar se está logado via sessionStorage
+            const userSalvo = sessionStorage.getItem('ideaHubUser');
+            
+            if (!userSalvo) {
+                alert('Faça login primeiro!');
+                window.location.href = '../index.html';
+                return;
+            }
+            
+            try {
+                usuarioLogado = JSON.parse(userSalvo);
+                console.log('✅ Usuário logado:', usuarioLogado.nome);
+                
+                // Verificar se é admin
+                const isAdmin = usuarioLogado.cargo === 'gestor' || usuarioLogado.cargo === 'ti_staff';
+                if (!isAdmin) {
+                    alert('❌ Acesso negado! Você não tem permissão para acessar esta página.');
                     window.location.href = '../index.html';
+                    return;
                 }
-            } else {
+                
+                // Carregar dados
+                await carregarContagemAprovadas();
+                await carregarContagemAtivos();
+                await carregarContagemLixeira();
+                await carregarIdeiasAprovadas();
+                await carregarProjetos();
+                await carregarLixeira();
+                
+            } catch (e) {
+                console.error('Erro ao carregar sessão:', e);
+                alert('Sessão inválida. Faça login novamente.');
                 window.location.href = '../index.html';
             }
-        }
-        
-        function verIdeia(ideiaId) {
-    
-    if (!ideiaId) {
-        console.error('ID da ideia não fornecido');
-        alert('Erro: ID da ideia não encontrado');
-        return;
-    }
-    
-    // Redirecionar para a página da ideia
-    window.location.href = `../pages/ideia.html?id=${ideiaId}`;
-}
+        });
 
-        /* async function carregarProjetos() {
+        // ==========================================
+        // FUNÇÕES DAS ABAS
+        // ==========================================
+
+        function mostrarAprovadas() {
+            document.getElementById('aprovadasSection').style.display = 'block';
+            document.getElementById('ativosSection').style.display = 'none';
+            document.getElementById('lixeiraSection').style.display = 'none';
+            
+            const botoes = document.querySelectorAll('.tab-projeto');
+            botoes.forEach(btn => btn.classList.remove('active'));
+            botoes[0].classList.add('active');
+            
+            carregarIdeiasAprovadas();
+        }
+
+        function mostrarAtivos() {
+            document.getElementById('aprovadasSection').style.display = 'none';
+            document.getElementById('ativosSection').style.display = 'block';
+            document.getElementById('lixeiraSection').style.display = 'none';
+            
+            const botoes = document.querySelectorAll('.tab-projeto');
+            botoes.forEach(btn => btn.classList.remove('active'));
+            botoes[1].classList.add('active');
+            
+            carregarProjetos();
+        }
+
+        function mostrarLixeira() {
+            document.getElementById('aprovadasSection').style.display = 'none';
+            document.getElementById('ativosSection').style.display = 'none';
+            document.getElementById('lixeiraSection').style.display = 'block';
+            
+            const botoes = document.querySelectorAll('.tab-projeto');
+            botoes.forEach(btn => btn.classList.remove('active'));
+            botoes[2].classList.add('active');
+            
+            carregarLixeira();
+            carregarContagemLixeira();
+        }
+
+        // ==========================================
+        // CARREGAR DADOS
+        // ==========================================
+
+        async function carregarIdeiasAprovadas() {
+            showLoading(true);
+            try {
+                const response = await fetch('/ideias/aprovadas');
+                const ideias = await response.json();
+                
+                const container = document.getElementById('aprovadasList');
+                
+                if (!ideias || ideias.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-check-circle"></i>
+                            <p>Nenhuma ideia aprovada no momento.</p>
+                            <small>Ideias aprovadas pela moderação aparecerão aqui.</small>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                container.innerHTML = ideias.map(ideia => `
+                    <div class="ideia-aprovada-card">
+                        <h3 onclick="verIdeia(${ideia.id})" style="cursor: pointer; color: #667eea;">${escapeHtml(ideia.titulo)}</h3>
+                        <p>${escapeHtml(ideia.descricao ? ideia.descricao.substring(0, 150) : '')}${ideia.descricao && ideia.descricao.length > 150 ? '...' : ''}</p>
+                        <div class="ideia-meta-aprovada">
+                            <span><i class="fas fa-user"></i> ${escapeHtml(ideia.autor_nome)}</span>
+                            <span><i class="fas fa-calendar"></i> ${formatarData(ideia.data_publicacao)}</span>
+                            <span><i class="fas fa-tag"></i> ${ideia.categoria_icone || '📁'} ${escapeHtml(ideia.categoria_nome)}</span>
+                            <span><i class="fas fa-thumbs-up"></i> ${ideia.votos_count || 0} votos</span>
+                        </div>
+                        <div class="botoes-container">
+                            <button onclick="verIdeia(${ideia.id})" class="btn-ver-ideia">
+                                <i class="fas fa-eye"></i> Ver Ideia Original
+                            </button>
+                            <button onclick="abrirConversao(${ideia.id})" class="btn-converter-ideia">
+                                <i class="fas fa-project-diagram"></i> Converter em Projeto
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+                
+            } catch (error) {
+                console.error('Erro:', error);
+                document.getElementById('aprovadasList').innerHTML = '<div class="empty-state">Erro ao carregar ideias aprovadas</div>';
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        async function carregarProjetos() {
     showLoading(true);
     try {
         const response = await fetch('/projetos');
         const projetos = await response.json();
         
         const container = document.getElementById('projetosList');
-        //document.getElementById('ativosCount').textContent = projetos.length;//
         
         if (!projetos || projetos.length === 0) {
             container.innerHTML = `
@@ -324,13 +422,8 @@
         container.innerHTML = projetos.map(proj => {
             let dataInicioHtml = '';
             if (proj.data_inicio) {
-                const dataFormatada = formatarData(proj.data_inicio);
-                dataInicioHtml = `<span><i class="fas fa-calendar-alt"></i> Início: ${dataFormatada}</span>`;
+                dataInicioHtml = `<span><i class="fas fa-calendar-alt"></i> Início: ${formatarData(proj.data_inicio)}</span>`;
             }
-            
-            // Garantir que o id_ideia existe
-            const ideiaId = proj.id_ideia;
-            const ideiaTitulo = proj.ideia_titulo || 'Ideia original';
             
             return `
                 <div class="projeto-card">
@@ -342,18 +435,22 @@
                         <span><i class="fas fa-user"></i> ${escapeHtml(proj.responsavel || 'Não definido')}</span>
                         ${dataInicioHtml}
                     </div>
-                    ${ideiaId ? `
+                    ${proj.ideia_titulo ? `
                         <div style="margin-top: 10px;">
                             <small>
                                 <i class="fas fa-lightbulb"></i> 
                                 Baseado na ideia: 
-                                <span onclick="verIdeia(${ideiaId})" style="cursor: pointer; color: #667eea; text-decoration: underline;">
-                                    ${escapeHtml(ideiaTitulo)}
+                                <span onclick="verIdeia(${proj.id_ideia})" style="cursor: pointer; color: #667eea; text-decoration: underline;">
+                                    ${escapeHtml(proj.ideia_titulo)}
                                 </span>
                             </small>
                         </div>
                     ` : ''}
                     <div class="projeto-actions" style="margin-top: 15px;">
+                        <!-- ✅ BOTÃO VER DETALHES RESTAURADO -->
+                        <button onclick="verDetalhesProjeto(${proj.id})" class="btn-detalhes-projeto">
+                            <i class="fas fa-eye"></i> Ver detalhes
+                        </button>
                         <button onclick="deletarProjeto(${proj.id})" class="btn-deletar-projeto">
                             <i class="fas fa-trash-alt"></i> Mover para Lixeira
                         </button>
@@ -369,537 +466,200 @@
         showLoading(false);
     }
 }
-*/
-
-// ==========================================
-// FUNÇÕES DAS ABAS - PROJETOS.HTML
-// ==========================================
-
-function mostrarAprovadas() {
-    
-    // Esconder todas as seções
-    const aprovadas = document.getElementById('aprovadasSection');
-    const ativos = document.getElementById('ativosSection');
-    const lixeira = document.getElementById('lixeiraSection');
-    
-    if (aprovadas) aprovadas.style.display = 'block';
-    if (ativos) ativos.style.display = 'none';
-    if (lixeira) lixeira.style.display = 'none';
-    
-    // Atualizar classes dos botões
-    const botoes = document.querySelectorAll('.tab-projeto');
-    for (let i = 0; i < botoes.length; i++) {
-        botoes[i].classList.remove('active');
-    }
-    if (botoes[0]) botoes[0].classList.add('active');
-    
-    // Carregar conteúdo
-    if (typeof carregarIdeiasAprovadas === 'function') {
-        carregarIdeiasAprovadas();
-    }
-}
-
-function mostrarAtivos() {
-    
-    // Esconder todas as seções
-    const aprovadas = document.getElementById('aprovadasSection');
-    const ativos = document.getElementById('ativosSection');
-    const lixeira = document.getElementById('lixeiraSection');
-    
-    if (aprovadas) aprovadas.style.display = 'none';
-    if (ativos) ativos.style.display = 'block';
-    if (lixeira) lixeira.style.display = 'none';
-    
-    // Atualizar classes dos botões
-    const botoes = document.querySelectorAll('.tab-projeto');
-    for (let i = 0; i < botoes.length; i++) {
-        botoes[i].classList.remove('active');
-    }
-    if (botoes[1]) botoes[1].classList.add('active');
-    
-    // Carregar conteúdo
-    if (typeof carregarProjetos === 'function') {
-        carregarProjetos();
-    }
-}
-
-function mostrarLixeira() {
-    
-    // Esconder todas as seções
-    const aprovadas = document.getElementById('aprovadasSection');
-    const ativos = document.getElementById('ativosSection');
-    const lixeira = document.getElementById('lixeiraSection');
-    
-    if (aprovadas) aprovadas.style.display = 'none';
-    if (ativos) ativos.style.display = 'none';
-    if (lixeira) lixeira.style.display = 'block';
-    
-    // Atualizar classes dos botões
-    const botoes = document.querySelectorAll('.tab-projeto');
-    for (let i = 0; i < botoes.length; i++) {
-        botoes[i].classList.remove('active');
-    }
-    if (botoes[2]) botoes[2].classList.add('active');
-    
-    // Carregar conteúdo
-    if (typeof carregarLixeira === 'function') {
-        carregarLixeira();
-    }
-    if (typeof carregarContagemLixeira === 'function') {
-        carregarContagemLixeira();
-    }
-}
-
-// Forçar que as funções estejam disponíveis globalmente
-window.mostrarAprovadas = mostrarAprovadas;
-window.mostrarAtivos = mostrarAtivos;
-window.mostrarLixeira = mostrarLixeira;
-
-async function carregarProjetos() {
-    showLoading(true);
-    try {
-        const response = await fetch('/projetos');
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const projetos = await response.json();
-        
-        const container = document.getElementById('projetosList');
-        
-        if (!container) {
-            console.error('Elemento projetosList não encontrado');
-            return;
-        }
-        
-        if (!projetos || projetos.length === 0) {
-            container.innerHTML = `
-                <div class="empty-state">
-                    <i class="fas fa-folder-open"></i>
-                    <p>Nenhum projeto criado ainda.</p>
-                </div>
-            `;
-            return;
-        }
-        
-        container.innerHTML = projetos.map(proj => {
-            let dataInicioHtml = '';
-            if (proj.data_inicio) {
-                const dataFormatada = formatarData(proj.data_inicio);
-                dataInicioHtml = `<span><i class="fas fa-calendar-alt"></i> Início: ${dataFormatada}</span>`;
-            }
-            
-            const ideiaId = proj.id_ideia;
-            const ideiaTitulo = proj.ideia_titulo || 'Ideia original';
-            
-            return `
-                <div class="projeto-card">
-                    <h3>${escapeHtml(proj.nome)}</h3>
-                    <p>${escapeHtml(proj.descricao || 'Sem descrição')}</p>
-                    <div style="display: flex; gap: 15px; margin-top: 15px; flex-wrap: wrap;">
-                        <span class="prioridade-${proj.prioridade}">${getPrioridadeTexto(proj.prioridade)}</span>
-                        <span class="status-${proj.status}">${getStatusTexto(proj.status)}</span>
-                        <span><i class="fas fa-user"></i> ${escapeHtml(proj.responsavel || 'Não definido')}</span>
-                        ${dataInicioHtml}
-                    </div>
-                    ${ideiaId ? `
-                        <div style="margin-top: 10px;">
-                            <small>
-                                <i class="fas fa-lightbulb"></i> 
-                                Baseado na ideia: 
-                                <span onclick="verIdeia(${ideiaId})" style="cursor: pointer; color: #667eea; text-decoration: underline;">
-                                    ${escapeHtml(ideiaTitulo)}
-                                </span>
-                            </small>
-                        </div>
-                    ` : ''}
-                    <div class="projeto-actions" style="margin-top: 15px;">
-                        <button onclick="verDetalhesProjeto(${proj.id})" class="btn-detalhes-projeto">
-        <i class="fas fa-eye"></i> Ver detalhes
-    </button>
-                        <button onclick="deletarProjeto(${proj.id})" class="btn-deletar-projeto">
-                            <i class="fas fa-trash-alt"></i> Mover para Lixeira
-                        </button>
-                    </div>
-                </div>
-            `;
-        }).join('');
-        
-    } catch (error) {
-        console.error('❌ Erro:', error);
-        const container = document.getElementById('projetosList');
-        if (container) {
-            container.innerHTML = `
-                <div class="empty-state">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <p>Erro ao carregar projetos: ${error.message}</p>
-                    <button onclick="carregarProjetos()" class="btn-primary">Tentar novamente</button>
-                </div>
-            `;
-        }
-    } finally {
-        showLoading(false);
-    }
-}
-
-        let modoAtual = 'aprovadas'; // 'aprovadas', 'ativos', 'lixeira'
-
-async function carregarIdeiasAprovadas() {
-    showLoading(true);
-    try {
-        const response = await fetch('/ideias/aprovadas');
-        const ideias = await response.json();
-        
-        const container = document.getElementById('aprovadasList');
-        
-        if (!ideias || ideias.length === 0) {
-            container.innerHTML = `
-                <div class="empty-state">
-                    <i class="fas fa-check-circle"></i>
-                    <p>Nenhuma ideia aprovada no momento.</p>
-                    <small>Ideias aprovadas pela moderação aparecerão aqui.</small>
-                </div>
-            `;
-            return;
-        }
-        
-        container.innerHTML = ideias.map(ideia => `
-            <div class="ideia-aprovada-card">
-                <h3 onclick="verIdeia(${ideia.id})" style="cursor: pointer; color: #667eea;">${escapeHtml(ideia.titulo)}</h3>
-                <p>${escapeHtml(ideia.descricao ? ideia.descricao.substring(0, 150) : '')}${ideia.descricao && ideia.descricao.length > 150 ? '...' : ''}</p>
-                <div class="ideia-meta-aprovada">
-                    <span><i class="fas fa-user"></i> ${escapeHtml(ideia.autor_nome)}</span>
-                    <span><i class="fas fa-calendar"></i> ${formatarData(ideia.data_publicacao)}</span>
-                    <span><i class="fas fa-tag"></i> ${ideia.categoria_icone || '📁'} ${escapeHtml(ideia.categoria_nome)}</span>
-                    <span><i class="fas fa-thumbs-up"></i> ${ideia.votos_count || 0} votos</span>
-                </div>
-                <div class="botoes-container">
-    <button onclick="verIdeia(${ideia.id})" class="btn-ver-ideia">
-        <i class="fas fa-eye"></i> Ver Ideia Original
-    </button>
-    <button onclick="abrirConversao(${ideia.id})" class="btn-converter-ideia">
-        <i class="fas fa-project-diagram"></i> Converter em Projeto
-    </button>
-</div>
-            </div>
-        `).join('');
-        
-    } catch (error) {
-        console.error('Erro:', error);
-        document.getElementById('aprovadasList').innerHTML = '<div class="empty-state">Erro ao carregar ideias aprovadas</div>';
-    } finally {
-        showLoading(false);
-    }
-}
-
-// Função única para trocar abas
-function switchTab(tab) {
-    
-    // Pegar os elementos
-    const aprovadasSection = document.getElementById('aprovadasSection');
-    const ativosSection = document.getElementById('ativosSection');
-    const lixeiraSection = document.getElementById('lixeiraSection');
-    
-    const tabAprovadas = document.getElementById('tabAprovadas');
-    const tabAtivos = document.getElementById('tabAtivos');
-    const tabLixeira = document.getElementById('tabLixeira');
-    
-    // Esconder TODAS as seções
-    if (aprovadasSection) aprovadasSection.style.display = 'none';
-    if (ativosSection) ativosSection.style.display = 'none';
-    if (lixeiraSection) lixeiraSection.style.display = 'none';
-    
-    // Remover classe active de TODAS as abas
-    if (tabAprovadas) tabAprovadas.classList.remove('active');
-    if (tabAtivos) tabAtivos.classList.remove('active');
-    if (tabLixeira) tabLixeira.classList.remove('active');
-    
-    // Mostrar a aba selecionada e ativar o botão
-    if (tab === 'aprovadas') {
-        if (aprovadasSection) aprovadasSection.style.display = 'block';
-        if (tabAprovadas) tabAprovadas.classList.add('active');
-        carregarIdeiasAprovadas();
-    } else if (tab === 'ativos') {
-        if (ativosSection) ativosSection.style.display = 'block';
-        if (tabAtivos) tabAtivos.classList.add('active');
-        carregarProjetos();
-    } else if (tab === 'lixeira') {
-        if (lixeiraSection) lixeiraSection.style.display = 'block';
-        if (tabLixeira) tabLixeira.classList.add('active');
-        carregarLixeira();
-        carregarContagemLixeira();
-    }
-}
-
-// Função para abrir conversão (reutiliza o modal existente)
-function abrirConversao(ideiaId) {
-    document.getElementById('conversaoIdeiaId').value = ideiaId;
-    document.getElementById('conversaoModal').style.display = 'flex';
-}
-
-async function carregarContagemAprovadas() {
-    try {
-        const response = await fetch('/ideias/aprovadas');
-        const ideias = await response.json();
-        const aprovadasCount = document.getElementById('aprovadasCount');
-        if (aprovadasCount) {
-            aprovadasCount.textContent = ideias.length;
-        }
-    } catch (error) {
-        console.error('Erro ao contar aprovadas:', error);
-    }
-}
-
-async function carregarContagemAtivos() {
-    try {
-        const response = await fetch('/projetos');
-        const projetos = await response.json();
-        const ativosCount = document.getElementById('ativosCount');
-        if (ativosCount) {
-            ativosCount.textContent = projetos.length;
-        }
-    } catch (error) {
-        console.error('Erro ao contar ativos:', error);
-    }
-}
-
-// Atualizar contadores
-async function carregarContadores() {
-    try {
-        const [aprovadasRes] = await Promise.all([
-            fetch('/ideias/aprovadas')
-        ]);
-        const aprovadas = await aprovadasRes.json();
-        
-        const aprovadasCount = document.getElementById('aprovadasCount');
-        if (aprovadasCount) {
-            aprovadasCount.textContent = aprovadas.length;
-        }
-    } catch (error) {
-        console.error('Erro:', error);
-    }
-}
-        
-        async function carregarLixeira() {
-    showLoading(true);
-    try {
-        const response = await fetch('/projetos/lixeira');
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const projetos = await response.json();
-        
-        const container = document.getElementById('lixeiraList');
-        
-        if (!projetos || projetos.length === 0) {
-            container.innerHTML = `
-                <div class="empty-state">
-                    <i class="fas fa-trash-alt"></i>
-                    <p>Lixeira vazia</p>
-                    <small>Projetos movidos para a lixeira aparecerão aqui.</small>
-                </div>
-            `;
-            return;
-        }
-        
-        container.innerHTML = projetos.map(proj => {
-            let dataInicioHtml = '';
-            if (proj.data_inicio) {
-                const dataFormatada = new Date(proj.data_inicio).toLocaleDateString('pt-BR');
-                dataInicioHtml = `<span><i class="fas fa-calendar-alt"></i> Início: ${dataFormatada}</span>`;
-            }
-            
-            return `
-                <div class="projeto-card lixeira-card">
-                    <h3>${escapeHtml(proj.nome)}</h3>
-                    <p>${escapeHtml(proj.descricao || 'Sem descrição')}</p>
-                    <div style="display: flex; gap: 15px; margin-top: 15px; flex-wrap: wrap;">
-                        <span class="prioridade-${proj.prioridade}">${getPrioridadeTexto(proj.prioridade)}</span>
-                        <span class="status-${proj.status}">${getStatusTexto(proj.status)}</span>
-                        <span><i class="fas fa-user"></i> ${escapeHtml(proj.responsavel || 'Não definido')}</span>
-                        ${dataInicioHtml}
-                        <span><i class="fas fa-clock"></i> Deletado em: ${formatarData(proj.data_delecao)}</span>
-                    </div>
-                    ${proj.ideia_titulo ? `<small><i class="fas fa-lightbulb"></i> Baseado na ideia: "${escapeHtml(proj.ideia_titulo)}"</small>` : ''}
-                    <div class="projeto-actions" style="margin-top: 15px;">
-                        <button onclick="restaurarProjeto(${proj.id})" class="btn-restaurar">
-                            <i class="fas fa-undo-alt"></i> Restaurar
-                        </button>
-                    </div>
-                </div>
-            `;
-        }).join('');
-        
-    } catch (error) {
-        console.error('❌ Erro:', error);
-        const container = document.getElementById('lixeiraList');
-        if (container) {
-            container.innerHTML = `
-                <div class="empty-state">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <p>Erro ao carregar lixeira: ${error.message}</p>
-                    <button onclick="carregarLixeira()" class="btn-primary">Tentar novamente</button>
-                </div>
-            `;
-        }
-    } finally {
-        showLoading(false);
-    }
-}
-        
-        async function carregarContagemLixeira() {
-    try {
-        const response = await fetch('/projetos/lixeira');
-        const projetos = await response.json();
-        const count = projetos.length;
-        
-        const lixeiraCount = document.getElementById('lixeiraCount');
-        if (lixeiraCount) {
-            lixeiraCount.textContent = count;
-        }
-    } catch (error) {
-        console.error('Erro:', error);
-    }
-}
-        async function deletarProjeto(id) {
-    if (!confirm('Mover este projeto para a lixeira?')) return;
-    
-    showLoading(true);
-    try {
-        const response = await fetch(`/projetos/${id}`, {
-            method: 'DELETE',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ usuarioId: usuarioLogado.id })
-        });
-        
-        const data = await response.json();
-        
-        if (data.sucesso) {
-            alert('✅ Projeto movido para a lixeira!');
-            // Atualizar contagens
-            await carregarContagemAtivos();
-            await carregarContagemLixeira();
-            // Recarregar listas
-            await carregarProjetos();
-            await carregarLixeira();
-        } else {
-            alert(data.erro || 'Erro ao mover projeto');
-        }
-    } catch (error) {
-        console.error('Erro:', error);
-        alert('Erro de conexão');
-    } finally {
-        showLoading(false);
-    }
-}
-
-async function restaurarProjeto(id) {
-    if (!confirm('Restaurar este projeto?')) return;
-    
-    showLoading(true);
-    try {
-        const response = await fetch(`/projetos/${id}/restaurar`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' }
-        });
-        
-        const data = await response.json();
-        
-        if (data.sucesso) {
-            alert('✅ Projeto restaurado!');
-            // Atualizar contagens
-            await carregarContagemAtivos();
-            await carregarContagemLixeira();
-            // Recarregar listas
-            await carregarProjetos();
-            await carregarLixeira();
-        } else {
-            alert(data.erro || 'Erro ao restaurar');
-        }
-    } catch (error) {
-        alert('Erro de conexão');
-    } finally {
-        showLoading(false);
-    }
-}
-
-async function limparLixeira() {
-    if (!confirm('⚠️ Limpar lixeira permanentemente?')) return;
-    
-    showLoading(true);
-    try {
-        const response = await fetch('/projetos/lixeira/limpar', {
-            method: 'DELETE',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ usuarioId: usuarioLogado.id })
-        });
-        
-        const data = await response.json();
-        
-        if (data.sucesso) {
-            alert('✅ Lixeira limpa!');
-            await carregarContagemLixeira();
-            await carregarLixeira();
-        } else {
-            alert(data.erro || 'Erro ao limpar');
-        }
-    } catch (error) {
-        alert('Erro de conexão');
-    } finally {
-        showLoading(false);
-    }
-}
-
-        // Funções do Modal de Conversão
-function abrirConversao(ideiaId) {
-    
-    // Verificar se o modal existe
-    const modal = document.getElementById('conversaoModal');
-    if (!modal) {
-        console.error('Modal de conversão não encontrado!');
-        alert('Erro: Modal não encontrado');
-        return;
-    }
-    
-    // Preencher o ID da ideia
-    const ideiaIdInput = document.getElementById('conversaoIdeiaId');
-    if (ideiaIdInput) {
-        ideiaIdInput.value = ideiaId;
-    }
-    
-    // Limpar campos anteriores
-    document.getElementById('projetoNome').value = '';
-    document.getElementById('projetoDescricao').value = '';
-    document.getElementById('projetoResponsavel').value = '';
-    document.getElementById('projetoDataInicio').value = '';
-    document.getElementById('projetoPrioridade').value = 'media';
-    
-    // Mostrar modal
-    modal.style.display = 'flex';
-}
-
-function fecharModalConversao() {
-    const modal = document.getElementById('conversaoModal');
-    if (modal) {
-        modal.style.display = 'none';
-    }
-}
 
 function verDetalhesProjeto(projetoId) {
     window.location.href = `projeto-detalhes.html?id=${projetoId}`;
 }
 
-// Configurar o formulário de conversão
-document.addEventListener('DOMContentLoaded', function() {
-    // ==========================================
-    // CONFIGURAR FORMULÁRIO DE CONVERSÃO
-    // ==========================================
-    const form = document.getElementById('conversaoForm');
-    if (form) {
-        form.addEventListener('submit', async function(e) {
+        async function carregarLixeira() {
+            showLoading(true);
+            try {
+                const response = await fetch('/projetos/lixeira');
+                const projetos = await response.json();
+                
+                const container = document.getElementById('lixeiraList');
+                
+                if (!projetos || projetos.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-trash-alt"></i>
+                            <p>Lixeira vazia</p>
+                            <small>Projetos movidos para a lixeira aparecerão aqui.</small>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                container.innerHTML = projetos.map(proj => `
+                    <div class="projeto-card lixeira-card">
+                        <h3>${escapeHtml(proj.nome)}</h3>
+                        <p>${escapeHtml(proj.descricao || 'Sem descrição')}</p>
+                        <div style="display: flex; gap: 15px; margin-top: 15px; flex-wrap: wrap;">
+                            <span class="prioridade-${proj.prioridade}">${getPrioridadeTexto(proj.prioridade)}</span>
+                            <span class="status-${proj.status}">${getStatusTexto(proj.status)}</span>
+                            <span><i class="fas fa-user"></i> ${escapeHtml(proj.responsavel || 'Não definido')}</span>
+                            <span><i class="fas fa-clock"></i> Deletado em: ${formatarData(proj.data_delecao)}</span>
+                        </div>
+                        ${proj.ideia_titulo ? `<small><i class="fas fa-lightbulb"></i> Baseado na ideia: "${escapeHtml(proj.ideia_titulo)}"</small>` : ''}
+                        <div class="projeto-actions" style="margin-top: 15px;">
+                            <button onclick="restaurarProjeto(${proj.id})" class="btn-restaurar">
+                                <i class="fas fa-undo-alt"></i> Restaurar
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+                
+            } catch (error) {
+                console.error('Erro:', error);
+                document.getElementById('lixeiraList').innerHTML = '<div class="empty-state">Erro ao carregar lixeira</div>';
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // ==========================================
+        // CONTAGENS
+        // ==========================================
+
+        async function carregarContagemAprovadas() {
+            try {
+                const response = await fetch('/ideias/aprovadas');
+                const ideias = await response.json();
+                document.getElementById('aprovadasCount').textContent = ideias.length;
+            } catch (error) {
+                console.error('Erro:', error);
+            }
+        }
+
+        async function carregarContagemAtivos() {
+            try {
+                const response = await fetch('/projetos');
+                const projetos = await response.json();
+                document.getElementById('ativosCount').textContent = projetos.length;
+            } catch (error) {
+                console.error('Erro:', error);
+            }
+        }
+
+        async function carregarContagemLixeira() {
+            try {
+                const response = await fetch('/projetos/lixeira');
+                const projetos = await response.json();
+                document.getElementById('lixeiraCount').textContent = projetos.length;
+            } catch (error) {
+                console.error('Erro:', error);
+            }
+        }
+
+        // ==========================================
+        // AÇÕES DOS PROJETOS
+        // ==========================================
+
+        async function deletarProjeto(id) {
+            if (!confirm('Mover este projeto para a lixeira?')) return;
+            
+            showLoading(true);
+            try {
+                const response = await fetch(`/projetos/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ usuarioId: usuarioLogado.id })
+                });
+                
+                const data = await response.json();
+                
+                if (data.sucesso) {
+                    alert('✅ Projeto movido para a lixeira!');
+                    await carregarContagemAtivos();
+                    await carregarContagemLixeira();
+                    await carregarProjetos();
+                    await carregarLixeira();
+                } else {
+                    alert(data.erro || 'Erro ao mover projeto');
+                }
+            } catch (error) {
+                console.error('Erro:', error);
+                alert('Erro de conexão');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        async function restaurarProjeto(id) {
+            if (!confirm('Restaurar este projeto?')) return;
+            
+            showLoading(true);
+            try {
+                const response = await fetch(`/projetos/${id}/restaurar`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                const data = await response.json();
+                
+                if (data.sucesso) {
+                    alert('✅ Projeto restaurado!');
+                    await carregarContagemAtivos();
+                    await carregarContagemLixeira();
+                    await carregarProjetos();
+                    await carregarLixeira();
+                } else {
+                    alert(data.erro || 'Erro ao restaurar');
+                }
+            } catch (error) {
+                alert('Erro de conexão');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        async function limparLixeira() {
+            if (!confirm('⚠️ ATENÇÃO: Esta ação irá remover PERMANENTEMENTE todos os projetos da lixeira. Esta operação não pode ser desfeita. Deseja continuar?')) return;
+            
+            showLoading(true);
+            try {
+                const response = await fetch('/projetos/lixeira/limpar', {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ usuarioId: usuarioLogado.id })
+                });
+                
+                const data = await response.json();
+                
+                if (data.sucesso) {
+                    alert('✅ Lixeira limpa permanentemente!');
+                    await carregarContagemLixeira();
+                    await carregarLixeira();
+                } else {
+                    alert(data.erro || 'Erro ao limpar');
+                }
+            } catch (error) {
+                alert('Erro de conexão');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // ==========================================
+        // MODAL DE CONVERSÃO
+        // ==========================================
+
+        function abrirConversao(ideiaId) {
+            document.getElementById('conversaoIdeiaId').value = ideiaId;
+            document.getElementById('projetoNome').value = '';
+            document.getElementById('projetoDescricao').value = '';
+            document.getElementById('projetoResponsavel').value = '';
+            document.getElementById('projetoDataInicio').value = '';
+            document.getElementById('projetoPrioridade').value = 'media';
+            document.getElementById('conversaoModal').style.display = 'flex';
+        }
+
+        function fecharModalConversao() {
+            document.getElementById('conversaoModal').style.display = 'none';
+        }
+
+        // Configurar formulário de conversão
+        document.getElementById('conversaoForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             
             const ideiaId = document.getElementById('conversaoIdeiaId').value;
@@ -935,29 +695,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (data.sucesso) {
                     alert('✅ Projeto criado com sucesso!');
                     fecharModalConversao();
-                    // Recarregar as listas
-                    carregarIdeiasAprovadas();
-                    carregarProjetos();
-                    carregarLixeira();
+                    await carregarIdeiasAprovadas();
+                    await carregarProjetos();
+                    await carregarContagemAprovadas();
+                    await carregarContagemAtivos();
                 } else {
                     alert(data.erro || 'Erro ao converter ideia');
                 }
-
-                if (usuarioLogado && (usuarioLogado.cargo === 'gestor' || usuarioLogado.cargo === 'ti_staff')) {
-        // Carregar contagens
-        await carregarContagemAprovadas();
-        await carregarContagemAtivos();
-        await carregarContagemLixeira();
-        
-        // Carregar conteúdo inicial
-        await carregarIdeiasAprovadas();
-        await carregarProjetos();
-        await carregarLixeira();
-    } else {
-        alert('Acesso negado');
-        window.location.href = '../index.html';
-    }
-
             } catch (error) {
                 console.error('Erro:', error);
                 alert('Erro de conexão');
@@ -965,72 +709,37 @@ document.addEventListener('DOMContentLoaded', function() {
                 showLoading(false);
             }
         });
-    }
-    
-    // ==========================================
-    // FALLBACK PARA OS BOTÕES DAS ABAS
-    // ==========================================
-    const btnAprovadas = document.querySelector('.tab-projeto:first-child');
-    const btnAtivos = document.querySelectorAll('.tab-projeto')[1];
-    const btnLixeira = document.querySelectorAll('.tab-projeto')[2];
-    
-    if (btnAprovadas && !btnAprovadas.hasAttribute('data-listener')) {
-        btnAprovadas.setAttribute('data-listener', 'true');
-        btnAprovadas.onclick = function(e) {
-            e.preventDefault();
-            if (typeof mostrarAprovadas === 'function') {
-                mostrarAprovadas();
-            } else {
-                console.error('Função mostrarAprovadas não definida');
+
+        // ==========================================
+        // FUNÇÕES UTILITÁRIAS
+        // ==========================================
+
+        function verIdeia(ideiaId) {
+            if (!ideiaId) {
+                alert('ID da ideia não encontrado');
+                return;
             }
-        };
-    }
-    
-    if (btnAtivos && !btnAtivos.hasAttribute('data-listener')) {
-        btnAtivos.setAttribute('data-listener', 'true');
-        btnAtivos.onclick = function(e) {
-            e.preventDefault();
-            if (typeof mostrarAtivos === 'function') {
-                mostrarAtivos();
-            } else {
-                console.error('Função mostrarAtivos não definida');
-            }
-        };
-    }
-    
-    if (btnLixeira && !btnLixeira.hasAttribute('data-listener')) {
-        btnLixeira.setAttribute('data-listener', 'true');
-        btnLixeira.onclick = function(e) {
-            e.preventDefault();
-            if (typeof mostrarLixeira === 'function') {
-                mostrarLixeira();
-            } else {
-                console.error('Função mostrarLixeira não definida');
-            }
-        };
-    }
-    
-});
-        
+            window.location.href = `../pages/ideia.html?id=${ideiaId}`;
+        }
+
         function getPrioridadeTexto(prioridade) {
             const textos = { 'alta': '🔴 Alta Prioridade', 'media': '🟡 Média Prioridade', 'baixa': '🟢 Baixa Prioridade' };
             return textos[prioridade] || prioridade;
         }
-        
+
         function getStatusTexto(status) {
             const textos = { 'planejamento': '📋 Planejamento', 'em_andamento': '⚙️ Em Andamento', 'concluido': '✅ Concluído', 'cancelado': '❌ Cancelado' };
             return textos[status] || status;
         }
-        
+
         function formatarData(data) {
-    if (!data) return 'Data inválida';
-    try {
-        const date = new Date(data);
-        return date.toLocaleDateString('pt-BR');
-    } catch (e) {
-        return data;
-    }
-}
+            if (!data) return 'Data inválida';
+            try {
+                return new Date(data).toLocaleDateString('pt-BR');
+            } catch (e) {
+                return data;
+            }
+        }
 
         function escapeHtml(text) {
             if (!text) return '';
@@ -1038,7 +747,7 @@ document.addEventListener('DOMContentLoaded', function() {
             div.textContent = text;
             return div.innerHTML;
         }
-        
+
         function showLoading(show) {
             const loading = document.getElementById('loading');
             if (loading) loading.style.display = show ? 'flex' : 'none';

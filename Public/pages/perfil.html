@@ -6,6 +6,7 @@
     <title>Perfil - IdeaHub</title>
     <link rel="stylesheet" href="../style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="/js/session-check.js"></script>
     <style>
         .stats-grid {
             display: grid;
@@ -84,6 +85,17 @@
             text-decoration: none;
         }
         .btn-voltar:hover { background: #5a6268; }
+        .loading {
+            text-align: center;
+            padding: 50px;
+            font-size: 18px;
+            color: #667eea;
+        }
+        .error {
+            text-align: center;
+            padding: 50px;
+            color: #dc3545;
+        }
     </style>
 </head>
 <body>
@@ -101,168 +113,191 @@
     </div>
 
     <script>
+        // Pegar ID da URL (se for ver perfil de outro usuário)
         const urlParams = new URLSearchParams(window.location.search);
         const perfilId = urlParams.get('id');
+        
+        // Usuário logado vem do session-check.js (window.usuarioLogado)
         let usuarioLogado = null;
 
+        // Aguardar o DOM carregar
         document.addEventListener('DOMContentLoaded', async () => {
-            const token = localStorage.getItem('ideaHubToken');
-            if (!token) {
+            // Verificar se está logado via sessionStorage
+            const userSalvo = sessionStorage.getItem('ideaHubUser');
+            
+            if (!userSalvo) {
                 alert('Faça login para acessar perfis');
                 window.location.href = '../index.html';
                 return;
             }
-            usuarioLogado = JSON.parse(token);
-            await carregarPerfil();
+            
+            try {
+                usuarioLogado = JSON.parse(userSalvo);
+                console.log('✅ Usuário logado:', usuarioLogado.nome);
+                await carregarPerfil();
+            } catch (e) {
+                console.error('Erro ao carregar sessão:', e);
+                alert('Sessão inválida. Faça login novamente.');
+                window.location.href = '../index.html';
+            }
         });
 
         async function carregarPerfil() {
+            // Se tem perfilId na URL, carrega aquele, senão carrega o próprio perfil
             const idParaCarregar = perfilId ? perfilId : usuarioLogado.id;
+            const isProprioPerfil = !perfilId || perfilId == usuarioLogado.id;
+            
             const container = document.getElementById('perfilContainer');
             container.innerHTML = '<div class="loading">Carregando perfil...</div>';
 
             try {
                 const response = await fetch(`/api/usuario/perfil/${idParaCarregar}`);
-                if (!response.ok) throw new Error('Erro ao carregar perfil');
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                
                 const data = await response.json();
-                renderizarPerfil(data, idParaCarregar == usuarioLogado.id);
+                renderizarPerfil(data, isProprioPerfil);
             } catch (err) {
-                console.error(err);
-                container.innerHTML = `<div class="error">Erro ao carregar perfil: ${err.message}</div>`;
+                console.error('Erro:', err);
+                container.innerHTML = `<div class="error">❌ Erro ao carregar perfil: ${err.message}</div>`;
             }
         }
-// ==========================================
-// FUNÇÕES AUXILIARES PARA NÍVEL
-// ==========================================
 
-function getNivelTexto(nivel) {
-    if (!nivel || nivel <= 1) return '🌟 Iniciante';
-    if (nivel <= 3) return '📚 Aprendiz';
-    if (nivel <= 5) return '💡 Colaborador';
-    if (nivel <= 7) return '🎯 Especialista';
-    if (nivel <= 9) return '🏆 Mestre';
-    return '👑 Lendário';
-}
+        // ==========================================
+        // FUNÇÕES AUXILIARES PARA NÍVEL
+        // ==========================================
 
-function getEstrelasNivel(nivel) {
-    const maxEstrelas = 5;
-    const estrelasCheias = Math.min(nivel, maxEstrelas);
-    const estrelasVazias = maxEstrelas - estrelasCheias;
-    return '⭐'.repeat(estrelasCheias) + '☆'.repeat(estrelasVazias);
-}
+        function getNivelTexto(nivel) {
+            if (!nivel || nivel <= 1) return '🌟 Iniciante';
+            if (nivel <= 3) return '📚 Aprendiz';
+            if (nivel <= 5) return '💡 Colaborador';
+            if (nivel <= 7) return '🎯 Especialista';
+            if (nivel <= 9) return '🏆 Mestre';
+            return '👑 Lendário';
+        }
 
-// ==========================================
-// RENDERIZAR PERFIL
-// ==========================================
+        function getEstrelasNivel(nivel) {
+            const maxEstrelas = 5;
+            const estrelasCheias = Math.min(Math.floor(nivel / 2) + 1, maxEstrelas);
+            const estrelasVazias = maxEstrelas - estrelasCheias;
+            return '⭐'.repeat(estrelasCheias) + '☆'.repeat(estrelasVazias);
+        }
 
-function renderizarPerfil(data, isProprioPerfil) {
-    const container = document.getElementById('perfilContainer');
-    const usuario = data.usuario;
-    if (!usuario) {
-        container.innerHTML = '<div class="error">Usuário não encontrado</div>';
-        return;
-    }
+        // ==========================================
+        // RENDERIZAR PERFIL
+        // ==========================================
 
-    const ideias = data.listaIdeias || [];
-    const ideiasPorStatus = data.ideiasPorStatus || { pendente:0, aprovada:0, convertida:0, rejeitada:0 };
-    const conquistas = data.conquistas || [];
+        function renderizarPerfil(data, isProprioPerfil) {
+            const container = document.getElementById('perfilContainer');
+            const usuario = data.usuario;
+            
+            if (!usuario) {
+                container.innerHTML = '<div class="error">Usuário não encontrado</div>';
+                return;
+            }
 
-    // Cargo com primeira letra maiúscula
-    const cargoCapitalizado = usuario.cargo.charAt(0).toUpperCase() + usuario.cargo.slice(1);
-    
-    // Dados de nível
-    const nivel = usuario.nivel || 1;
-    const nivelTexto = getNivelTexto(nivel);
-    const estrelas = getEstrelasNivel(nivel);
+            const ideias = data.listaIdeias || [];
+            const ideiasPorStatus = data.ideiasPorStatus || { pendente: 0, aprovada: 0, convertida: 0, rejeitada: 0 };
+            const conquistas = data.conquistas || [];
 
-    // Montar HTML
-    let html = `
-        <div class="perfil-header">
-            <div style="display: flex; align-items: center; gap: 20px; flex-wrap: wrap;">
-                <div style="font-size: 4em;"><i class="fas fa-user-astronaut"></i></div>
-                <div>
-                    <h2>${escapeHtml(usuario.nome)}</h2>
-                    <p><i class="fas fa-envelope"></i> ${escapeHtml(usuario.email)}</p>
-                    <p><i class="fas fa-briefcase"></i> ${escapeHtml(cargoCapitalizado)}</p>
-                    <p><i class="fas fa-calendar-alt"></i> Membro desde ${new Date(usuario.data_cadastro).toLocaleDateString('pt-BR')}</p>
+            // Cargo com primeira letra maiúscula
+            const cargoCapitalizado = usuario.cargo.charAt(0).toUpperCase() + usuario.cargo.slice(1);
+            
+            // Dados de nível
+            const nivel = usuario.nivel || 1;
+            const nivelTexto = getNivelTexto(nivel);
+            const estrelas = getEstrelasNivel(nivel);
+
+            // Montar HTML
+            let html = `
+                <div class="perfil-header">
+                    <div style="display: flex; align-items: center; gap: 20px; flex-wrap: wrap;">
+                        <div style="font-size: 4em;"><i class="fas fa-user-astronaut"></i></div>
+                        <div>
+                            <h2>${escapeHtml(usuario.nome)}</h2>
+                            <p><i class="fas fa-envelope"></i> ${escapeHtml(usuario.email)}</p>
+                            <p><i class="fas fa-briefcase"></i> ${escapeHtml(cargoCapitalizado)}</p>
+                            <p><i class="fas fa-calendar-alt"></i> Membro desde ${new Date(usuario.data_cadastro).toLocaleDateString('pt-BR')}</p>
+                        </div>
+                        <div style="margin-left: auto; text-align: center; background: rgba(255,255,255,0.2); padding: 15px; border-radius: 20px; min-width: 180px;">
+                            <div style="font-size: 2em;">
+                                <i class="fas fa-star"></i> Nível ${nivel}
+                            </div>
+                            <div style="font-size: 1.8em; font-weight: bold; margin: 5px 0;">
+                                ${usuario.pontos_totais || 0} pts
+                            </div>
+                            <div style="font-size: 0.9em; letter-spacing: 2px;">
+                                ${estrelas}
+                            </div>
+                            <div style="font-size: 0.8em; margin-top: 5px; opacity: 0.9;">
+                                ${nivelTexto}
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div style="margin-left: auto; text-align: center; background: rgba(255,255,255,0.2); padding: 15px; border-radius: 20px; min-width: 180px;">
-                    <div style="font-size: 2em;">
-                        <i class="fas fa-star"></i> Nível ${nivel}
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="icone"><i class="fas fa-lightbulb"></i></div>
+                        <h3>Total de Ideias</h3>
+                        <div class="numero">${ideias.length}</div>
                     </div>
-                    <div style="font-size: 1.8em; font-weight: bold; margin: 5px 0;">
-                        ${usuario.pontos_totais} pts
+                    <div class="stat-card">
+                        <div class="icone"><i class="fas fa-clock"></i></div>
+                        <h3>Pendentes</h3>
+                        <div class="numero">${ideiasPorStatus.pendente || 0}</div>
                     </div>
-                    <div style="font-size: 0.9em; letter-spacing: 2px;">
-                        ${estrelas}
+                    <div class="stat-card">
+                        <div class="icone"><i class="fas fa-check-circle"></i></div>
+                        <h3>Aprovadas</h3>
+                        <div class="numero">${ideiasPorStatus.aprovada || 0}</div>
                     </div>
-                    <div style="font-size: 0.8em; margin-top: 5px; opacity: 0.9;">
-                        ${nivelTexto}
+                    <div class="stat-card">
+                        <div class="icone"><i class="fas fa-project-diagram"></i></div>
+                        <h3>Convertidas</h3>
+                        <div class="numero">${ideiasPorStatus.convertida || 0}</div>
                     </div>
                 </div>
-            </div>
-        </div>
 
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="icone"><i class="fas fa-lightbulb"></i></div>
-                <h3>Total de Ideias</h3>
-                <div class="numero">${ideias.length}</div>
-            </div>
-            <div class="stat-card">
-                <div class="icone"><i class="fas fa-clock"></i></div>
-                <h3>Pendentes</h3>
-                <div class="numero">${ideiasPorStatus.pendente}</div>
-            </div>
-            <div class="stat-card">
-                <div class="icone"><i class="fas fa-check-circle"></i></div>
-                <h3>Aprovadas</h3>
-                <div class="numero">${ideiasPorStatus.aprovada}</div>
-            </div>
-            <div class="stat-card">
-                <div class="icone"><i class="fas fa-project-diagram"></i></div>
-                <h3>Convertidas</h3>
-                <div class="numero">${ideiasPorStatus.convertida}</div>
-            </div>
-        </div>
+                <div class="tab-header">
+                    <button class="tab-btn active" onclick="mostrarAba('minhas')">Ideias (${ideias.length})</button>
+                    <button class="tab-btn" onclick="mostrarAba('conquistas')">Conquistas (${conquistas.length})</button>
+                </div>
 
-        <div class="tab-header">
-            <button class="tab-btn active" onclick="mostrarAba('minhas')">Ideias (${ideias.length})</button>
-            <button class="tab-btn" onclick="mostrarAba('conquistas')">Conquistas (${conquistas.length})</button>
-        </div>
+                <div id="abaMinhasIdeias">
+                    ${renderizarIdeias(ideias)}
+                </div>
+                <div id="abaConquistas" style="display: none;">
+                    ${renderizarConquistas(conquistas)}
+                </div>
+            `;
 
-        <div id="abaMinhasIdeias">
-            ${renderizarIdeias(ideias)}
-        </div>
-        <div id="abaConquistas" style="display: none;">
-            ${renderizarConquistas(conquistas)}
-        </div>
-    `;
-
-    container.innerHTML = html;
-}
+            container.innerHTML = html;
+        }
 
         function renderizarIdeias(ideias) {
             if (!ideias.length) {
-                return '<p>Nenhuma ideia publicada ainda.</p>';
+                return '<p style="text-align: center; padding: 40px;">📭 Nenhuma ideia publicada ainda.</p>';
             }
             return ideias.map(ideia => {
                 let statusIcon = '';
-                let statusText = '';
+                let statusClass = '';
                 switch (ideia.status) {
-                    case 'pendente': statusIcon = '⏳'; statusText = 'Pendente'; break;
-                    case 'aprovada': statusIcon = '✅'; statusText = 'Aprovada'; break;
-                    case 'convertida': statusIcon = '🚀'; statusText = 'Convertida'; break;
-                    default: statusIcon = '❓'; statusText = ideia.status;
+                    case 'pendente': statusIcon = '⏳'; statusClass = 'status-pendente'; break;
+                    case 'aprovada': statusIcon = '✅'; statusClass = 'status-aprovada'; break;
+                    case 'convertida': statusIcon = '🚀'; statusClass = 'status-convertida'; break;
+                    default: statusIcon = '❓'; statusClass = '';
                 }
                 return `
                     <div class="ideia-card">
-                        <div style="display: flex; justify-content: space-between; flex-wrap: wrap;">
-                            <h3><a href="ideia.html?id=${ideia.id}" target="_blank">${escapeHtml(ideia.titulo)}</a></h3>
-                            <span class="badge-status status-${ideia.status}">${statusIcon} ${statusText}</span>
+                        <div style="display: flex; justify-content: space-between; flex-wrap: wrap; align-items: center;">
+                            <h3 style="margin: 0;"><a href="ideia.html?id=${ideia.id}" target="_blank" style="color: #2d3748; text-decoration: none;">${escapeHtml(ideia.titulo)}</a></h3>
+                            <span class="badge-status ${statusClass}">${statusIcon} ${ideia.status.charAt(0).toUpperCase() + ideia.status.slice(1)}</span>
                         </div>
-                        <p><i class="fas fa-calendar"></i> ${new Date(ideia.data_publicacao).toLocaleDateString('pt-BR')}</p>
-                        <p>
+                        <p style="margin: 10px 0 5px 0;"><i class="fas fa-calendar"></i> ${new Date(ideia.data_publicacao).toLocaleDateString('pt-BR')}</p>
+                        <p style="margin: 0;">
                             <i class="fas fa-thumbs-up"></i> ${ideia.votos || 0} votos &nbsp;|&nbsp;
                             <i class="fas fa-comment"></i> ${ideia.total_comentarios || 0} comentários &nbsp;|&nbsp;
                             <i class="fas fa-eye"></i> ${ideia.visualizacoes || 0} visualizações
@@ -274,16 +309,16 @@ function renderizarPerfil(data, isProprioPerfil) {
 
         function renderizarConquistas(conquistas) {
             if (!conquistas.length) {
-                return '<p>Nenhuma conquista desbloqueada ainda.</p>';
+                return '<p style="text-align: center; padding: 40px;">🏆 Nenhuma conquista desbloqueada ainda. Continue participando!</p>';
             }
             return `
-                <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+                <div style="display: flex; flex-wrap: wrap; gap: 15px;">
                     ${conquistas.map(c => `
                         <div class="conquista-item">
-                            <span style="font-size: 1.5em;">${c.icone || '🏆'}</span>
+                            <div style="font-size: 2em; text-align: center;">${c.icone || '🏆'}</div>
                             <strong>${escapeHtml(c.nome)}</strong><br>
                             <small>${escapeHtml(c.descricao)}</small><br>
-                            <small style="color: #888;">${new Date(c.data_obtencao).toLocaleDateString('pt-BR')}</small>
+                            <small style="color: #888;">📅 ${new Date(c.data_obtencao).toLocaleDateString('pt-BR')}</small>
                         </div>
                     `).join('')}
                 </div>
@@ -294,16 +329,19 @@ function renderizarPerfil(data, isProprioPerfil) {
             const minhas = document.getElementById('abaMinhasIdeias');
             const conquistas = document.getElementById('abaConquistas');
             const btns = document.querySelectorAll('.tab-btn');
+            
+            if (!minhas || !conquistas) return;
+            
             if (aba === 'minhas') {
                 minhas.style.display = 'block';
                 conquistas.style.display = 'none';
-                btns[0].classList.add('active');
-                btns[1].classList.remove('active');
+                if (btns[0]) btns[0].classList.add('active');
+                if (btns[1]) btns[1].classList.remove('active');
             } else {
                 minhas.style.display = 'none';
                 conquistas.style.display = 'block';
-                btns[0].classList.remove('active');
-                btns[1].classList.add('active');
+                if (btns[0]) btns[0].classList.remove('active');
+                if (btns[1]) btns[1].classList.add('active');
             }
         }
 

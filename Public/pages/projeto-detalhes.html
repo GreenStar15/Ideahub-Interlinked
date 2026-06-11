@@ -6,6 +6,7 @@
     <title>IdeaHub - Detalhes do Projeto</title>
     <link rel="stylesheet" href="../style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="/js/session-check.js"></script>
     <style>
         /* Documentação */
         .documentos-grid {
@@ -537,202 +538,203 @@
 <body>
     <div class="container">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
-    <h1 id="projetoTitulo" style="margin: 0;">Carregando projeto...</h1>
-    <button onclick="window.location.href='projetos.html'" class="btn-voltar">
-        <i class="fas fa-arrow-left"></i> Voltar para Projetos
-    </button>
-</div>
+            <h1 id="projetoTitulo" style="margin: 0;">Carregando projeto...</h1>
+            <button onclick="window.location.href='projetos.html'" class="btn-voltar">
+                <i class="fas fa-arrow-left"></i> Voltar para Projetos
+            </button>
+        </div>
 
-<div class="tabs-projetos">
-    <button class="tab-projeto active" onclick="mostrarAba('detalhes')">
-        <i class="fas fa-info-circle"></i> Detalhes
-    </button>
-    <button class="tab-projeto" onclick="mostrarAba('documentacao')">
-        <i class="fas fa-file-alt"></i> Documentação
-    </button>
-    <button class="tab-projeto" onclick="mostrarAba('planejamento')">
-        <i class="fas fa-network-wired"></i> Planejamento de Rede
-    </button>
-    <button class="tab-projeto" onclick="mostrarAba('periodos')">
-    <i class="fas fa-calendar-alt"></i> Períodos
-</button>
-</div>
+        <div class="tabs-projetos">
+            <button class="tab-projeto active" onclick="mostrarAba('detalhes')">
+                <i class="fas fa-info-circle"></i> Detalhes
+            </button>
+            <button class="tab-projeto" onclick="mostrarAba('documentacao')">
+                <i class="fas fa-file-alt"></i> Documentação
+            </button>
+            <button class="tab-projeto" onclick="mostrarAba('planejamento')">
+                <i class="fas fa-network-wired"></i> Planejamento de Rede
+            </button>
+            <button class="tab-projeto" onclick="mostrarAba('periodos')">
+                <i class="fas fa-calendar-alt"></i> Períodos
+            </button>
+        </div>
         
- <!-- Aba Detalhes (ativa por padrão) -->
-<div id="abaDetalhes" class="tab-content active">
-    <div id="projetoInfo" class="projeto-info-card">
-        <div class="loading-spinner">Carregando...</div>
-    </div>
-</div>
-
-<!-- Aba Documentação (inativa) -->
-<div id="abaDocumentacao" class="tab-content">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-        <h3><i class="fas fa-file-alt"></i> Documentação Técnica</h3>
-        <button onclick="abrirModalDocumento()" class="btn-primary" style="width: auto; padding: 8px 16px;">
-            <i class="fas fa-plus"></i> Novo Documento
-        </button>
-    </div>
-    <div id="documentosList" class="documentos-grid">
-        <div class="empty-state">Carregando documentação...</div>
-    </div>
-</div>
-
-<!-- Aba Planejamento de Rede (inativa) -->
-<div id="abaPlanejamento" class="tab-content">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-        <h3><i class="fas fa-network-wired"></i> Equipamentos de Rede</h3>
-        <button onclick="abrirModalEquipamento()" class="btn-primary" style="width: auto; padding: 8px 16px;">
-            <i class="fas fa-plus"></i> Adicionar Equipamento
-        </button>
-    </div>
-    <div id="equipamentosList" class="planejamento-container">
-        <div class="empty-state-central">Carregando equipamentos...</div>
-    </div>
-</div>
-
-<!-- Aba Períodos -->
-<div id="abaPeriodos" class="tab-content">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-        <h3><i class="fas fa-calendar-alt"></i> Calendário de Períodos</h3>
-        <button onclick="abrirModalPeriodo()" class="btn-primary" style="width: auto; padding: 8px 16px;">
-            <i class="fas fa-plus"></i> Novo Período
-        </button>
-    </div>
-    <div class="calendario-container">
-        <div class="calendario-header">
-            <div class="calendario-mes" id="calendarioMes"></div>
-            <div class="calendario-nav">
-                <button onclick="navegarMes(-1)"><i class="fas fa-chevron-left"></i> Mês anterior</button>
-                <button onclick="navegarMes(1)">Próximo mês <i class="fas fa-chevron-right"></i></button>
+        <!-- Aba Detalhes -->
+        <div id="abaDetalhes" class="tab-content active">
+            <div id="projetoInfo">
+                <div class="loading-spinner">Carregando...</div>
             </div>
         </div>
-        <div class="calendario-grade" id="calendarioGrade"></div>
-    </div>
-</div>
 
-    <!-- Modal de Documento - atualizar o formulário -->
-<div id="modalDocumento" class="modal" style="display: none;">
-    <div class="modal-content modal-documento">
-        <div class="modal-header">
-            <h3 id="modalDocumentoTitulo">Novo Documento</h3>
-            <span onclick="fecharModal('modalDocumento')" class="modal-close">&times;</span>
+        <!-- Aba Documentação -->
+        <div id="abaDocumentacao" class="tab-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3><i class="fas fa-file-alt"></i> Documentação Técnica</h3>
+                <button onclick="abrirModalDocumento()" class="btn-primary" style="width: auto; padding: 8px 16px;">
+                    <i class="fas fa-plus"></i> Novo Documento
+                </button>
+            </div>
+            <div id="documentosList" class="documentos-grid">
+                <div class="empty-state">Carregando documentação...</div>
+            </div>
         </div>
-        <form id="formDocumento" enctype="multipart/form-data">
-            <input type="hidden" id="documentoId">
-            <div class="form-group">
-                <label>Título</label>
-                <input type="text" id="docTitulo" class="input-field" required>
+
+        <!-- Aba Planejamento de Rede -->
+        <div id="abaPlanejamento" class="tab-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3><i class="fas fa-network-wired"></i> Equipamentos de Rede</h3>
+                <button onclick="abrirModalEquipamento()" class="btn-primary" style="width: auto; padding: 8px 16px;">
+                    <i class="fas fa-plus"></i> Adicionar Equipamento
+                </button>
             </div>
-            <div class="form-group">
-                <label>Descrição</label>
-                <textarea id="docDescricao" rows="3" class="input-field"></textarea>
+            <div id="equipamentosList" class="planejamento-container">
+                <div class="empty-state-central">Carregando equipamentos...</div>
             </div>
-            <div class="form-group">
-                <label>Versão</label>
-                <input type="text" id="docVersao" class="input-field" placeholder="1.0">
+        </div>
+
+        <!-- Aba Períodos -->
+        <div id="abaPeriodos" class="tab-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3><i class="fas fa-calendar-alt"></i> Calendário de Períodos</h3>
+                <button onclick="abrirModalPeriodo()" class="btn-primary" style="width: auto; padding: 8px 16px;">
+                    <i class="fas fa-plus"></i> Novo Período
+                </button>
             </div>
-            <div class="form-group">
-                <label>Arquivo (PDF, DOCX, PNG, JPG)</label>
-                <input type="file" id="docArquivo" class="input-field" accept=".pdf,.docx,.doc,.png,.jpg,.jpeg">
-                <div id="docArquivoAtual" style="display: none; margin-top: 5px;">
-                    <i class="fas fa-paperclip"></i> <span id="nomeArquivoAtual"></span>
-                    <button type="button" onclick="removerArquivo()" class="btn-remover-arquivo">Remover</button>
+            <div class="calendario-container">
+                <div class="calendario-header">
+                    <div class="calendario-mes" id="calendarioMes"></div>
+                    <div class="calendario-nav">
+                        <button onclick="navegarMes(-1)"><i class="fas fa-chevron-left"></i> Mês anterior</button>
+                        <button onclick="navegarMes(1)">Próximo mês <i class="fas fa-chevron-right"></i></button>
+                    </div>
                 </div>
+                <div class="calendario-grade" id="calendarioGrade"></div>
             </div>
-            <button type="submit" class="btn-primary">Salvar Documento</button>
-        </form>
-    </div>
-</div>
-    
-<!-- Modal de Equipamento -->
-<div id="modalEquipamento" class="modal" style="display: none;">
-    <div class="modal-content" style="max-width: 600px;">
-        <div class="modal-header">
-            <h3 id="modalEquipamentoTitulo">Novo Equipamento</h3>
-            <span onclick="fecharModal('modalEquipamento')" class="modal-close">&times;</span>
         </div>
-        <form id="formEquipamento">
-            <input type="hidden" id="equipamentoId">
-            <div class="form-group">
-                <label>Nome do Equipamento *</label>
-                <input type="text" id="equipNome" class="input-field" required>
-            </div>
-            <div class="form-group">
-                <label>Tipo *</label>
-                <select id="equipTipo" class="filter-select" required>
-                    <option value="">Selecione...</option>
-                    <option value="switch">🔌 Switch</option>
-                    <option value="roteador">🌐 Roteador</option>
-                    <option value="firewall">🛡️ Firewall</option>
-                    <option value="servidor">🖥️ Servidor</option>
-                    <option value="access_point">📡 Access Point</option>
-                    <option value="outro">📦 Outro</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>Fabricante</label>
-                <input type="text" id="equipFabricante" class="input-field">
-            </div>
-            <div class="form-group">
-                <label>Modelo</label>
-                <input type="text" id="equipModelo" class="input-field">
-            </div>
-            <div class="form-group">
-                <label>Endereço IP</label>
-                <input type="text" id="equipIp" class="input-field" placeholder="192.168.1.1">
-            </div>
-            <div class="form-group">
-                <label>Máscara de Sub-rede</label>
-                <input type="text" id="equipMascara" class="input-field" placeholder="255.255.255.0">
-            </div>
-            <div class="form-group">
-                <label>Gateway</label>
-                <input type="text" id="equipGateway" class="input-field" placeholder="192.168.1.1">
-            </div>
-            <div class="form-group">
-                <label>Custo (R$)</label>
-                <input type="number" id="equipCusto" class="input-field" step="0.01" value="0">
-            </div>
-            <div class="form-group">
-                <label>Observações</label>
-                <textarea id="equipObservacoes" rows="2" class="input-field"></textarea>
-            </div>
-            <button type="submit" class="btn-primary">Salvar Equipamento</button>
-        </form>
     </div>
-</div>
 
-<!-- Modal de Período -->
-<div id="modalPeriodo" class="modal" style="display: none;">
-    <div class="modal-content" style="max-width: 500px;">
-        <div class="modal-header">
-            <h3 id="modalPeriodoTitulo">Novo Período</h3>
-            <span onclick="fecharModal('modalPeriodo')" class="modal-close">&times;</span>
+    <!-- Modal de Documento -->
+    <div id="modalDocumento" class="modal" style="display: none;">
+        <div class="modal-content modal-documento">
+            <div class="modal-header">
+                <h3 id="modalDocumentoTitulo">Novo Documento</h3>
+                <span onclick="fecharModal('modalDocumento')" class="modal-close">&times;</span>
+            </div>
+            <form id="formDocumento">
+                <input type="hidden" id="documentoId">
+                <div class="form-group">
+                    <label>Título</label>
+                    <input type="text" id="docTitulo" class="input-field" required>
+                </div>
+                <div class="form-group">
+                    <label>Descrição</label>
+                    <textarea id="docDescricao" rows="3" class="input-field"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Versão</label>
+                    <input type="text" id="docVersao" class="input-field" placeholder="1.0">
+                </div>
+                <div class="form-group">
+                    <label>Arquivo (PDF, DOCX, PNG, JPG)</label>
+                    <input type="file" id="docArquivo" class="input-field" accept=".pdf,.docx,.doc,.png,.jpg,.jpeg">
+                    <div id="docArquivoAtual" style="display: none; margin-top: 5px;">
+                        <i class="fas fa-paperclip"></i> <span id="nomeArquivoAtual"></span>
+                        <button type="button" onclick="removerArquivo()" class="btn-remover-arquivo">Remover</button>
+                    </div>
+                </div>
+                <button type="submit" class="btn-primary">Salvar Documento</button>
+            </form>
         </div>
-        <form id="formPeriodo">
-            <input type="hidden" id="periodoId">
-            <div class="form-group">
-                <label>Nome do Período</label>
-                <input type="text" id="periodoNome" class="input-field" required>
-            </div>
-            <div class="form-group">
-                <label>Data de Início</label>
-                <input type="date" id="periodoDataInicio" class="input-field" required>
-            </div>
-            <div class="form-group">
-                <label>Data de Fim</label>
-                <input type="date" id="periodoDataFim" class="input-field" required>
-            </div>
-            <div style="display: flex; gap: 10px; justify-content: flex-end;">
-    <button type="button" id="btnExcluirPeriodo" class="btn-excluir-modal" style="display: none;" onclick="excluirPeriodoDoModal()">
-    <i class="fas fa-trash-alt"></i> Excluir Período
-</button>
-    <button type="submit" class="btn-primary">Salvar Período</button>
-</div>
-        </form>
     </div>
-</div>
+    
+    <!-- Modal de Equipamento -->
+    <div id="modalEquipamento" class="modal" style="display: none;">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <h3 id="modalEquipamentoTitulo">Novo Equipamento</h3>
+                <span onclick="fecharModal('modalEquipamento')" class="modal-close">&times;</span>
+            </div>
+            <form id="formEquipamento">
+                <input type="hidden" id="equipamentoId">
+                <div class="form-group">
+                    <label>Nome do Equipamento *</label>
+                    <input type="text" id="equipNome" class="input-field" required>
+                </div>
+                <div class="form-group">
+                    <label>Tipo *</label>
+                    <select id="equipTipo" class="filter-select" required>
+                        <option value="">Selecione...</option>
+                        <option value="switch">🔌 Switch</option>
+                        <option value="roteador">🌐 Roteador</option>
+                        <option value="firewall">🛡️ Firewall</option>
+                        <option value="servidor">🖥️ Servidor</option>
+                        <option value="access_point">📡 Access Point</option>
+                        <option value="outro">📦 Outro</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Fabricante</label>
+                    <input type="text" id="equipFabricante" class="input-field">
+                </div>
+                <div class="form-group">
+                    <label>Modelo</label>
+                    <input type="text" id="equipModelo" class="input-field">
+                </div>
+                <div class="form-group">
+                    <label>Endereço IP</label>
+                    <input type="text" id="equipIp" class="input-field" placeholder="192.168.1.1">
+                </div>
+                <div class="form-group">
+                    <label>Máscara de Sub-rede</label>
+                    <input type="text" id="equipMascara" class="input-field" placeholder="255.255.255.0">
+                </div>
+                <div class="form-group">
+                    <label>Gateway</label>
+                    <input type="text" id="equipGateway" class="input-field" placeholder="192.168.1.1">
+                </div>
+                <div class="form-group">
+                    <label>Custo (R$)</label>
+                    <input type="number" id="equipCusto" class="input-field" step="0.01" value="0">
+                </div>
+                <div class="form-group">
+                    <label>Observações</label>
+                    <textarea id="equipObservacoes" rows="2" class="input-field"></textarea>
+                </div>
+                <button type="submit" class="btn-primary">Salvar Equipamento</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal de Período -->
+    <div id="modalPeriodo" class="modal" style="display: none;">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h3 id="modalPeriodoTitulo">Novo Período</h3>
+                <span onclick="fecharModal('modalPeriodo')" class="modal-close">&times;</span>
+            </div>
+            <form id="formPeriodo">
+                <input type="hidden" id="periodoId">
+                <div class="form-group">
+                    <label>Nome do Período</label>
+                    <input type="text" id="periodoNome" class="input-field" required>
+                </div>
+                <div class="form-group">
+                    <label>Data de Início</label>
+                    <input type="date" id="periodoDataInicio" class="input-field" required>
+                </div>
+                <div class="form-group">
+                    <label>Data de Fim</label>
+                    <input type="date" id="periodoDataFim" class="input-field" required>
+                </div>
+                <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                    <button type="button" id="btnExcluirPeriodo" class="btn-excluir-modal" style="display: none;" onclick="excluirPeriodoDoModal()">
+                        <i class="fas fa-trash-alt"></i> Excluir Período
+                    </button>
+                    <button type="submit" class="btn-primary">Salvar Período</button>
+                </div>
+            </form>
+        </div>
+    </div>
 
     <div id="loading" class="loading">
         <div class="spinner"></div>
@@ -749,22 +751,45 @@
         const urlParams = new URLSearchParams(window.location.search);
         projetoId = urlParams.get('id');
         
-        // Verificar login
-        async function verificarLogin() {
-            const tokenSalvo = localStorage.getItem('ideaHubToken');
-            if (tokenSalvo) {
-                try {
-                    usuarioLogado = JSON.parse(tokenSalvo);
-                    return true;
-                } catch(e) {
+        // Verificar sessão ao carregar
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Verificar se está logado via sessionStorage
+            const userSalvo = sessionStorage.getItem('ideaHubUser');
+            
+            if (!userSalvo) {
+                alert('Faça login primeiro!');
+                window.location.href = '../index.html';
+                return;
+            }
+            
+            try {
+                usuarioLogado = JSON.parse(userSalvo);
+                console.log('✅ Usuário logado:', usuarioLogado.nome);
+                
+                // Verificar se é admin (apenas admin pode ver projetos)
+                const isAdmin = usuarioLogado.cargo === 'gestor' || usuarioLogado.cargo === 'ti_staff';
+                if (!isAdmin) {
+                    alert('❌ Acesso negado! Você não tem permissão para acessar esta página.');
                     window.location.href = '../index.html';
+                    return;
                 }
-            } else {
+                
+                if (!projetoId) {
+                    alert('ID do projeto não encontrado');
+                    window.location.href = 'projetos.html';
+                    return;
+                }
+                
+                // Carregar dados
+                await carregarProjeto();
+                
+            } catch (e) {
+                console.error('Erro ao carregar sessão:', e);
+                alert('Sessão inválida. Faça login novamente.');
                 window.location.href = '../index.html';
             }
-            return false;
-        }
-        
+        });
+
         // Mostrar/Esconder loading
         function showLoading(show) {
             const loading = document.getElementById('loading');
@@ -797,491 +822,232 @@
         function fecharModal(modalId) {
             document.getElementById(modalId).style.display = 'none';
         }
-        
-        // ==========================================
+                // ==========================================
         // ABA DETALHES DO PROJETO
         // ==========================================
         async function carregarProjeto() {
-    
-    try {
-        const response = await fetch(`/projetos/${projetoId}`);
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const projeto = await response.json();
-        
-        if (projeto.erro) {
-            document.getElementById('projetoInfo').innerHTML = '<div class="error">Projeto não encontrado</div>';
-            return;
-        }
-        
-        // Atualizar título da página
-        document.getElementById('projetoTitulo').innerHTML = escapeHtml(projeto.nome);
-        
-        // Status e prioridade para CSS
-        const statusClass = getStatusClass(projeto.status);
-        const prioridadeClass = getPrioridadeClass(projeto.prioridade);
-        const statusText = getStatusText(projeto.status);
-        const prioridadeText = getPrioridadeText(projeto.prioridade);
-        
-        document.getElementById('projetoInfo').innerHTML = `
-            <div class="projeto-info-container">
-                <div class="projeto-header">
-                    <div class="projeto-icon">
-                        <i class="fas fa-project-diagram"></i>
-                    </div>
-                    <div class="projeto-title">
-                        <h2>${escapeHtml(projeto.nome)}</h2>
-                        <div style="display: flex; gap: 10px; margin-top: 8px; flex-wrap: wrap;">
-                            <span class="projeto-status ${statusClass}">${statusText}</span>
-                            <span class="projeto-status ${prioridadeClass}">${prioridadeText}</span>
-                        </div>
-                    </div>
-                </div>
+            showLoading(true);
+            try {
+                const response = await fetch(`/projetos/${projetoId}`);
                 
-                <!-- 2 ANDARES COM 2 BLOCOS CADA -->
-                <div class="info-grid">
-                    <!-- PRIMEIRO ANDAR: Responsável e Data de Criação -->
-                    <div class="info-row">
-                        <div class="info-card">
-                            <div class="info-label">
-                                <i class="fas fa-user-circle"></i> RESPONSÁVEL
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const projeto = await response.json();
+                
+                if (projeto.erro) {
+                    document.getElementById('projetoInfo').innerHTML = '<div class="error">Projeto não encontrado</div>';
+                    return;
+                }
+                
+                // Atualizar título da página
+                document.getElementById('projetoTitulo').innerHTML = escapeHtml(projeto.nome);
+                
+                // Status e prioridade
+                const statusClass = getStatusClass(projeto.status);
+                const prioridadeClass = getPrioridadeClass(projeto.prioridade);
+                const statusText = getStatusText(projeto.status);
+                const prioridadeText = getPrioridadeText(projeto.prioridade);
+                
+                document.getElementById('projetoInfo').innerHTML = `
+                    <div class="projeto-info-container">
+                        <div class="projeto-header">
+                            <div class="projeto-icon">
+                                <i class="fas fa-project-diagram"></i>
                             </div>
-                            <div class="info-value">
-                                <i class="fas fa-user"></i> ${escapeHtml(projeto.responsavel || 'Não definido')}
+                            <div class="projeto-title">
+                                <h2>${escapeHtml(projeto.nome)}</h2>
+                                <div style="display: flex; gap: 10px; margin-top: 8px; flex-wrap: wrap;">
+                                    <span class="projeto-status ${statusClass}">${statusText}</span>
+                                    <span class="projeto-status ${prioridadeClass}">${prioridadeText}</span>
+                                </div>
                             </div>
                         </div>
                         
-                        <div class="info-card">
-                            <div class="info-label">
-                                <i class="fas fa-calendar-alt"></i> DATA DE CRIAÇÃO
+                        <div class="info-grid">
+                            <div class="info-row">
+                                <div class="info-card">
+                                    <div class="info-label">
+                                        <i class="fas fa-user-circle"></i> RESPONSÁVEL
+                                    </div>
+                                    <div class="info-value">
+                                        <i class="fas fa-user"></i> ${escapeHtml(projeto.responsavel || 'Não definido')}
+                                    </div>
+                                </div>
+                                
+                                <div class="info-card">
+                                    <div class="info-label">
+                                        <i class="fas fa-calendar-alt"></i> DATA DE CRIAÇÃO
+                                    </div>
+                                    <div class="info-value">
+                                        <i class="fas fa-calendar"></i> ${formatarData(projeto.data_criacao)}
+                                    </div>
+                                </div>
                             </div>
-                            <div class="info-value">
-                                <i class="fas fa-calendar"></i> ${formatarData(projeto.data_criacao)}
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- SEGUNDO ANDAR: Ideia Original e Progresso -->
-                    <div class="info-row">
-                        <div class="info-card">
-                            <div class="info-label">
-                                <i class="fas fa-lightbulb"></i> IDEIA ORIGINAL
-                            </div>
-                            <div class="info-value">
-                                ${projeto.ideia_titulo ? 
-                                    `<i class="fas fa-pen"></i> <a href="../pages/ideia.html?id=${projeto.id_ideia}" target="_blank">${escapeHtml(projeto.ideia_titulo)}</a>` : 
-                                    '<i class="fas fa-ban"></i> Não vinculada'}
+                            
+                            <div class="info-row">
+                                <div class="info-card">
+                                    <div class="info-label">
+                                        <i class="fas fa-lightbulb"></i> IDEIA ORIGINAL
+                                    </div>
+                                    <div class="info-value">
+                                        ${projeto.ideia_titulo ? 
+                                            `<i class="fas fa-pen"></i> <a href="../pages/ideia.html?id=${projeto.id_ideia}" target="_blank">${escapeHtml(projeto.ideia_titulo)}</a>` : 
+                                            '<i class="fas fa-ban"></i> Não vinculada'}
+                                    </div>
+                                </div>
+                                
+                                <div class="info-card">
+                                    <div class="info-label">
+                                        <i class="fas fa-chart-line"></i> PROGRESSO
+                                    </div>
+                                    <div class="info-value">
+                                        <i class="fas fa-percent"></i> Em desenvolvimento
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         
-                        <div class="info-card">
-                            <div class="info-label">
-                                <i class="fas fa-chart-line"></i> PROGRESSO
-                            </div>
-                            <div class="info-value">
-                                <i class="fas fa-percent"></i> Em desenvolvimento
-                            </div>
+                        <div class="projeto-descricao">
+                            <h4><i class="fas fa-align-left"></i> DESCRIÇÃO DO PROJETO</h4>
+                            <p>${escapeHtml(projeto.descricao || 'Nenhuma descrição fornecida para este projeto.')}</p>
                         </div>
-                    </div>
-                </div>
-                
-                <div class="projeto-descricao">
-                    <h4><i class="fas fa-align-left"></i> DESCRIÇÃO DO PROJETO</h4>
-                    <p>${escapeHtml(projeto.descricao || 'Nenhuma descrição fornecida para este projeto.')}</p>
-                </div>
-                
-                <div class="projeto-meta-footer">
-                    <span><i class="fas fa-id-card"></i> ID do Projeto: #${projeto.id}</span>
-                    <span><i class="fas fa-clock"></i> Última atualização: ${formatarData(projeto.data_criacao)}</span>
-                </div>
-            </div>
-        `;
-    } catch (error) {
-        console.error('❌ Erro:', error);
-        document.getElementById('projetoInfo').innerHTML = `<div class="error">Erro ao carregar projeto: ${error.message}</div>`;
-    }
-}
-
-// ==========================================
-// US12 - PLANEJAMENTO DE REDE
-// ==========================================
-
-async function carregarEquipamentos() {
-    showLoading(true);
-    try {
-        const response = await fetch(`/projetos/${projetoId}/equipamentos`);
-        const equipamentos = await response.json();
-        
-        const container = document.getElementById('equipamentosList');
-        
-        if (!equipamentos || equipamentos.length === 0) {
-            container.innerHTML = `
-                <div class="empty-state-central">
-                    <i class="fas fa-network-wired" style="font-size: 48px; color: #a0aec0;"></i>
-                    <p style="margin-top: 15px;">Nenhum equipamento cadastrado</p>
-                    <button onclick="abrirModalEquipamento()" class="btn-primary" style="margin-top: 15px;">
-                        <i class="fas fa-plus"></i> Adicionar primeiro equipamento
-                    </button>
-                </div>
-            `;
-            return;
-        }
-        
-        // Calcular custo total
-        let custoTotal = 0;
-        for (const eq of equipamentos) {
-            let custo = parseFloat(eq.custo);
-            if (isNaN(custo)) custo = 0;
-            custoTotal += custo;
-        }
-        
-        // Adicionar resumo de custo centralizado
-        const resumoHTML = `
-            <div class="resumo-planejamento">
-                <div class="resumo-conteudo">
-                    <div class="resumo-item">
-                        <i class="fas fa-cubes"></i>
-                        <span>Total de Equipamentos:</span>
-                        <strong>${equipamentos.length}</strong>
-                    </div>
-                    <div class="resumo-item">
-                        <i class="fas fa-dollar-sign"></i>
-                        <span>Custo Total:</span>
-                        <strong>R$ ${custoTotal.toFixed(2)}</strong>
-                    </div>
-                </div>
-            </div>
-        `;
-        
-        const equipamentosHTML = `
-            <div class="equipamentos-grid">
-                ${equipamentos.map(eq => {
-                    const tipoIcone = getTipoIcone(eq.tipo);
-                    const custoEquip = parseFloat(eq.custo) || 0;
-                    return `
-                        <div class="equipamento-card">
-                            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
-                                <div>
-                                    <h4 style="margin-bottom: 5px;">${tipoIcone} ${escapeHtml(eq.nome)}</h4>
-                                    <small style="color: #666;">${escapeHtml(eq.fabricante || '')} ${escapeHtml(eq.modelo || '')}</small>
-                                </div>
-                                <div>
-                                    <span style="background: #e2e8f0; padding: 4px 12px; border-radius: 20px; font-size: 12px;">💰 R$ ${custoEquip.toFixed(2)}</span>
-                                </div>
-                            </div>
-                            ${eq.ip_address ? `<div style="margin-top: 10px;"><i class="fas fa-network-wired"></i> IP: ${escapeHtml(eq.ip_address)}</div>` : ''}
-                            ${eq.observacoes ? `<div style="margin-top: 8px; font-size: 13px; color: #666;"><i class="fas fa-comment"></i> ${escapeHtml(eq.observacoes)}</div>` : ''}
-                            <div style="margin-top: 12px;">
-                                <button onclick="editarEquipamento(${eq.id})" class="btn-documento">
-                                    <i class="fas fa-edit"></i> Editar
-                                </button>
-                                <button onclick="excluirEquipamento(${eq.id})" class="btn-documento btn-documento-excluir">
-                                    <i class="fas fa-trash-alt"></i> Excluir
-                                </button>
-                            </div>
+                        
+                        <div class="projeto-meta-footer">
+                            <span><i class="fas fa-id-card"></i> ID do Projeto: #${projeto.id}</span>
+                            <span><i class="fas fa-clock"></i> Última atualização: ${formatarData(projeto.data_criacao)}</span>
                         </div>
-                    `;
-                }).join('')}
-            </div>
-        `;
-        
-        container.innerHTML = resumoHTML + equipamentosHTML;
-        
-    } catch (error) {
-        console.error('Erro:', error);
-        document.getElementById('equipamentosList').innerHTML = `
-            <div class="empty-state-central">
-                <i class="fas fa-exclamation-triangle" style="font-size: 48px; color: #dc3545;"></i>
-                <p style="margin-top: 15px;">Erro ao carregar equipamentos</p>
-                <button onclick="carregarEquipamentos()" class="btn-primary" style="margin-top: 15px;">Tentar novamente</button>
-            </div>
-        `;
-    } finally {
-        showLoading(false);
-    }
-}
-
-function getTipoIcone(tipo) {
-    const icones = {
-        'switch': '🔌',
-        'roteador': '🌐',
-        'firewall': '🛡️',
-        'servidor': '🖥️',
-        'access_point': '📡',
-        'outro': '📦'
-    };
-    return icones[tipo] || '📦';
-}
-
-function abrirModalEquipamento() {
-    document.getElementById('modalEquipamentoTitulo').textContent = 'Novo Equipamento';
-    document.getElementById('equipamentoId').value = '';
-    document.getElementById('equipNome').value = '';
-    document.getElementById('equipTipo').value = '';
-    document.getElementById('equipFabricante').value = '';
-    document.getElementById('equipModelo').value = '';
-    document.getElementById('equipIp').value = '';
-    document.getElementById('equipMascara').value = '';
-    document.getElementById('equipGateway').value = '';
-    document.getElementById('equipCusto').value = '0';
-    document.getElementById('equipObservacoes').value = '';
-    document.getElementById('modalEquipamento').style.display = 'flex';
-}
-
-async function editarEquipamento(id) {
-    
-    try {
-        const response = await fetch(`/equipamentos/${id}`);
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const eq = await response.json();
-        
-        document.getElementById('modalEquipamentoTitulo').textContent = 'Editar Equipamento';
-        document.getElementById('equipamentoId').value = eq.id;
-        document.getElementById('equipNome').value = eq.nome || '';
-        document.getElementById('equipTipo').value = eq.tipo || '';
-        document.getElementById('equipFabricante').value = eq.fabricante || '';
-        document.getElementById('equipModelo').value = eq.modelo || '';
-        document.getElementById('equipIp').value = eq.ip_address || '';
-        document.getElementById('equipMascara').value = eq.mascara || '';
-        document.getElementById('equipGateway').value = eq.gateway || '';
-        document.getElementById('equipCusto').value = eq.custo || 0;
-        document.getElementById('equipObservacoes').value = eq.observacoes || '';
-        
-        document.getElementById('modalEquipamento').style.display = 'flex';
-        
-    } catch (error) {
-        console.error('❌ Erro detalhado:', error);
-        alert('Erro ao carregar equipamento: ' + error.message);
-    }
-}
-
-async function excluirEquipamento(id) {
-    if (!confirm('Tem certeza que deseja excluir este equipamento?')) return;
-    
-    showLoading(true);
-    try {
-        const response = await fetch(`/equipamentos/${id}`, { method: 'DELETE' });
-        const data = await response.json();
-        
-        if (data.sucesso) {
-            alert('Equipamento excluído!');
-            carregarEquipamentos();
-        } else {
-            alert(data.erro || 'Erro ao excluir');
-        }
-    } catch (error) {
-        alert('Erro de conexão');
-    } finally {
-        showLoading(false);
-    }
-}
-
-// Formulário de equipamento
-document.getElementById('formEquipamento')?.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    
-    const id = document.getElementById('equipamentoId').value;
-    const nome = document.getElementById('equipNome').value;
-    const tipo = document.getElementById('equipTipo').value;
-    const fabricante = document.getElementById('equipFabricante').value;
-    const modelo = document.getElementById('equipModelo').value;
-    const ip_address = document.getElementById('equipIp').value;
-    const mascara = document.getElementById('equipMascara').value;
-    const gateway = document.getElementById('equipGateway').value;
-    const custo = parseFloat(document.getElementById('equipCusto').value) || 0;
-    const observacoes = document.getElementById('equipObservacoes').value;
-    
-    if (!nome) {
-        alert('Nome do equipamento é obrigatório');
-        return;
-    }
-    
-    if (!tipo) {
-        alert('Tipo do equipamento é obrigatório');
-        return;
-    }
-    
-    showLoading(true);
-    
-    try {
-        let response;
-        const body = { nome, tipo, fabricante, modelo, ip_address, mascara, gateway, custo, observacoes };
-        
-        if (id) {
-            response = await fetch(`/equipamentos/${id}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(body)
-            });
-        } else {
-            response = await fetch(`/projetos/${projetoId}/equipamentos`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(body)
-            });
-        }
-        
-        const data = await response.json();
-        
-        if (response.ok && data.sucesso) {
-            alert(id ? 'Equipamento atualizado!' : 'Equipamento adicionado!');
-            fecharModal('modalEquipamento');
-            carregarEquipamentos();
-        } else {
-            alert(data.erro || 'Erro ao salvar equipamento');
-        }
-    } catch (error) {
-        console.error('Erro:', error);
-        alert('Erro de conexão');
-    } finally {
-        showLoading(false);
-    }
-});
-
-// Funções auxiliares para status e prioridade
-function getStatusClass(status) {
-    const classes = {
-        'planejamento': 'status-planejamento',
-        'em_andamento': 'status-em_andamento',
-        'concluido': 'status-concluido',
-        'cancelado': 'status-cancelado'
-    };
-    return classes[status] || 'status-planejamento';
-}
-
-function getStatusText(status) {
-    const textos = {
-        'planejamento': '📋 Planejamento',
-        'em_andamento': '⚙️ Em Andamento',
-        'concluido': '✅ Concluído',
-        'cancelado': '❌ Cancelado'
-    };
-    return textos[status] || '📋 Planejamento';
-}
-
-function getPrioridadeClass(prioridade) {
-    const classes = {
-        'alta': 'prioridade-alta',
-        'media': 'prioridade-media',
-        'baixa': 'prioridade-baixa'
-    };
-    return classes[prioridade] || 'prioridade-media';
-}
-
-function getPrioridadeText(prioridade) {
-    const textos = {
-        'alta': '🔴 Alta Prioridade',
-        'media': '🟡 Média Prioridade',
-        'baixa': '🟢 Baixa Prioridade'
-    };
-    return textos[prioridade] || '🟡 Média Prioridade';
-}
-        
-        // ==========================================
-        // US11 - DOCUMENTAÇÃO
-        // ==========================================
-        async function carregarDocumentacao() {
-    showLoading(true);
-    
-    try {
-        const response = await fetch(`/projetos/${projetoId}/documentacao`);
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const docs = await response.json();
-        
-        const container = document.getElementById('documentosList');
-        
-        if (!container) {
-            console.error('Elemento documentosList não encontrado');
-            return;
-        }
-        
-        if (!docs || docs.length === 0) {
-            container.innerHTML = `
-                <div class="empty-state-card">
-                    <i class="fas fa-file-alt"></i>
-                    <p>Nenhum documento cadastrado</p>
-                    <button onclick="abrirModalDocumento()" class="btn-primary" style="margin-top: 15px;">
-                        <i class="fas fa-plus"></i> Criar primeiro documento
-                    </button>
-                </div>
-            `;
-            return;
-        }
-        
-        const isAdmin = usuarioLogado && (usuarioLogado.cargo === 'gestor' || usuarioLogado.cargo === 'ti_staff');
-        
-        container.innerHTML = '';
-        
-        for (const doc of docs) {
-            let anexoButton = '';
-            if (doc.arquivo_url && doc.arquivo_url !== 'null' && doc.arquivo_url.trim() !== '') {
-                anexoButton = `
-                    <div style="margin-top: 10px;">
-                        <a href="${doc.arquivo_url}" target="_blank" class="btn-documento" style="background: #28a745; display: inline-flex; align-items: center; gap: 6px;">
-                            <i class="fas fa-download"></i> Baixar Anexo
-                        </a>
                     </div>
                 `;
+            } catch (error) {
+                console.error('❌ Erro:', error);
+                document.getElementById('projetoInfo').innerHTML = `<div class="error">Erro ao carregar projeto: ${error.message}</div>`;
+            } finally {
+                showLoading(false);
             }
-            
-            const docCard = document.createElement('div');
-            docCard.className = 'documento-card';
-            docCard.innerHTML = `
-                <div class="documento-header">
-                    <span class="documento-titulo">${escapeHtml(doc.titulo)}</span>
-                    <span class="documento-versao">v${escapeHtml(doc.versao || '1.0')}</span>
-                </div>
-                <p>${escapeHtml(doc.descricao || 'Sem descrição')}</p>
-                <div class="documento-meta">
-                    <span><i class="fas fa-user"></i> ${escapeHtml(doc.autor_nome || 'Desconhecido')}</span>
-                    <span><i class="fas fa-calendar"></i> ${formatarData(doc.data_criacao)}</span>
-                </div>
-                ${anexoButton}
-                ${isAdmin ? `
-                    <div style="margin-top: 10px;">
-                        <button onclick="editarDocumento(${doc.id})" class="btn-documento">
-                            <i class="fas fa-edit"></i> Editar
-                        </button>
-                        <button onclick="excluirDocumento(${doc.id})" class="btn-documento btn-documento-excluir">
-                            <i class="fas fa-trash-alt"></i> Excluir
-                        </button>
+        }
+
+        // ==========================================
+        // FUNÇÕES AUXILIARES
+        // ==========================================
+
+        function getStatusClass(status) {
+            const classes = {
+                'planejamento': 'status-planejamento',
+                'em_andamento': 'status-em_andamento',
+                'concluido': 'status-concluido',
+                'cancelado': 'status-cancelado'
+            };
+            return classes[status] || 'status-planejamento';
+        }
+
+        function getStatusText(status) {
+            const textos = {
+                'planejamento': '📋 Planejamento',
+                'em_andamento': '⚙️ Em Andamento',
+                'concluido': '✅ Concluído',
+                'cancelado': '❌ Cancelado'
+            };
+            return textos[status] || '📋 Planejamento';
+        }
+
+        function getPrioridadeClass(prioridade) {
+            const classes = {
+                'alta': 'prioridade-alta',
+                'media': 'prioridade-media',
+                'baixa': 'prioridade-baixa'
+            };
+            return classes[prioridade] || 'prioridade-media';
+        }
+
+        function getPrioridadeText(prioridade) {
+            const textos = {
+                'alta': '🔴 Alta Prioridade',
+                'media': '🟡 Média Prioridade',
+                'baixa': '🟢 Baixa Prioridade'
+            };
+            return textos[prioridade] || '🟡 Média Prioridade';
+        }
+
+        function getTipoIcone(tipo) {
+            const icones = {
+                'switch': '🔌',
+                'roteador': '🌐',
+                'firewall': '🛡️',
+                'servidor': '🖥️',
+                'access_point': '📡',
+                'outro': '📦'
+            };
+            return icones[tipo] || '📦';
+        }
+
+        // ==========================================
+        // ABA DOCUMENTAÇÃO
+        // ==========================================
+
+        async function carregarDocumentacao() {
+            showLoading(true);
+            try {
+                const response = await fetch(`/projetos/${projetoId}/documentacao`);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const docs = await response.json();
+                const container = document.getElementById('documentosList');
+                
+                if (!docs || docs.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-file-alt"></i>
+                            <p>Nenhum documento cadastrado</p>
+                            <button onclick="abrirModalDocumento()" class="btn-primary" style="margin-top: 15px;">
+                                <i class="fas fa-plus"></i> Criar primeiro documento
+                            </button>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                container.innerHTML = docs.map(doc => `
+                    <div class="documento-card">
+                        <div class="documento-header">
+                            <span class="documento-titulo">${escapeHtml(doc.titulo)}</span>
+                            <span class="documento-versao">v${escapeHtml(doc.versao || '1.0')}</span>
+                        </div>
+                        <p>${escapeHtml(doc.descricao || 'Sem descrição')}</p>
+                        <div class="documento-meta">
+                            <span><i class="fas fa-user"></i> ${escapeHtml(doc.autor_nome || 'Desconhecido')}</span>
+                            <span><i class="fas fa-calendar"></i> ${formatarData(doc.data_criacao)}</span>
+                        </div>
+                        ${doc.arquivo_url ? `
+                            <div style="margin-top: 10px;">
+                                <a href="${doc.arquivo_url}" target="_blank" class="btn-documento" style="background: #28a745; display: inline-flex; align-items: center; gap: 6px;">
+                                    <i class="fas fa-download"></i> Baixar Anexo
+                                </a>
+                            </div>
+                        ` : ''}
+                        <div style="margin-top: 10px;">
+                            <button onclick="editarDocumento(${doc.id})" class="btn-documento">
+                                <i class="fas fa-edit"></i> Editar
+                            </button>
+                            <button onclick="excluirDocumento(${doc.id})" class="btn-documento btn-documento-excluir">
+                                <i class="fas fa-trash-alt"></i> Excluir
+                            </button>
+                        </div>
                     </div>
-                ` : ''}
-            `;
-            container.appendChild(docCard);
+                `).join('');
+                
+            } catch (error) {
+                console.error('Erro:', error);
+                document.getElementById('documentosList').innerHTML = '<div class="empty-state">Erro ao carregar documentação</div>';
+            } finally {
+                showLoading(false);
+            }
         }
-        
-        
-    } catch (error) {
-        console.error('❌ Erro ao carregar documentação:', error);
-        const container = document.getElementById('documentosList');
-        if (container) {
-            container.innerHTML = `
-                <div class="empty-state-card">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <p>Erro ao carregar documentação: ${error.message}</p>
-                    <button onclick="carregarDocumentacao()" class="btn-primary" style="margin-top: 15px;">
-                        <i class="fas fa-sync-alt"></i> Tentar novamente
-                    </button>
-                </div>
-            `;
-        }
-    } finally {
-        showLoading(false);
-    }
-}
-        
+
         function abrirModalDocumento() {
             document.getElementById('modalDocumentoTitulo').textContent = 'Novo Documento';
             document.getElementById('documentoId').value = '';
@@ -1292,7 +1058,7 @@ function getPrioridadeText(prioridade) {
             document.getElementById('docArquivoAtual').style.display = 'none';
             document.getElementById('modalDocumento').style.display = 'flex';
         }
-        
+
         async function editarDocumento(id) {
             try {
                 const response = await fetch(`/documentacao/${id}`);
@@ -1305,9 +1071,8 @@ function getPrioridadeText(prioridade) {
                 document.getElementById('docVersao').value = doc.versao || '1.0';
                 
                 if (doc.arquivo_url) {
-                    const arquivoAtual = document.getElementById('docArquivoAtual');
-                    arquivoAtual.innerHTML = `<i class="fas fa-file"></i> Arquivo atual: <a href="${doc.arquivo_url}" target="_blank">Abrir</a>`;
-                    arquivoAtual.style.display = 'block';
+                    document.getElementById('docArquivoAtual').style.display = 'block';
+                    document.getElementById('nomeArquivoAtual').innerHTML = `<a href="${doc.arquivo_url}" target="_blank">${doc.arquivo_url.split('/').pop()}</a>`;
                 }
                 
                 document.getElementById('modalDocumento').style.display = 'flex';
@@ -1316,7 +1081,7 @@ function getPrioridadeText(prioridade) {
                 alert('Erro ao carregar documento');
             }
         }
-        
+
         async function excluirDocumento(id) {
             if (!confirm('Tem certeza que deseja excluir este documento?')) return;
             
@@ -1338,663 +1103,595 @@ function getPrioridadeText(prioridade) {
             }
         }
 
-function removerArquivo() {
-    arquivoUrlAtual = null;
-    nomeArquivoAtual = null;
-    document.getElementById('docArquivoAtual').style.display = 'none';
-    document.getElementById('docArquivo').value = '';
-}
-
-async function fazerUploadArquivo(file) {
-    const formData = new FormData();
-    formData.append('arquivo', file);
-    
-    try {
-        const response = await fetch('/upload/documento', {
-            method: 'POST',
-            body: formData
-        });
-        const data = await response.json();
-        
-        if (data.sucesso) {
-            return { sucesso: true, url: data.url, nome: data.nome };
-        } else {
-            return { sucesso: false, erro: data.erro };
+        function removerArquivo() {
+            document.getElementById('docArquivoAtual').style.display = 'none';
+            document.getElementById('docArquivo').value = '';
         }
-    } catch (error) {
-        console.error('Erro no upload:', error);
-        return { sucesso: false, erro: 'Erro de conexão' };
-    }
-}
 
-// Função de submit atualizada
-document.getElementById('formDocumento')?.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    
-    const id = document.getElementById('documentoId').value;
-    const titulo = document.getElementById('docTitulo').value;
-    const descricao = document.getElementById('docDescricao').value;
-    const versao = document.getElementById('docVersao').value;
-    const arquivoInput = document.getElementById('docArquivo');
-    
-    if (!titulo) {
-        alert('Título é obrigatório');
-        return;
-    }
-    
-    showLoading(true);
-    
-    try {
-        let arquivo_url = null;
-        
-        // Fazer upload do arquivo se houver
-        if (arquivoInput.files && arquivoInput.files[0]) {
-            const formData = new FormData();
-            formData.append('arquivo', arquivoInput.files[0]);
+        // Formulário de documento
+        document.getElementById('formDocumento')?.addEventListener('submit', async (e) => {
+            e.preventDefault();
             
-            const uploadResponse = await fetch('/upload/documento', {
-                method: 'POST',
-                body: formData
-            });
+            const id = document.getElementById('documentoId').value;
+            const titulo = document.getElementById('docTitulo').value;
+            const descricao = document.getElementById('docDescricao').value;
+            const versao = document.getElementById('docVersao').value;
+            const arquivoInput = document.getElementById('docArquivo');
             
-            const uploadData = await uploadResponse.json();
-            
-            if (uploadData.sucesso) {
-                arquivo_url = uploadData.url;
-            } else {
-                alert(uploadData.erro || 'Erro ao fazer upload do arquivo');
-                showLoading(false);
+            if (!titulo) {
+                alert('Título é obrigatório');
                 return;
             }
-        }
-        
-        const body = {
-            titulo: titulo,
-            descricao: descricao,
-            versao: versao || '1.0',
-            arquivo_url: arquivo_url,
-            usuarioId: usuarioLogado.id
-        };
-        
-        let response;
-        if (id) {
-            response = await fetch(`/documentacao/${id}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(body)
-            });
-        } else {
-            response = await fetch(`/projetos/${projetoId}/documentacao`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(body)
-            });
-        }
-        
-        const data = await response.json();
-        
-        if (response.ok && data.sucesso) {
-            alert(id ? 'Documento atualizado!' : 'Documento criado!');
-            fecharModal('modalDocumento');
-            document.getElementById('formDocumento').reset();
-            document.getElementById('docArquivo').value = '';
-            carregarDocumentacao();
-        } else {
-            alert(data.erro || 'Erro ao salvar documento');
-        }
-    } catch (error) {
-        console.error('❌ Erro:', error);
-        alert('Erro de conexão: ' + error.message);
-    } finally {
-        showLoading(false);
-    }
-});
-
-// Atualizar a função editarDocumento para mostrar o arquivo atual
-async function editarDocumento(id) {
-    try {
-        const response = await fetch(`/documentacao/${id}`);
-        const doc = await response.json();
-        
-        document.getElementById('modalDocumentoTitulo').textContent = 'Editar Documento';
-        document.getElementById('documentoId').value = doc.id;
-        document.getElementById('docTitulo').value = doc.titulo;
-        document.getElementById('docDescricao').value = doc.descricao || '';
-        document.getElementById('docVersao').value = doc.versao || '1.0';
-        
-        if (doc.arquivo_url) {
-            arquivoUrlAtual = doc.arquivo_url;
-            nomeArquivoAtual = doc.arquivo_url.split('/').pop();
-            const arquivoAtualDiv = document.getElementById('docArquivoAtual');
-            document.getElementById('nomeArquivoAtual').innerHTML = `<a href="${doc.arquivo_url}" target="_blank">${nomeArquivoAtual}</a>`;
-            arquivoAtualDiv.style.display = 'block';
-        }
-        
-        document.getElementById('modalDocumento').style.display = 'flex';
-    } catch (error) {
-        console.error('Erro:', error);
-        alert('Erro ao carregar documento');
-    }
-}
-        // Formulário de documento (versão simplificada)
-document.getElementById('formDocumento')?.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    
-    const id = document.getElementById('documentoId').value;
-    const titulo = document.getElementById('docTitulo').value;
-    const descricao = document.getElementById('docDescricao').value;
-    const versao = document.getElementById('docVersao').value;
-    
-    if (!titulo) {
-        alert('Título é obrigatório');
-        return;
-    }
-    
-    showLoading(true);
-    
-    try {
-        let response;
-        const body = {
-            titulo: titulo,
-            descricao: descricao,
-            versao: versao || '1.0',
-            usuarioId: usuarioLogado.id
-        };
-        
-        
-        if (id) {
-            response = await fetch(`/documentacao/${id}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(body)
-            });
-        } else {
-            response = await fetch(`/projetos/${projetoId}/documentacao`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(body)
-            });
-        }
-        
-        const data = await response.json();
-        
-        if (response.ok && data.sucesso) {
-            alert(id ? 'Documento atualizado!' : 'Documento criado!');
-            fecharModal('modalDocumento');
-            carregarDocumentacao();
-        } else {
-            alert(data.erro || 'Erro ao salvar documento');
-        }
-    } catch (error) {
-        console.error('Erro detalhado:', error);
-        alert('Erro de conexão: ' + error.message);
-    } finally {
-        showLoading(false);
-    }
-});
-
-// Variável para saber se é admin
-let isAdmin = usuarioLogado && (usuarioLogado.cargo === 'gestor' || usuarioLogado.cargo === 'ti_staff');
-
-// ==========================================
-// US19 - PERÍODOS
-// ==========================================
-// ========== FUNÇÕES DE PERÍODOS (COMPLETAS) ==========
-
-async function carregarPeriodos() {
-    showLoading(true);
-    try {
-        const response = await fetch('/api/periodos');
-        if (!response.ok) throw new Error('Erro ao buscar períodos');
-        let periodos = await response.json();
-        
-        // Remove duplicatas
-        const ids = new Set();
-        const periodosUnicos = periodos.filter(p => {
-            if (ids.has(p.id)) return false;
-            ids.add(p.id);
-            return true;
-        });
-        
-        periodosLista = periodosUnicos;
-        
-        // Recarrega o calendário
-        carregarCalendario();
-        
-    } catch (error) {
-        console.error('❌ Erro ao carregar períodos:', error);
-    } finally {
-        showLoading(false);
-    }
-}
-
-function abrirModalPeriodo(periodo = null) {
-    const modal = document.getElementById('modalPeriodo');
-    const tituloModal = document.getElementById('modalPeriodoTitulo');
-    const idInput = document.getElementById('periodoId');
-    const nomeInput = document.getElementById('periodoNome');
-    const dataInicioInput = document.getElementById('periodoDataInicio');
-    const dataFimInput = document.getElementById('periodoDataFim');
-    const btnExcluir = document.getElementById('btnExcluirPeriodo');
-    
-    if (periodo && periodo.id) {
-        tituloModal.textContent = 'Editar Período';
-        idInput.value = periodo.id;
-        nomeInput.value = periodo.nome;
-        dataInicioInput.value = periodo.data_inicio ? periodo.data_inicio.split('T')[0] : '';
-        dataFimInput.value = periodo.data_fim ? periodo.data_fim.split('T')[0] : '';
-        if (btnExcluir) {
-            btnExcluir.style.display = 'inline-flex';
-        }
-    } else {
-        tituloModal.textContent = 'Novo Período';
-        idInput.value = '';
-        nomeInput.value = '';
-        dataInicioInput.value = periodo && periodo.data_inicio ? periodo.data_inicio.split('T')[0] : '';
-        dataFimInput.value = periodo && periodo.data_fim ? periodo.data_fim.split('T')[0] : '';
-        if (btnExcluir) {
-            btnExcluir.style.display = 'none';
-        }
-    }
-    modal.style.display = 'flex';
-}
-
-// Abre modal para nova período com data sugerida (chamada pelo calendário)
-function abrirModalPeriodoData(dateStr) {
-    abrirModalPeriodo({
-        id: null,
-        nome: '',
-        data_inicio: dateStr,
-        data_fim: dateStr
-    });
-}
-
-// Abre modal para editar período existente
-async function editarPeriodo(id) {
-    try {
-        const response = await fetch(`/api/periodos/${id}`);
-        if (!response.ok) throw new Error('Período não encontrado');
-        const periodo = await response.json();
-        abrirModalPeriodo(periodo);
-    } catch (error) {
-        console.error('Erro ao carregar período:', error);
-        alert('Erro ao carregar período para edição');
-    }
-}
-
-// Excluir período a partir do modal (chamado pelo botão excluir dentro do modal)
-async function excluirPeriodoDoModal() {
-    
-    const id = document.getElementById('periodoId').value;
-    
-    if (!id) {
-        alert('ID do período não encontrado. Tente fechar e reabrir o modal.');
-        return;
-    }
-    
-    if (!confirm('⚠️ Tem certeza que deseja excluir este período permanentemente?')) {
-        return;
-    }
-    
-    if (!usuarioLogado || (usuarioLogado.cargo !== 'gestor' && usuarioLogado.cargo !== 'ti_staff')) {
-        alert('Apenas administradores podem excluir períodos');
-        return;
-    }
-    
-    showLoading(true);
-    try {
-        const response = await fetch(`/admin/periodos/${id}`, {
-            method: 'DELETE',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ adminId: usuarioLogado.id })
-        });
-        
-        const data = await response.json();
-        
-        if (response.ok && data.sucesso) {
-            alert('✅ Período excluído com sucesso!');
-            fecharModal('modalPeriodo');
             
-            // 🔥 FORÇA O RECARREGAMENTO COMPLETO DOS DADOS
-            const fetchResponse = await fetch('/api/periodos');
-            if (fetchResponse.ok) {
-                const novosPeriodos = await fetchResponse.json();
-                periodosLista = novosPeriodos;
-                carregarCalendario();
-            } else {
-                console.error('Erro ao buscar períodos atualizados');
-                window.location.reload();
+            showLoading(true);
+            
+            try {
+                let arquivo_url = null;
+                
+                if (arquivoInput.files && arquivoInput.files[0]) {
+                    const formData = new FormData();
+                    formData.append('arquivo', arquivoInput.files[0]);
+                    
+                    const uploadResponse = await fetch('/upload/documento', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    const uploadData = await uploadResponse.json();
+                    
+                    if (uploadData.sucesso) {
+                        arquivo_url = uploadData.url;
+                    } else {
+                        alert(uploadData.erro || 'Erro ao fazer upload');
+                        showLoading(false);
+                        return;
+                    }
+                }
+                
+                const body = {
+                    titulo: titulo,
+                    descricao: descricao,
+                    versao: versao || '1.0',
+                    arquivo_url: arquivo_url,
+                    usuarioId: usuarioLogado.id
+                };
+                
+                let response;
+                if (id) {
+                    response = await fetch(`/documentacao/${id}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(body)
+                    });
+                } else {
+                    response = await fetch(`/projetos/${projetoId}/documentacao`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(body)
+                    });
+                }
+                
+                const data = await response.json();
+                
+                if (response.ok && data.sucesso) {
+                    alert(id ? 'Documento atualizado!' : 'Documento criado!');
+                    fecharModal('modalDocumento');
+                    carregarDocumentacao();
+                } else {
+                    alert(data.erro || 'Erro ao salvar documento');
+                }
+            } catch (error) {
+                console.error('Erro:', error);
+                alert('Erro de conexão');
+            } finally {
+                showLoading(false);
             }
-        } else {
-            alert(data.erro || 'Erro ao excluir período');
-        }
-    } catch (error) {
-        console.error('❌ Erro:', error);
-        alert('Erro de conexão: ' + error.message);
-    } finally {
-        showLoading(false);
-    }
-}
-
-// Função original que abria modal vazio (se ainda usada em algum lugar)
-function abrirModalPeriodoVazio() {
-    abrirModalPeriodo(null);
-}
-
-let salvandoPeriodo = false;
-
-async function salvarPeriodo(event) {
-    event.preventDefault();
-    
-    if (salvandoPeriodo) {
-        return;
-    }
-    salvandoPeriodo = true;
-    
-    const id = document.getElementById('periodoId').value;
-    const nome = document.getElementById('periodoNome').value.trim();
-    const data_inicio = document.getElementById('periodoDataInicio').value;
-    const data_fim = document.getElementById('periodoDataFim').value;
-    
-    if (!nome) {
-        alert('Nome do período é obrigatório');
-        salvandoPeriodo = false;
-        return;
-    }
-    if (!data_inicio || !data_fim) {
-        alert('Datas de início e fim são obrigatórias');
-        salvandoPeriodo = false;
-        return;
-    }
-    if (new Date(data_inicio) > new Date(data_fim)) {
-        alert('Data de início não pode ser maior que data de fim');
-        salvandoPeriodo = false;
-        return;
-    }
-    
-    if (!usuarioLogado || (usuarioLogado.cargo !== 'gestor' && usuarioLogado.cargo !== 'ti_staff')) {
-        alert('Apenas administradores podem criar/editar períodos');
-        salvandoPeriodo = false;
-        return;
-    }
-    
-    showLoading(true);
-    try {
-        const url = id ? `/admin/periodos/${id}` : '/admin/periodos';
-        const method = id ? 'PUT' : 'POST';
-        const response = await fetch(url, {
-            method,
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                nome,
-                data_inicio,
-                data_fim,
-                adminId: usuarioLogado.id
-            })
         });
-        const data = await response.json();
-        if (data.sucesso) {
-            alert(id ? 'Período atualizado!' : 'Período criado!');
-            fecharModal('modalPeriodo');
-            await carregarPeriodos();
-        } else {
-            alert(data.erro || 'Erro ao salvar período');
+
+        // ==========================================
+        // ABA PLANEJAMENTO DE REDE
+        // ==========================================
+
+        async function carregarEquipamentos() {
+            showLoading(true);
+            try {
+                const response = await fetch(`/projetos/${projetoId}/equipamentos`);
+                const equipamentos = await response.json();
+                
+                const container = document.getElementById('equipamentosList');
+                
+                if (!equipamentos || equipamentos.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state-central">
+                            <i class="fas fa-network-wired" style="font-size: 48px; color: #a0aec0;"></i>
+                            <p style="margin-top: 15px;">Nenhum equipamento cadastrado</p>
+                            <button onclick="abrirModalEquipamento()" class="btn-primary" style="margin-top: 15px;">
+                                <i class="fas fa-plus"></i> Adicionar primeiro equipamento
+                            </button>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                let custoTotal = 0;
+                equipamentos.forEach(eq => {
+                    let custo = parseFloat(eq.custo);
+                    if (isNaN(custo)) custo = 0;
+                    custoTotal += custo;
+                });
+                
+                const resumoHTML = `
+                    <div class="resumo-planejamento">
+                        <div class="resumo-conteudo">
+                            <div class="resumo-item">
+                                <i class="fas fa-cubes"></i>
+                                <span>Total de Equipamentos:</span>
+                                <strong>${equipamentos.length}</strong>
+                            </div>
+                            <div class="resumo-item">
+                                <i class="fas fa-dollar-sign"></i>
+                                <span>Custo Total:</span>
+                                <strong>R$ ${custoTotal.toFixed(2)}</strong>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                const equipamentosHTML = `
+                    <div class="equipamentos-grid">
+                        ${equipamentos.map(eq => {
+                            const tipoIcone = getTipoIcone(eq.tipo);
+                            const custoEquip = parseFloat(eq.custo) || 0;
+                            return `
+                                <div class="equipamento-card">
+                                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                                        <div>
+                                            <h4 style="margin-bottom: 5px;">${tipoIcone} ${escapeHtml(eq.nome)}</h4>
+                                            <small style="color: #666;">${escapeHtml(eq.fabricante || '')} ${escapeHtml(eq.modelo || '')}</small>
+                                        </div>
+                                        <div>
+                                            <span style="background: #e2e8f0; padding: 4px 12px; border-radius: 20px; font-size: 12px;">💰 R$ ${custoEquip.toFixed(2)}</span>
+                                        </div>
+                                    </div>
+                                    ${eq.ip_address ? `<div style="margin-top: 10px;"><i class="fas fa-network-wired"></i> IP: ${escapeHtml(eq.ip_address)}</div>` : ''}
+                                    ${eq.observacoes ? `<div style="margin-top: 8px; font-size: 13px; color: #666;"><i class="fas fa-comment"></i> ${escapeHtml(eq.observacoes)}</div>` : ''}
+                                    <div style="margin-top: 12px;">
+                                        <button onclick="editarEquipamento(${eq.id})" class="btn-documento">
+                                            <i class="fas fa-edit"></i> Editar
+                                        </button>
+                                        <button onclick="excluirEquipamento(${eq.id})" class="btn-documento btn-documento-excluir">
+                                            <i class="fas fa-trash-alt"></i> Excluir
+                                        </button>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                `;
+                
+                container.innerHTML = resumoHTML + equipamentosHTML;
+                
+            } catch (error) {
+                console.error('Erro:', error);
+                document.getElementById('equipamentosList').innerHTML = '<div class="empty-state-central">Erro ao carregar equipamentos</div>';
+            } finally {
+                showLoading(false);
+            }
         }
-    } catch (error) {
-        console.error('Erro:', error);
-        alert('Erro de conexão');
-    } finally {
-        showLoading(false);
-        salvandoPeriodo = false;
-    }
-}
 
-// ========== CALENDÁRIO DE PERÍODOS ==========
-let dataAtual = new Date();
-let periodosLista = [];
-let tooltipAtual = null;
+        function abrirModalEquipamento() {
+            document.getElementById('modalEquipamentoTitulo').textContent = 'Novo Equipamento';
+            document.getElementById('equipamentoId').value = '';
+            document.getElementById('equipNome').value = '';
+            document.getElementById('equipTipo').value = '';
+            document.getElementById('equipFabricante').value = '';
+            document.getElementById('equipModelo').value = '';
+            document.getElementById('equipIp').value = '';
+            document.getElementById('equipMascara').value = '';
+            document.getElementById('equipGateway').value = '';
+            document.getElementById('equipCusto').value = '0';
+            document.getElementById('equipObservacoes').value = '';
+            document.getElementById('modalEquipamento').style.display = 'flex';
+        }
 
-function formatarDataISO(date) {
-    return date.toISOString().split('T')[0];
-}
+        async function editarEquipamento(id) {
+            try {
+                const response = await fetch(`/equipamentos/${id}`);
+                const eq = await response.json();
+                
+                document.getElementById('modalEquipamentoTitulo').textContent = 'Editar Equipamento';
+                document.getElementById('equipamentoId').value = eq.id;
+                document.getElementById('equipNome').value = eq.nome || '';
+                document.getElementById('equipTipo').value = eq.tipo || '';
+                document.getElementById('equipFabricante').value = eq.fabricante || '';
+                document.getElementById('equipModelo').value = eq.modelo || '';
+                document.getElementById('equipIp').value = eq.ip_address || '';
+                document.getElementById('equipMascara').value = eq.mascara || '';
+                document.getElementById('equipGateway').value = eq.gateway || '';
+                document.getElementById('equipCusto').value = eq.custo || 0;
+                document.getElementById('equipObservacoes').value = eq.observacoes || '';
+                
+                document.getElementById('modalEquipamento').style.display = 'flex';
+            } catch (error) {
+                console.error('Erro:', error);
+                alert('Erro ao carregar equipamento');
+            }
+        }
 
-function carregarCalendario() {
-    if (!periodosLista) periodosLista = [];
-    const ano = dataAtual.getFullYear();
-    const mes = dataAtual.getMonth();
-    const primeiroDia = new Date(ano, mes, 1);
-    const diasNaSemana = primeiroDia.getDay();
-    const totalDias = new Date(ano, mes + 1, 0).getDate();
-    
-    const grade = [];
-    // Dias do mês anterior
-    for (let i = 0; i < diasNaSemana; i++) {
-        const data = new Date(ano, mes, -diasNaSemana + i + 1);
-        grade.push({ date: data, isCurrentMonth: false });
-    }
-    // Dias do mês atual
-    for (let i = 1; i <= totalDias; i++) {
-        grade.push({ date: new Date(ano, mes, i), isCurrentMonth: true });
-    }
-    // Dias do próximo mês (para completar a grade 6x7)
-    const totalCelulas = 42;
-    const restante = totalCelulas - grade.length;
-    for (let i = 1; i <= restante; i++) {
-        const data = new Date(ano, mes + 1, i);
-        grade.push({ date: data, isCurrentMonth: false });
-    }
-    
-    renderizarCalendario(grade);
-    document.getElementById('calendarioMes').innerHTML = dataAtual.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
-}
+        async function excluirEquipamento(id) {
+            if (!confirm('Tem certeza que deseja excluir este equipamento?')) return;
+            
+            showLoading(true);
+            try {
+                const response = await fetch(`/equipamentos/${id}`, { method: 'DELETE' });
+                const data = await response.json();
+                
+                if (data.sucesso) {
+                    alert('Equipamento excluído!');
+                    carregarEquipamentos();
+                } else {
+                    alert(data.erro || 'Erro ao excluir');
+                }
+            } catch (error) {
+                alert('Erro de conexão');
+            } finally {
+                showLoading(false);
+            }
+        }
 
-// Gera uma cor consistente baseada no ID do período
-function getCorPeriodo(id) {
-    const cores = [
-        '#667eea', '#48bb78', '#ed8936', '#e53e3e', '#805ad5',
-        '#38b2ac', '#ecc94b', '#d53f8c', '#3182ce', '#38a169',
-        '#d69e2e', '#dd6b20', '#c53030', '#6b46c1', '#319795'
-    ];
-    return cores[id % cores.length];
-}
-
-function renderizarCalendario(grade) {
-    const container = document.getElementById('calendarioGrade');
-    if (!container) return;
-    
-    // LIMPA O CONTEÚDO ANTES DE RENDERIZAR
-    container.innerHTML = '';
-    
-    const diasSemana = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
-    let html = diasSemana.map(dia => `<div class="calendario-dia-semana">${dia}</div>`).join('');
-    
-    grade.forEach(celula => {
-        const dateStr = formatarDataISO(celula.date);
-        const periodosDoDia = periodosLista.filter(p => {
-            const inicio = p.data_inicio.split('T')[0];
-            const fim = p.data_fim.split('T')[0];
-            return dateStr >= inicio && dateStr <= fim;
+        // Formulário de equipamento
+        document.getElementById('formEquipamento')?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const id = document.getElementById('equipamentoId').value;
+            const nome = document.getElementById('equipNome').value;
+            const tipo = document.getElementById('equipTipo').value;
+            const fabricante = document.getElementById('equipFabricante').value;
+            const modelo = document.getElementById('equipModelo').value;
+            const ip_address = document.getElementById('equipIp').value;
+            const mascara = document.getElementById('equipMascara').value;
+            const gateway = document.getElementById('equipGateway').value;
+            const custo = parseFloat(document.getElementById('equipCusto').value) || 0;
+            const observacoes = document.getElementById('equipObservacoes').value;
+            
+            if (!nome) {
+                alert('Nome do equipamento é obrigatório');
+                return;
+            }
+            if (!tipo) {
+                alert('Tipo do equipamento é obrigatório');
+                return;
+            }
+            
+            showLoading(true);
+            
+            try {
+                let response;
+                const body = { nome, tipo, fabricante, modelo, ip_address, mascara, gateway, custo, observacoes };
+                
+                if (id) {
+                    response = await fetch(`/equipamentos/${id}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(body)
+                    });
+                } else {
+                    response = await fetch(`/projetos/${projetoId}/equipamentos`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(body)
+                    });
+                }
+                
+                const data = await response.json();
+                
+                if (response.ok && data.sucesso) {
+                    alert(id ? 'Equipamento atualizado!' : 'Equipamento adicionado!');
+                    fecharModal('modalEquipamento');
+                    carregarEquipamentos();
+                } else {
+                    alert(data.erro || 'Erro ao salvar equipamento');
+                }
+            } catch (error) {
+                console.error('Erro:', error);
+                alert('Erro de conexão');
+            } finally {
+                showLoading(false);
+            }
         });
-        
-        let marcadoresHtml = '';
-        periodosDoDia.forEach(p => {
-    const cor = getCorPeriodo(p.id);
-    marcadoresHtml += `
-        <div class="periodo-marcador" data-periodo-id="${p.id}" 
-             style="background-color: ${cor}; color: white;"
-             onclick="event.stopPropagation(); editarPeriodo(${p.id})">
-            ${p.nome.substring(0,12)}
-        </div>
-    `;
-});
-        
-        let pinHtml = '';
-        const isInicio = periodosLista.some(p => p.data_inicio.split('T')[0] === dateStr);
-        const isFim = periodosLista.some(p => p.data_fim.split('T')[0] === dateStr);
-        if (isInicio || isFim) {
-            pinHtml = '<div class="pin" title="Início/Fim de período"></div>';
+
+        // ==========================================
+        // ABA PERÍODOS
+        // ==========================================
+
+        let dataAtual = new Date();
+        let periodosLista = [];
+
+        function formatarDataISO(date) {
+            return date.toISOString().split('T')[0];
         }
-        
-        const classes = celula.isCurrentMonth ? 'calendario-dia' : 'calendario-dia calendario-dia-outro-mês';
-        html += `
-            <div class="${classes}" data-date="${dateStr}" onclick="abrirModalPeriodoData('${dateStr}')">
-                ${pinHtml}
-                <div class="numero-dia">${celula.date.getDate()}</div>
-                ${marcadoresHtml}
-            </div>
-        `;
-    });
-    
-    container.innerHTML = html;
-}
 
-// Funções auxiliares para tooltip
-function handleMouseEnter(e) {
-    const periodoId = this.dataset.periodoId;
-    const periodo = periodosLista.find(p => p.id == periodoId);
-    if (periodo && !window.tooltipAtual) {
-        window.tooltipAtual = document.createElement('div');
-        window.tooltipAtual.className = 'tooltip-periodo';
-        window.tooltipAtual.innerHTML = `${periodo.nome}<br>${periodo.data_inicio.split('T')[0]} até ${periodo.data_fim.split('T')[0]}`;
-        document.body.appendChild(window.tooltipAtual);
-        window.tooltipAtual.style.left = (e.pageX + 10) + 'px';
-        window.tooltipAtual.style.top = (e.pageY - 30) + 'px';
-    }
-}
-
-function handleMouseLeave() {
-    if (window.tooltipAtual) {
-        window.tooltipAtual.remove();
-        window.tooltipAtual = null;
-    }
-}
-
-function navegarMes(direcao) {
-    dataAtual.setMonth(dataAtual.getMonth() + direcao);
-    carregarCalendario();
-}
-
-function abrirModalPeriodoData(dateStr) {
-    const periodoFicticio = {
-        id: null,
-        nome: '',
-        data_inicio: dateStr,
-        data_fim: dateStr
-    };
-    abrirModalPeriodo(periodoFicticio);
-}
-// ==========================================
-// FUNÇÕES DAS ABAS - PROJETO-DETALHES.HTML
-// ==========================================
-
-function mostrarAba(aba) {
-    
-    // Esconder TODAS as abas de conteúdo (incluindo a nova aba 'periodos')
-    const abaDetalhes = document.getElementById('abaDetalhes');
-    const abaDocumentacao = document.getElementById('abaDocumentacao');
-    const abaPlanejamento = document.getElementById('abaPlanejamento');
-    const abaPeriodos = document.getElementById('abaPeriodos'); // <-- NOVO
-    
-    // Remover classe active de todas
-    if (abaDetalhes) abaDetalhes.classList.remove('active');
-    if (abaDocumentacao) abaDocumentacao.classList.remove('active');
-    if (abaPlanejamento) abaPlanejamento.classList.remove('active');
-    if (abaPeriodos) abaPeriodos.classList.remove('active'); // <-- NOVO
-    
-    // Remover classe active de todos os botões
-    const botoes = document.querySelectorAll('.tab-projeto');
-    for (let i = 0; i < botoes.length; i++) {
-        botoes[i].classList.remove('active');
-    }
-    
-    // Ativar apenas a aba selecionada
-    if (aba === 'detalhes') {
-        if (abaDetalhes) abaDetalhes.classList.add('active');
-        if (botoes[0]) botoes[0].classList.add('active');
-    } else if (aba === 'documentacao') {
-        if (abaDocumentacao) abaDocumentacao.classList.add('active');
-        if (botoes[1]) botoes[1].classList.add('active');
-        if (typeof carregarDocumentacao === 'function') {
-            carregarDocumentacao();
+        async function carregarPeriodos() {
+            showLoading(true);
+            try {
+                const response = await fetch('/api/periodos');
+                if (!response.ok) throw new Error('Erro ao buscar períodos');
+                periodosLista = await response.json();
+                carregarCalendario();
+            } catch (error) {
+                console.error('Erro:', error);
+            } finally {
+                showLoading(false);
+            }
         }
-    } else if (aba === 'planejamento') {
-        if (abaPlanejamento) abaPlanejamento.classList.add('active');
-        if (botoes[2]) botoes[2].classList.add('active');
-        if (typeof carregarEquipamentos === 'function') {
-            carregarEquipamentos();
-        }
-    } else if (aba === 'periodos') {
-    if (abaPeriodos) abaPeriodos.classList.add('active');
-    if (botoes[3]) botoes[3].classList.add('active');
-    if (typeof carregarPeriodos === 'function') {
-        carregarPeriodos();
-        } else {
-        console.warn('⚠️ carregarPeriodos não definida');
-        }
-    }
-    
-}
 
-// Exportar para o escopo global
-window.mostrarAba = mostrarAba;
+        function getCorPeriodo(id) {
+            const cores = ['#667eea', '#48bb78', '#ed8936', '#e53e3e', '#805ad5', '#38b2ac', '#ecc94b', '#d53f8c', '#3182ce', '#38a169'];
+            return cores[id % cores.length];
+        }
+
+        function carregarCalendario() {
+            const ano = dataAtual.getFullYear();
+            const mes = dataAtual.getMonth();
+            const primeiroDia = new Date(ano, mes, 1);
+            const diasNaSemana = primeiroDia.getDay();
+            const totalDias = new Date(ano, mes + 1, 0).getDate();
+            
+            const grade = [];
+            for (let i = 0; i < diasNaSemana; i++) {
+                const data = new Date(ano, mes, -diasNaSemana + i + 1);
+                grade.push({ date: data, isCurrentMonth: false });
+            }
+            for (let i = 1; i <= totalDias; i++) {
+                grade.push({ date: new Date(ano, mes, i), isCurrentMonth: true });
+            }
+            const totalCelulas = 42;
+            const restante = totalCelulas - grade.length;
+            for (let i = 1; i <= restante; i++) {
+                const data = new Date(ano, mes + 1, i);
+                grade.push({ date: data, isCurrentMonth: false });
+            }
+            
+            renderizarCalendario(grade);
+            document.getElementById('calendarioMes').innerHTML = dataAtual.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+        }
+
+        function renderizarCalendario(grade) {
+            const container = document.getElementById('calendarioGrade');
+            if (!container) return;
+            
+            const diasSemana = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
+            let html = diasSemana.map(dia => `<div class="calendario-dia-semana">${dia}</div>`).join('');
+            
+            grade.forEach(celula => {
+                const dateStr = formatarDataISO(celula.date);
+                const periodosDoDia = periodosLista.filter(p => {
+                    const inicio = p.data_inicio.split('T')[0];
+                    const fim = p.data_fim.split('T')[0];
+                    return dateStr >= inicio && dateStr <= fim;
+                });
+                
+                let marcadoresHtml = '';
+                periodosDoDia.forEach(p => {
+                    const cor = getCorPeriodo(p.id);
+                    marcadoresHtml += `
+                        <div class="periodo-marcador" data-periodo-id="${p.id}" 
+                             style="background-color: ${cor}; color: white;"
+                             onclick="event.stopPropagation(); editarPeriodo(${p.id})">
+                            ${p.nome.substring(0, 12)}
+                        </div>
+                    `;
+                });
+                
+                let pinHtml = '';
+                const isInicio = periodosLista.some(p => p.data_inicio.split('T')[0] === dateStr);
+                const isFim = periodosLista.some(p => p.data_fim.split('T')[0] === dateStr);
+                if (isInicio || isFim) {
+                    pinHtml = '<div class="pin" title="Início/Fim de período"></div>';
+                }
+                
+                const classes = celula.isCurrentMonth ? 'calendario-dia' : 'calendario-dia calendario-dia-outro-mês';
+                html += `
+                    <div class="${classes}" data-date="${dateStr}" onclick="abrirModalPeriodoData('${dateStr}')">
+                        ${pinHtml}
+                        <div class="numero-dia">${celula.date.getDate()}</div>
+                        ${marcadoresHtml}
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+
+        function navegarMes(direcao) {
+            dataAtual.setMonth(dataAtual.getMonth() + direcao);
+            carregarCalendario();
+        }
+
+        function abrirModalPeriodo(periodo = null) {
+            const modal = document.getElementById('modalPeriodo');
+            const tituloModal = document.getElementById('modalPeriodoTitulo');
+            const idInput = document.getElementById('periodoId');
+            const nomeInput = document.getElementById('periodoNome');
+            const dataInicioInput = document.getElementById('periodoDataInicio');
+            const dataFimInput = document.getElementById('periodoDataFim');
+            const btnExcluir = document.getElementById('btnExcluirPeriodo');
+            
+            if (periodo && periodo.id) {
+                tituloModal.textContent = 'Editar Período';
+                idInput.value = periodo.id;
+                nomeInput.value = periodo.nome;
+                dataInicioInput.value = periodo.data_inicio ? periodo.data_inicio.split('T')[0] : '';
+                dataFimInput.value = periodo.data_fim ? periodo.data_fim.split('T')[0] : '';
+                if (btnExcluir) btnExcluir.style.display = 'inline-flex';
+            } else {
+                tituloModal.textContent = 'Novo Período';
+                idInput.value = '';
+                nomeInput.value = '';
+                if (periodo && periodo.data_inicio) {
+                    dataInicioInput.value = periodo.data_inicio.split('T')[0];
+                    dataFimInput.value = periodo.data_fim ? periodo.data_fim.split('T')[0] : periodo.data_inicio.split('T')[0];
+                } else {
+                    dataInicioInput.value = '';
+                    dataFimInput.value = '';
+                }
+                if (btnExcluir) btnExcluir.style.display = 'none';
+            }
+            modal.style.display = 'flex';
+        }
+
+        function abrirModalPeriodoData(dateStr) {
+            abrirModalPeriodo({ data_inicio: dateStr, data_fim: dateStr });
+        }
+
+        async function editarPeriodo(id) {
+            try {
+                const response = await fetch(`/api/periodos/${id}`);
+                const periodo = await response.json();
+                abrirModalPeriodo(periodo);
+            } catch (error) {
+                console.error('Erro:', error);
+                alert('Erro ao carregar período');
+            }
+        }
+
+        async function excluirPeriodoDoModal() {
+            const id = document.getElementById('periodoId').value;
+            if (!id) return;
+            if (!confirm('⚠️ Tem certeza que deseja excluir este período permanentemente?')) return;
+            
+            showLoading(true);
+            try {
+                const response = await fetch(`/admin/periodos/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ adminId: usuarioLogado.id })
+                });
+                const data = await response.json();
+                
+                if (response.ok && data.sucesso) {
+                    alert('✅ Período excluído!');
+                    fecharModal('modalPeriodo');
+                    await carregarPeriodos();
+                } else {
+                    alert(data.erro || 'Erro ao excluir período');
+                }
+            } catch (error) {
+                console.error('Erro:', error);
+                alert('Erro de conexão');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        async function salvarPeriodo(event) {
+            event.preventDefault();
+            
+            const id = document.getElementById('periodoId').value;
+            const nome = document.getElementById('periodoNome').value.trim();
+            const data_inicio = document.getElementById('periodoDataInicio').value;
+            const data_fim = document.getElementById('periodoDataFim').value;
+            
+            if (!nome) {
+                alert('Nome do período é obrigatório');
+                return;
+            }
+            if (!data_inicio || !data_fim) {
+                alert('Datas de início e fim são obrigatórias');
+                return;
+            }
+            if (new Date(data_inicio) > new Date(data_fim)) {
+                alert('Data de início não pode ser maior que data de fim');
+                return;
+            }
+            
+            showLoading(true);
+            try {
+                const url = id ? `/admin/periodos/${id}` : '/admin/periodos';
+                const method = id ? 'PUT' : 'POST';
+                const response = await fetch(url, {
+                    method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ nome, data_inicio, data_fim, adminId: usuarioLogado.id })
+                });
+                const data = await response.json();
+                
+                if (data.sucesso) {
+                    alert(id ? 'Período atualizado!' : 'Período criado!');
+                    fecharModal('modalPeriodo');
+                    await carregarPeriodos();
+                } else {
+                    alert(data.erro || 'Erro ao salvar período');
+                }
+            } catch (error) {
+                console.error('Erro:', error);
+                alert('Erro de conexão');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // ==========================================
+        // FUNÇÕES DAS ABAS
+        // ==========================================
+
+        function mostrarAba(aba) {
+            const abaDetalhes = document.getElementById('abaDetalhes');
+            const abaDocumentacao = document.getElementById('abaDocumentacao');
+            const abaPlanejamento = document.getElementById('abaPlanejamento');
+            const abaPeriodos = document.getElementById('abaPeriodos');
+            const botoes = document.querySelectorAll('.tab-projeto');
+            
+            // Esconder todas
+            if (abaDetalhes) abaDetalhes.classList.remove('active');
+            if (abaDocumentacao) abaDocumentacao.classList.remove('active');
+            if (abaPlanejamento) abaPlanejamento.classList.remove('active');
+            if (abaPeriodos) abaPeriodos.classList.remove('active');
+            botoes.forEach(btn => btn.classList.remove('active'));
+            
+            // Mostrar a selecionada
+            if (aba === 'detalhes') {
+                if (abaDetalhes) abaDetalhes.classList.add('active');
+                if (botoes[0]) botoes[0].classList.add('active');
+            } else if (aba === 'documentacao') {
+                if (abaDocumentacao) abaDocumentacao.classList.add('active');
+                if (botoes[1]) botoes[1].classList.add('active');
+                carregarDocumentacao();
+            } else if (aba === 'planejamento') {
+                if (abaPlanejamento) abaPlanejamento.classList.add('active');
+                if (botoes[2]) botoes[2].classList.add('active');
+                carregarEquipamentos();
+            } else if (aba === 'periodos') {
+                if (abaPeriodos) abaPeriodos.classList.add('active');
+                if (botoes[3]) botoes[3].classList.add('active');
+                carregarPeriodos();
+            }
+        }
+
         // ==========================================
         // INICIALIZAÇÃO
         // ==========================================
-        let isInitialized = false;
 
-document.addEventListener('DOMContentLoaded', async () => {
-    
-    if (isInitialized) {
-        return;
-    }
-    isInitialized = true;
-    
-    await verificarLogin();
-    
-    if (usuarioLogado && projetoId) {
-        carregarProjeto();
-        // Não carregar documentação aqui, apenas na aba
-    } else {
-        alert('Acesso negado');
-        window.location.href = '../index.html';
-        return;
-    }
-    
-    // Configurar botões das abas
-    const btnDetalhes = document.querySelector('.tab-projeto:first-child');
-    const btnDocumentacao = document.querySelectorAll('.tab-projeto')[1];
-    const btnPlanejamento = document.querySelectorAll('.tab-projeto')[2];
-    const formPeriodo = document.getElementById('formPeriodo');
-
-    if (formPeriodo && !formPeriodo.hasAttribute('data-listener')) {
-        formPeriodo.setAttribute('data-listener', 'true');
-        formPeriodo.addEventListener('submit', salvarPeriodo);
-    }
-
-    if (btnDetalhes && !btnDetalhes.hasAttribute('data-listener')) {
-        btnDetalhes.setAttribute('data-listener', 'true');
-        btnDetalhes.onclick = function(e) {
-            e.preventDefault();
-            mostrarAba('detalhes');
-        };
-    }
-    
-    if (btnDocumentacao && !btnDocumentacao.hasAttribute('data-listener')) {
-        btnDocumentacao.setAttribute('data-listener', 'true');
-        btnDocumentacao.onclick = function(e) {
-            e.preventDefault();
-            mostrarAba('documentacao');
-        };
-    }
-    
-    if (btnPlanejamento && !btnPlanejamento.hasAttribute('data-listener')) {
-        btnPlanejamento.setAttribute('data-listener', 'true');
-        btnPlanejamento.onclick = function(e) {
-            e.preventDefault();
-            mostrarAba('planejamento');
-        };
-    }
-});
+        // Configurar formulário de período
+        document.getElementById('formPeriodo')?.addEventListener('submit', salvarPeriodo);
+        
+        // Exportar funções para o escopo global
+        window.mostrarAba = mostrarAba;
+        window.abrirModalDocumento = abrirModalDocumento;
+        window.editarDocumento = editarDocumento;
+        window.excluirDocumento = excluirDocumento;
+        window.removerArquivo = removerArquivo;
+        window.abrirModalEquipamento = abrirModalEquipamento;
+        window.editarEquipamento = editarEquipamento;
+        window.excluirEquipamento = excluirEquipamento;
+        window.abrirModalPeriodo = abrirModalPeriodo;
+        window.editarPeriodo = editarPeriodo;
+        window.excluirPeriodoDoModal = excluirPeriodoDoModal;
+        window.navegarMes = navegarMes;
+        window.abrirModalPeriodoData = abrirModalPeriodoData;
+        window.fecharModal = fecharModal;
+        window.carregarDocumentacao = carregarDocumentacao;
+        window.carregarEquipamentos = carregarEquipamentos;
     </script>
 </body>
 </html>
