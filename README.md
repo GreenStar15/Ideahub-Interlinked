@@ -90,6 +90,12 @@ O **IdeaHub Interlinked** é uma plataforma colaborativa de inovação que permi
 
 # ⚙️ Instalação e Configuração
 
+**Obs:** Isso se caso se desejar rodar o sistema localmente. Outra opção é visitar o nosso sistema hospedado pelo o seguinte link:
+
+https://ideahub-interlinked.onrender.com
+
+**💡 Pode fazer uma conta e criar uma nova ideia!**
+
 ### Pré-requisitos
 
 - [Node.js](https://nodejs.org/) (v20.x ou superior)
