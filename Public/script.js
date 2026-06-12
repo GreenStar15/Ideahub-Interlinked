@@ -41,43 +41,138 @@ function verificarParametroURL() {
 }
 
 // ==================== UTILITÁRIOS ====================
-function showMessage(message, type = 'success') {
-    const alert = document.getElementById('alert');
-    if (!alert) {
-        console.warn('Elemento #alert não encontrado');
+// ==========================================
+// SISTEMA DE NOTIFICAÇÕES (PADRÃO IDEAHUB)
+// ==========================================
+
+let activeNotifications = 0;
+const MAX_VISIBLE = 5;
+
+function mostrarNotificacao(mensagem, tipo = 'info', titulo = null) {
+    // Definir títulos padrão por tipo
+    const titulos = {
+        success: '✅ Sucesso!',
+        error: '❌ Erro!',
+        info: 'ℹ️ Informação',
+        warning: '⚠️ Atenção'
+    };
+    
+    const tituloFinal = titulo || titulos[tipo] || 'Notificação';
+    
+    // Definir ícone por tipo
+    const icones = {
+        success: 'fa-check-circle',
+        error: 'fa-exclamation-circle',
+        info: 'fa-info-circle',
+        warning: 'fa-exclamation-triangle'
+    };
+    
+    const icone = icones[tipo] || 'fa-bell';
+    
+    // Criar elemento da notificação
+    const notification = document.createElement('div');
+    notification.className = `notification-toast ${tipo}`;
+    notification.innerHTML = `
+        <div class="notification-icon">
+            <i class="fas ${icone}"></i>
+        </div>
+        <div class="notification-content">
+            <div class="notification-title">${tituloFinal}</div>
+            <div class="notification-message">${mensagem}</div>
+        </div>
+        <button class="notification-close" onclick="fecharNotificacao(this.parentElement)">
+            <i class="fas fa-times"></i>
+        </button>
+        <div class="notification-progress"></div>
+    `;
+    
+    // Adicionar ao container
+    const container = document.getElementById('notificationContainer');
+    if (!container) {
+        console.error('Container de notificações não encontrado!');
         return;
     }
     
-    // Definir classes baseadas no tipo
-    let alertClass = 'alert';
-    switch(type) {
-        case 'success':
-            alertClass += ' alert-success';
-            break;
-        case 'error':
-            alertClass += ' alert-error';
-            break;
-        case 'warning':
-            alertClass += ' alert-warning';
-            break;
-        case 'info':
-            alertClass += ' alert-info';
-            break;
-        default:
-            alertClass += ' alert-info';
+    container.appendChild(notification);
+    activeNotifications++;
+    
+    // Verificar limite de visibilidade
+    verificarLimiteNotificacoes();
+    
+    // Configurar remoção automática após 3 segundos
+    const timeoutId = setTimeout(() => {
+        fecharNotificacao(notification);
+    }, 3000);
+    
+    // Armazenar timeout para cancelar se necessário
+    notification.dataset.timeoutId = timeoutId;
+    
+    // Pausar animação ao passar o mouse
+    notification.addEventListener('mouseenter', () => {
+        clearTimeout(timeoutId);
+        const progressBar = notification.querySelector('.notification-progress');
+        if (progressBar) {
+            progressBar.style.animationPlayState = 'paused';
+        }
+    });
+    
+    notification.addEventListener('mouseleave', () => {
+        const newTimeoutId = setTimeout(() => {
+            fecharNotificacao(notification);
+        }, 1500);
+        notification.dataset.timeoutId = newTimeoutId;
+        
+        const progressBar = notification.querySelector('.notification-progress');
+        if (progressBar) {
+            progressBar.style.animationPlayState = 'running';
+        }
+    });
+}
+
+function fecharNotificacao(notification) {
+    if (!notification || notification.classList.contains('removing')) return;
+    
+    // Limpar timeout pendente
+    if (notification.dataset.timeoutId) {
+        clearTimeout(parseInt(notification.dataset.timeoutId));
     }
     
-    alert.className = alertClass;
-    alert.textContent = message;
-    alert.style.display = 'block';
+    notification.classList.add('removing');
     
-    // Scroll suave para a mensagem
-    alert.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    
-    // Esconder após 5 segundos
+    // Remover após animação
     setTimeout(() => {
-        alert.style.display = 'none';
-    }, 5000);
+        if (notification.parentNode) {
+            notification.parentNode.removeChild(notification);
+            activeNotifications--;
+            verificarLimiteNotificacoes();
+        }
+    }, 300);
+}
+
+function verificarLimiteNotificacoes() {
+    const container = document.getElementById('notificationContainer');
+    if (!container) return;
+    
+    const notifications = container.querySelectorAll('.notification-toast:not(.removing)');
+    
+    // Se tiver mais que o máximo visível, remover a mais antiga
+    if (notifications.length > MAX_VISIBLE) {
+        const primeiraNotificacao = notifications[0];
+        if (primeiraNotificacao) {
+            fecharNotificacao(primeiraNotificacao);
+        }
+    }
+}
+
+// Função de compatibilidade (para não quebrar código existente)
+function showMessage(message, type = 'success') {
+    let tipo = type;
+    if (type === 'success') tipo = 'success';
+    else if (type === 'error') tipo = 'error';
+    else if (type === 'warning') tipo = 'warning';
+    else tipo = 'info';
+    
+    mostrarNotificacao(message, tipo);
 }
 
 function showLoading(show) {
@@ -437,7 +532,7 @@ async function fazerCadastro() {
         const data = await response.json();
         
         if (response.ok && data.sucesso) {
-            showMessage('✅ Cadastro realizado! Faça login.');
+            showMessage('Cadastro realizado! Faça login.');
             document.getElementById('cadastroNome').value = '';
             document.getElementById('cadastroEmail').value = '';
             document.getElementById('cadastroSenha').value = '';
@@ -1286,41 +1381,62 @@ function toggleImagemTipo() {
     }
 }
 
-// Carregar templates disponíveis
+// ==========================================
+// CARREGAR TEMPLATES PARA A GALERIA (COM CONTADOR)
+// ==========================================
 async function carregarTemplates() {
+    console.log('🔄 Carregando templates...');
+    
+    const container = document.getElementById('listaTemplates');
+    if (!container) {
+        console.error('❌ Elemento listaTemplates não encontrado');
+        return;
+    }
+    
     try {
         const response = await fetch('/api/templates');
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
         const templates = await response.json();
-        const container = document.getElementById('listaTemplates');
-        if (!container) return;
+        console.log(`📋 Templates carregados: ${templates.length}`);
         
         if (!templates || templates.length === 0) {
             container.innerHTML = '<div class="empty-state">Nenhum template disponível no momento.</div>';
             return;
         }
         
+        // ✅ EXIBIR O CONTADOR DE USOS
         container.innerHTML = templates.map(tpl => `
-            <div class="template-card" style="background: #f8fafc; border-radius: 12px; padding: 15px; cursor: pointer;" onclick="previsualizarTemplate(${tpl.id})">
-                <div style="display: flex; justify-content: space-between;">
-                    <strong>${escapeHtml(tpl.titulo)}</strong>
+            <div class="template-card" style="background: #f8fafc; border-radius: 12px; padding: 15px; cursor: pointer; border: 1px solid #e2e8f0; transition: all 0.3s; margin-bottom: 10px;" onclick="previsualizarTemplate(${tpl.id})">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                    <strong style="font-size: 16px;">${escapeHtml(tpl.titulo)}</strong>
                     ${tpl.recomendado ? '<span style="background: #fbbf24; padding: 2px 8px; border-radius: 20px; font-size: 11px;">⭐ Recomendado</span>' : ''}
                 </div>
-                <p style="margin: 8px 0; font-size: 13px; color: #666;">${escapeHtml(tpl.descricao.substring(0, 80))}...</p>
-                <div style="display: flex; justify-content: space-between; font-size: 12px; color: #888;">
-                    <span><i class="fas fa-tag"></i> ${escapeHtml(tpl.categoria_nome || tpl.categoria)}</span>
-                    <span><i class="fas fa-chart-line"></i> ${tpl.total_usos || 0} usos</span>
+                <p style="margin: 8px 0; font-size: 13px; color: #666;">${escapeHtml(tpl.descricao ? tpl.descricao.substring(0, 100) : '')}${tpl.descricao && tpl.descricao.length > 100 ? '...' : ''}</p>
+                <div style="display: flex; justify-content: space-between; font-size: 12px; color: #888; margin-top: 10px;">
+                    <span><i class="fas fa-tag"></i> ${escapeHtml(tpl.categoria)}</span>
+                    <span><i class="fas fa-chart-line"></i> <strong>${tpl.total_usos || 0}</strong> uso(s)</span>
                 </div>
             </div>
         `).join('');
+        
+        console.log('✅ Templates renderizados com contadores');
+        
     } catch (error) {
-        console.error('Erro ao carregar templates:', error);
+        console.error('❌ Erro ao carregar templates:', error);
+        container.innerHTML = '<div class="empty-state">Erro ao carregar templates. Tente novamente mais tarde.</div>';
     }
 }
 
 let templateSelecionado = null;
 
+// ==========================================
+// PREVISUALIZAR TEMPLATE (SEM CONTAR USO AINDA)
+// ==========================================
 async function previsualizarTemplate(templateId) {
-    
     try {
         const response = await fetch(`/api/templates/${templateId}`);
         if (!response.ok) throw new Error('Template não encontrado');
@@ -1329,8 +1445,8 @@ async function previsualizarTemplate(templateId) {
         
         const previewDiv = document.getElementById('previewContent');
         if (!previewDiv) {
-            console.error('❌ Elemento previewContent não encontrado no DOM');
-            alert('Erro ao abrir pré-visualização. Contate o administrador.');
+            console.error('❌ Elemento previewContent não encontrado');
+            alert('Erro ao abrir pré-visualização.');
             return;
         }
         
@@ -1370,36 +1486,29 @@ async function previsualizarTemplate(templateId) {
     }
 }
 
-// Aplicar template ao formulário
-document.getElementById('btnAplicarTemplate')?.addEventListener('click', () => {
-    if (!templateSelecionado) return;
-    
-    // Preencher título
-    document.getElementById('titulo').value = templateSelecionado.titulo;
-    
-    // Construir descrição estruturada
-    const campos = templateSelecionado.campos_json || [];
-    let descricaoEstruturada = templateSelecionado.descricao + '\n\n--- Template ---\n';
-    for (const campo of campos) {
-        descricaoEstruturada += `\n**${campo.nome}:** ${campo.placeholder || ''}\n`;
-    }
-    document.getElementById('descricao').value = descricaoEstruturada;
-    
-    // Fechar modais
-    fecharModal('modalPreviewTemplate');
-    fecharModal('modalTemplates');
-    
-    showMessage('✅ Template aplicado! Complete os campos e publique sua ideia.', 'success');
-    
-    // Registrar uso do template (chamada assíncrona)
-    fetch(`/api/templates/${templateSelecionado.id}/usar`, { method: 'POST' }).catch(console.error);
-});
-
+// ==========================================
+// ABRIR GALERIA DE TEMPLATES
+// ==========================================
 function abrirGaleriaTemplates() {
+    console.log('🔍 abrirGaleriaTemplates chamada');
+    
+    // Verificar se o modal existe
+    const modal = document.getElementById('modalTemplates');
+    if (!modal) {
+        console.error('❌ Modal modalTemplates não encontrado!');
+        alert('Erro: Modal de templates não encontrado. Recarregue a página.');
+        return;
+    }
+    
+    // Carregar templates e abrir modal
     carregarTemplates();
-    document.getElementById('modalTemplates').style.display = 'flex';
+    modal.style.display = 'flex';
+    console.log('✅ Modal de templates aberto');
 }
 
+// ==========================================
+// APLICAR TEMPLATE (COM CONTADOR)
+// ==========================================
 async function aplicarTemplate(templateId) {
     if (!templateId) {
         alert('ID do template inválido');
@@ -1407,7 +1516,7 @@ async function aplicarTemplate(templateId) {
     }
     
     // Guarda o ID do template para incrementar o contador depois
-    templateAtualId = templateId;   // <-- 2.1
+    templateAtualId = templateId;
     
     showLoading(true);
     try {
@@ -1429,7 +1538,7 @@ async function aplicarTemplate(templateId) {
         const tituloInput = document.getElementById('titulo');
         if (tituloInput) tituloInput.value = template.titulo;
         
-        // Preencher descrição (formato texto)
+        // Preencher descrição
         let descricaoTexto = '';
         if (template.campos_json && Array.isArray(template.campos_json)) {
             descricaoTexto = template.campos_json.map(campo => 
@@ -1442,30 +1551,79 @@ async function aplicarTemplate(templateId) {
         const descricaoInput = document.getElementById('descricao');
         if (descricaoInput) descricaoInput.value = descricaoTexto;
         
-        // Fechar modais (se existirem)
+        // Fechar modais
         const modalTemplates = document.getElementById('modalTemplates');
         const modalPrevis = document.getElementById('modalPrevisualizacao');
         if (modalTemplates) modalTemplates.style.display = 'none';
         if (modalPrevis) modalPrevis.style.display = 'none';
+        
+        // ✅ INCREMENTAR USO DO TEMPLATE
+        try {
+            const usoResponse = await fetch(`/api/templates/${templateId}/usar`, { 
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+            const usoData = await usoResponse.json();
+            if (usoData.sucesso) {
+                console.log('Template contabilizado com sucesso!');
+            }
+        } catch (err) {
+            console.error('❌ Erro ao incrementar uso do template:', err);
+        }
         
         showMessage(`✅ Template "${template.titulo}" aplicado! Edite se necessário.`, 'success');
         
     } catch (error) {
         console.error('❌ Erro detalhado:', error);
         alert(`Erro ao carregar template: ${error.message}`);
-        // Se houve erro, não deve contar como uso do template
         templateAtualId = null;
     } finally {
         showLoading(false);
     }
 }
 
+// ==========================================
+// APLICAR TEMPLATE SELECIONADO (COM CONTADOR)
+// ==========================================
 function aplicarTemplateAtual() {
     if (window.templateAtual) {
-        aplicarTemplate(window.templateAtual.id);
+        const templateId = window.templateAtual.id;
+        
+        // ✅ INCREMENTAR O CONTADOR DE USOS
+        fetch(`/api/templates/${templateId}/usar`, { 
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.sucesso) {
+                console.log(`✅ Template ${templateId} usado ${data.total_usos} vezes`);
+                // Atualizar o contador no card do template (opcional)
+                atualizarContadorTemplate(templateId, data.total_usos);
+            }
+        })
+        .catch(err => console.error('❌ Erro ao incrementar uso:', err));
+        
+        // Aplicar o template no formulário
+        aplicarTemplate(templateId);
         fecharModal('modalPrevisualizacao');
     } else {
         alert('Nenhum template selecionado');
+    }
+}
+
+function atualizarContadorTemplate(templateId, novoTotal) {
+    // Se quiser atualizar o contador no modal sem recarregar
+    const cards = document.querySelectorAll('#listaTemplates .template-card');
+    for (const card of cards) {
+        const onclick = card.getAttribute('onclick');
+        if (onclick && onclick.includes(`previsualizarTemplate(${templateId})`)) {
+            const contadorSpan = card.querySelector('.template-contador');
+            if (contadorSpan) {
+                contadorSpan.textContent = `${novoTotal} uso(s)`;
+            }
+            break;
+        }
     }
 }
 
@@ -1490,23 +1648,84 @@ document.getElementById('imagemArquivo')?.addEventListener('change', function(e)
     }
 });
 
-// ==================== IDEIAS ====================
+// ==========================================
+// ENVIAR IDEIA (COM VALIDAÇÃO MELHORADA)
+// ==========================================
+let enviandoIdeia = false;
+let templateAtualId = null;
+
 async function enviarIdeia() {
-    if (!usuarioLogado) {
-        showMessage('Faça login primeiro!', 'error');
+    // Evitar envio duplicado
+    if (enviandoIdeia) {
+        console.log('⚠️ Já enviando uma ideia, aguarde...');
+        mostrarNotificacao('Aguarde, já estamos publicando sua ideia...', 'warning', '⏳ Processando');
         return;
     }
     
+    if (!usuarioLogado) {
+        mostrarNotificacao('Faça login primeiro para publicar uma ideia!', 'error', '🔒 Acesso Negado');
+        return;
+    }
+    
+    // VALIDAÇÃO DOS CAMPOS OBRIGATÓRIOS
     const titulo = document.getElementById('titulo')?.value.trim();
     const descricao = document.getElementById('descricao')?.value.trim();
     const categoria_id = document.getElementById('categoriaCadastro')?.value;
+    
+    // Validação do Título
+    if (!titulo) {
+        mostrarNotificacao('O título da ideia é obrigatório! Por favor, digite um título.', 'error', '❌ Título Ausente');
+        const tituloInput = document.getElementById('titulo');
+        if (tituloInput) {
+            tituloInput.style.border = '2px solid #dc3545';
+            tituloInput.focus();
+            setTimeout(() => {
+                tituloInput.style.border = '';
+            }, 3000);
+        }
+        return;
+    }
+    
+    // Validação da Descrição
+    if (!descricao) {
+        mostrarNotificacao('A descrição da ideia é obrigatória! Por favor, descreva sua ideia.', 'error', '❌ Descrição Ausente');
+        const descricaoInput = document.getElementById('descricao');
+        if (descricaoInput) {
+            descricaoInput.style.border = '2px solid #dc3545';
+            descricaoInput.focus();
+            setTimeout(() => {
+                descricaoInput.style.border = '';
+            }, 3000);
+        }
+        return;
+    }
+    
+    // Validação da Categoria
+    if (!categoria_id || categoria_id === '') {
+        mostrarNotificacao('Selecione uma categoria para sua ideia! Isso ajuda a organizar o conteúdo.', 'error', '📁 Categoria Obrigatória');
+        const categoriaSelect = document.getElementById('categoriaCadastro');
+        if (categoriaSelect) {
+            categoriaSelect.style.border = '2px solid #dc3545';
+            categoriaSelect.focus();
+            setTimeout(() => {
+                categoriaSelect.style.border = '';
+            }, 3000);
+        }
+        return;
+    }
+    
     const anonima = document.getElementById('anonima')?.checked || false;
     const id_local = document.getElementById('localCadastro')?.value || null;
     
-    if (!titulo) return showMessage('❌ Digite um título!', 'error');
-    if (!descricao) return showMessage('❌ Digite uma descrição!', 'error');
-    if (!categoria_id) return showMessage('❌ Selecione uma categoria!', 'error');
+    // Desabilitar o botão temporariamente
+    const btnPublicar = document.querySelector('button[onclick="enviarIdeia()"]');
+    if (btnPublicar) {
+        btnPublicar.disabled = true;
+        btnPublicar.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Publicando...';
+        btnPublicar.style.opacity = '0.7';
+    }
     
+    enviandoIdeia = true;
     showLoading(true);
     
     try {
@@ -1522,7 +1741,7 @@ async function enviarIdeia() {
                 const maxSizeBytes = 5 * 1024 * 1024;
                 if (fileSize > maxSizeBytes) {
                     errosTamanho = true;
-                    showMessage(`❌ Uma das imagens excede 5MB! Por favor, escolha imagens menores.`, 'error');
+                    mostrarNotificacao('Uma das imagens excede 5MB! Por favor, escolha imagens menores.', 'error', '📷 Imagem Muito Grande');
                     break;
                 }
                 formData.append('imagens', fileInput.files[0]);
@@ -1531,6 +1750,12 @@ async function enviarIdeia() {
         }
         
         if (errosTamanho) {
+            if (btnPublicar) {
+                btnPublicar.disabled = false;
+                btnPublicar.innerHTML = '📤 Publicar Ideia';
+                btnPublicar.style.opacity = '1';
+            }
+            enviandoIdeia = false;
             showLoading(false);
             return;
         }
@@ -1546,7 +1771,13 @@ async function enviarIdeia() {
             if (uploadData.sucesso) {
                 imagensUrls = uploadData.urls;
             } else {
-                showMessage(uploadData.erro || 'Erro no upload', 'error');
+                mostrarNotificacao(uploadData.erro || 'Erro no upload das imagens', 'error', '📷 Upload Falhou');
+                if (btnPublicar) {
+                    btnPublicar.disabled = false;
+                    btnPublicar.innerHTML = '📤 Publicar Ideia';
+                    btnPublicar.style.opacity = '1';
+                }
+                enviandoIdeia = false;
                 showLoading(false);
                 return;
             }
@@ -1589,19 +1820,19 @@ async function enviarIdeia() {
         const data = await response.json();
         
         if (data.sucesso) {
-            showMessage('✅ Ideia publicada com sucesso!', 'success');
+            // ✅ MENSAGEM DE SUCESSO
+            mostrarNotificacao('Ideia publicada com sucesso!', 'success', '✅ Ideia Publicada');
             
-            // ========== INCREMENTAR USO DO TEMPLATE (2.2) ==========
+            // Incrementar uso do template
             if (templateAtualId) {
                 try {
                     await fetch(`/api/templates/${templateAtualId}/usar`, { method: 'POST' });
                 } catch (err) {
                     console.error('❌ Erro ao incrementar uso do template:', err);
                 } finally {
-                    templateAtualId = null; // resetar
+                    templateAtualId = null;
                 }
             }
-            // =======================================================
             
             // Limpar formulário
             document.getElementById('titulo').value = '';
@@ -1614,19 +1845,25 @@ async function enviarIdeia() {
             atualizarContador();
             
             paginaAtual = 1;
-            carregarIdeias();
-            carregarMinhasIdeias();
+            await carregarIdeias();
+            await carregarMinhasIdeias();
+            
         } else {
-            showMessage(data.erro || 'Erro ao publicar', 'error');
-            // Se houve erro, não deve contar uso; reseta o ID mesmo assim
-            templateAtualId = null;
+            mostrarNotificacao(data.erro || 'Erro ao publicar ideia. Tente novamente.', 'error', '❌ Falha na Publicação');
         }
     } catch (error) {
         console.error('Erro ao enviar ideia:', error);
-        showMessage('Erro de conexão', 'error');
-        templateAtualId = null;
+        mostrarNotificacao('Erro de conexão. Verifique sua internet e tente novamente.', 'error', '⚠️ Conexão Falhou');
     } finally {
+        enviandoIdeia = false;
         showLoading(false);
+        
+        // Reativar o botão
+        if (btnPublicar) {
+            btnPublicar.disabled = false;
+            btnPublicar.innerHTML = '📤 Publicar Ideia';
+            btnPublicar.style.opacity = '1';
+        }
     }
 }
 
@@ -2600,7 +2837,7 @@ async function deletarIdeia(id) {
         const data = await response.json();
         
         if (response.ok && data.sucesso) {
-            showMessage('✅ Ideia deletada com sucesso!', 'success');
+            showMessage('Ideia deletada com sucesso!', 'success');
             // Recarregar as listas
             await carregarMinhasIdeias();
             await carregarIdeias();
@@ -2739,7 +2976,6 @@ function modoVisitante() {
 }
 
 // ==================== INICIALIZAÇÃO ====================
-// ==================== INICIALIZAÇÃO ====================
 document.addEventListener('DOMContentLoaded', () => {
     console.log('🚀 Página carregada, restaurando sessão...');
     
@@ -2758,4 +2994,15 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('🔓 Nenhuma sessão encontrada, modo visitante');
         forcarModoVisitante();
     }
+    // Configurar botão de publicar ideia (evitar duplicação)
+const btnPublicar = document.getElementById('btnPublicarIdeia');
+if (btnPublicar && !btnPublicar.hasAttribute('data-listener')) {
+    btnPublicar.setAttribute('data-listener', 'true');
+    btnPublicar.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        enviarIdeia();
+    });
+    console.log('✅ Botão de publicar ideia configurado');
+}
 });

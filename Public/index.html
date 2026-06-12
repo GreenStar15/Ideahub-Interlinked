@@ -294,7 +294,7 @@
                 <input type="text" id="titulo" placeholder="Título da ideia">
             </div>
             <div class="form-group">
-    
+ 
     <button type="button" id="btnAdicionarImagem" class="btn-adicionar-imagem">
         <i class="fas fa-plus-circle"></i> Adicionar Imagem
     </button>
@@ -328,7 +328,7 @@
                     <input type="checkbox" id="anonima"> Publicar como anônimo
                 </label>
             </div>
-            <button onclick="enviarIdeia()" class="btn-primary">📤 Publicar Ideia</button>
+            <button id="btnPublicarIdeia" class="btn-primary">📤 Publicar Ideia</button>
         </div>
 <br>
         <!-- Área de Busca -->
@@ -404,6 +404,7 @@
 </div>
 <div id="paginacaoTodasIdeias" class="pagination" style="margin-top: 20px;"></div>
     
+<div id="notificationContainer" class="notification-container"></div>
     <script src="script.js"></script>
 </body>
 </html>

@@ -542,6 +542,178 @@
         margin: 5px !important;
     }
 }
+/* Toast de notificação para novos logs */
+.toast-notificacao {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: white;
+    border-left: 4px solid #28a745;
+    border-radius: 8px;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    z-index: 9999;
+    animation: slideInRight 0.3s ease;
+}
+
+.toast-notificacao .toast-icon {
+    font-size: 20px;
+    color: #28a745;
+}
+
+.toast-notificacao .toast-content {
+    flex: 1;
+}
+
+.toast-notificacao .toast-titulo {
+    font-weight: 600;
+    font-size: 14px;
+    color: #2d3748;
+}
+
+.toast-notificacao .toast-mensagem {
+    font-size: 12px;
+    color: #718096;
+}
+
+.toast-notificacao .toast-close {
+    background: none;
+    border: none;
+    font-size: 18px;
+    cursor: pointer;
+    color: #a0aec0;
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+/* Estilo para loading do gráfico */
+.grafico-loading {
+    position: relative;
+    min-height: 300px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f8fafc;
+    border-radius: 12px;
+}
+
+.grafico-loading::after {
+    content: "🔄 Carregando...";
+    font-size: 14px;
+    color: #a0aec0;
+}
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+/* Novos estilos para badges de ações */
+.acao-resetar { 
+    background: #fef3c7; 
+    color: #b45309; 
+}
+.acao-cargo { 
+    background: #e0f2fe; 
+    color: #0369a1; 
+}
+.acao-toggle { 
+    background: #dcfce7; 
+    color: #166534; 
+}
+/* Paginação estilo index.html */
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    margin-top: 30px;
+    flex-wrap: wrap;
+}
+
+.pagination button {
+    background: #f1f5f9;
+    border: none;
+    padding: 8px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.3s;
+    color: #2d3748;
+}
+
+.pagination button:hover:not(:disabled) {
+    background: #667eea;
+    color: white;
+    transform: translateY(-2px);
+}
+
+.pagination button.active {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.pagination button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.pagination .page-info {
+    background: #e2e8f0;
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #4a5568;
+}
+
+.pagination-dots {
+    padding: 8px 4px;
+    color: #a0aec0;
+}
+.acao-comentar { 
+    background: #fce7f3; 
+    color: #be185d; 
+}
+.btn-banir {
+    background: #6c757d;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.btn-banir:hover {
+    background: #5a6268;
+    transform: translateY(-2px);
+}
+
+.btn-banir i {
+    margin-right: 4px;
+}
+/* Badge para ação de Banir */
+.acao-banir { 
+    background: #fee2e2; 
+    color: #991b1b; 
+}
     </style>
 </head>
 <body>
@@ -556,21 +728,20 @@
 <!-- Dashboard de Inovação -->
 <div class="dashboard-inovacao">
     <div class="dashboard-header">
-        <h2><i class="fas fa-chart-line"></i> Métricas Gerais</h2>
-        <div class="dashboard-filtros">
-            <select id="periodoDashboard" class="filter-select" onchange="carregarDashboardInovacao()">
-                <option value="semana">📅 Última Semana</option>
-                <option value="mes" >📅 Último Mês</option>
-                <option value="trimestre">📅 Último Trimestre</option>
-                <option value="ano">📅 Último Ano</option>
-                <option value="todos" selected>📅 Todos os períodos</option>
-            </select>
-            <button onclick="exportarDashboardPDF()" class="btn-exportar"> 📥 Exportar PDF </button>
-        </div>
+    <h2><i class="fas fa-chart-line"></i> Métricas Gerais</h2>
+    <div class="dashboard-filtros">
+        <select id="periodoDashboard" class="filter-select" onchange="carregarDashboardInovacao()">
+            <option value="semana">📅 Última Semana</option>
+            <option value="mes">📅 Último Mês</option>
+            <option value="trimestre">📅 Último Trimestre</option>
+            <option value="ano">📅 Último Ano</option>
+            <option value="todos" selected>📅 Todos os períodos</option>
+        </select>
+        <button onclick="exportarDashboardPDF()" class="btn-exportar"><i class="fas fa-download"></i>Exportar PDF</button>
     </div>
 </div>
 
-<!-- Dashboard Cards - Todos na mesma div, sem quebras -->
+<!-- Dashboard Cards -->
 <div class="dashboard-grid" id="dashboardCards">
     <div class="dashboard-card">
         <div class="icone"><i class="fas fa-lightbulb"></i></div>
@@ -605,26 +776,26 @@
 </div>
 
 <!-- Gráficos -->
-<div class="charts-row">
+<div class="charts-row" style="display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 30px;">
     <!-- Gráfico de Linha - Ideias por Período -->
-    <div class="ranking-container">
+    <div class="ranking-container" style="flex: 1; min-width: 300px;">
         <h3><i class="fas fa-chart-line"></i> Ideias por Período</h3>
-        <canvas id="graficoPeriodo"></canvas>
+        <canvas id="graficoPeriodo" style="width: 100%; height: 300px;"></canvas>
     </div>
     
     <!-- Gráfico de Pizza - Ideias por Categoria -->
-    <div class="ranking-container">
+    <div class="ranking-container" style="flex: 1; min-width: 300px;">
         <h3><i class="fas fa-chart-pie"></i> Ideias por Categoria</h3>
-        <canvas id="graficoCategorias"></canvas>
+        <canvas id="graficoCategorias" style="width: 100%; height: 300px;"></canvas>
     </div>
 </div>
 
-<div class="charts-row">
-    <div class="ranking-container">
+<div class="charts-row" style="display: flex; gap: 20px; flex-wrap: wrap;">
+    <div class="ranking-container" style="flex: 1; min-width: 300px;">
         <h3><i class="fas fa-chart-bar"></i> Ideias por Status</h3>
-        <canvas id="graficoStatus"></canvas>
+        <canvas id="graficoStatus" style="width: 100%; height: 300px;"></canvas>
     </div>
-    <div class="ranking-container">
+    <div class="ranking-container" style="flex: 1; min-width: 300px;">
         <h3><i class="fas fa-trophy"></i> Ranking de Usuários</h3>
         <div id="rankingList" class="ranking-lista"></div>
     </div>
@@ -643,8 +814,20 @@
                 <option value="todos" selected>📅 Todos os períodos</option>
             </select>
             <select id="mapaCategoria" class="filter-select">
-                <option value="todos">📌 Todas as categorias</option>
-            </select>
+    <option value="todos">📌 Todas as categorias</option>
+    <option value="1">💻 Tecnologia e Inovação</option>
+    <option value="2">📊 Gestão e Administração</option>
+    <option value="3">💗 Bem-estar e Saúde</option>
+    <option value="4">🍽️ Alimentação e RU</option>
+    <option value="5">🌿 Sustentabilidade</option>
+    <option value="6">🛡️ Segurança</option>
+    <option value="7">📚 Ensino e Metodologia</option>
+    <option value="8">🔬 Laboratórios e Pesquisa</option>
+    <option value="9">🎉 Cultura e Eventos</option>
+    <option value="10">♿ Acessibilidade e Inclusão</option>
+    <option value="11">🏗️ Infraestrutura</option>
+    <option value="12">🚗 Transporte e Mobilidade</option>
+</select>
             <button onclick="carregarMapaCalor()" class="btn-primary">Aplicar filtros</button>
             <button onclick="exportarMapaImagem()" class="btn-exportar-mapa">
                 <i class="fas fa-camera"></i> Exportar imagem
@@ -684,70 +867,83 @@
     </div>
 </div>
 
-        <!-- Gestão de Usuários -->
-        <div class="painel-section">
-            <h2><i class="fas fa-user-cog"></i> Gestão de Usuários</h2>
-            <div style="overflow-x: auto;">
-                <table class="usuarios-table">
-    <thead>
-        <tr>
-            <th>ID</th>
-            <th>Nome</th>
-            <th>Email</th>
-            <th>Cargo</th>
-            <th>Advertências</th>
-            <th>Ideias Removidas</th>
-            <th>Status</th>
-            <th>Ações</th>
-        </tr>
-    </thead>
-    <tbody id="usuariosList">
-        <tr><td colspan="7">Carregando...</tr>
-    </tbody>
-</table>
-            </div>
+<!-- Gestão de Usuários -->
+<div class="painel-section">
+    <h2><i class="fas fa-user-cog"></i> Gestão de Usuários</h2>
+    
+    <div class="filtros-padrao" style="display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; align-items: center;">
+        <div class="autocomplete-container" style="position: relative; flex: 1; min-width: 200px;">
+            <input type="text" id="buscaUsuarios" class="filter-select" placeholder="🔍 Buscar por nome do usuário..." autocomplete="off">
+            <div id="sugestoesUsuarios" class="autocomplete-sugestoes"></div>
         </div>
+        <select id="filtroUsuarioCargo" class="filter-select">
+            <option value="todos">📌 Todos os cargos</option>
+            <option value="aluno">👨‍🎓 Aluno</option>
+            <option value="professor">👨‍🏫 Professor</option>
+            <option value="ti_staff">🖥️ TI Staff</option>
+            <option value="gestor">📊 Gestor</option>
+        </select>
+        <select id="filtroUsuarioStatus" class="filter-select">
+            <option value="todos">📌 Todos os status</option>
+            <option value="ativo">✅ Ativos</option>
+            <option value="inativo">❌ Inativos</option>
+        </select>
+        <button onclick="filtrarUsuarios()" class="btn-primary"><i class="fas fa-search"></i> Filtrar</button>
+        <button onclick="limparFiltrosUsuarios()" class="btn-limpar"><i class="fas fa-eraser"></i> Limpar</button>
+    
+    <div style="overflow-x: auto;">
+        <table class="usuarios-table">
+            <thead>
+                <tr><th>ID</th><th>Nome</th><th>Email</th><th>Cargo</th><th>Advertências</th><th>Ideias Removidas</th><th>Status</th><th>Ações</th></tr>
+            </thead>
+            <tbody id="usuariosList"><tr><td colspan="8">Carregando...</td></tr></tbody>
+        </table>
+    </div>
+    <div id="paginacaoUsuarios" class="pagination" style="margin-top: 20px;"></div>
+</div>
+</div>
 
 <!-- Logs de Atividades -->
 <div class="painel-section">
     <h2><i class="fas fa-history"></i> Logs de Atividades</h2>
     
-    <!-- Filtros -->
-    <div class="filtros-logs">
-    <div class="autocomplete-container" style="position: relative; flex: 1; min-width: 200px;">
-        <input type="text" id="buscaUsuario" class="filter-select" placeholder="🔍 Buscar por nome do usuário..." autocomplete="off">
-        <div id="sugestoesList" class="autocomplete-sugestoes"></div>
+    <div class="filtros-padrao" style="display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; align-items: center;">
+        <div class="autocomplete-container" style="position: relative; flex: 1; min-width: 200px;">
+            <input type="text" id="buscaLogs" class="filter-select" placeholder="🔍 Buscar por nome do usuário..." autocomplete="off">
+            <div id="sugestoesLogs" class="autocomplete-sugestoes"></div>
+        </div>
+        <select id="filtroAcao" class="filter-select">
+    <option value="todos">📌 Todas as ações</option>
+    <option value="login">🔐 Login</option>
+    <option value="cadastro">📝 Cadastro</option>
+    <option value="criar_ideia">💡 Criar Ideia</option>
+    <option value="votar">👍 Votar</option>
+    <option value="comentar">💬 Comentar</option>
+    <option value="moderar">⚖️ Moderar</option>
+    <option value="resetar_advertencias">⚠️ Resetar Advertências</option>
+    <option value="alterar_cargo">👔 Alterar Cargo</option>
+    <option value="toggle_usuario">🔓 Ativar/Desativar Usuário</option>
+    <option value="banir_usuario">🗑️ Banir Usuário</option>
+</select>
+        <input type="date" id="filtroDataInicio" class="filter-select" placeholder="📅 Data Início">
+        <input type="date" id="filtroDataFim" class="filter-select" placeholder="📅 Data Fim">
+        <button onclick="carregarLogs()" class="btn-primary"><i class="fas fa-search"></i> Filtrar</button>
+        <button onclick="exportarLogs()" class="btn-exportar"><i class="fas fa-download"></i> Exportar CSV</button>
+        <button onclick="limparFiltrosLogs()" class="btn-limpar"><i class="fas fa-eraser"></i> Limpar</button>
     </div>
-    <select id="filtroAcao" class="filter-select">
-        <option value="todos">Todas as ações</option>
-        <option value="login">Login</option>
-        <option value="cadastro">Cadastro</option>
-        <option value="criar_ideia">Criar Ideia</option>
-        <option value="votar">Votar</option>
-        <option value="comentar">Comentar</option>
-        <option value="moderar">Moderar</option>
-    </select>
-    <input type="date" id="filtroDataInicio" class="filter-select" placeholder="Data Início">
-    <input type="date" id="filtroDataFim" class="filter-select" placeholder="Data Fim">
-    <button onclick="carregarLogs()" class="btn-primary">Filtrar</button>
-    <button onclick="exportarLogs()" class="btn-exportar">📥 Exportar CSV</button>
-    <button onclick="limparFiltrosLogs()" class="btn-limpar">🗑️ Limpar</button>
-</div>
     
+    <!-- ✅ TABELA DE LOGS - VERIFIQUE SE ESTE ID ESTÁ CORRETO -->
     <div style="overflow-x: auto;">
-    <table class="logs-table">
-        <thead>
-            <tr>
-                <th>Data/Hora</th>
-                <th>Usuário</th>
-                <th>Ação</th>
-                <th>Descrição</th>
-            </tr>
-        </thead>
-        <tbody id="logsList">
-            <tr><td colspan="5" style="text-align: center;">Carregando logs...</td></tr>
-        </tbody>
-    </table>
+        <table class="logs-table">
+            <thead>
+                <tr><th>Data/Hora</th><th>Usuário</th><th>Ação</th><th>Descrição</th></tr>
+            </thead>
+            <tbody id="logsList">
+                <tr><td colspan="4">Carregando logs...</td></tr>
+            </tbody>
+        </table>
+    </div>
+    <div id="paginacaoLogs" class="pagination" style="margin-top: 20px;"></div>
 </div>
 
 <!-- Usuários Inativos -->
@@ -756,6 +952,7 @@
     <div id="inativosList">
         <p>Carregando...</p>
     </div>
+    <div id="paginacaoInativos" class="pagination" style="margin-top: 20px;"></div>
 </div>
 
 <!-- Reports de Ideias Pendentes -->
@@ -764,6 +961,7 @@
     <div id="reportsList">
         <p>Carregando...</p>
     </div>
+    <div id="paginacaoReportsIdeias" class="pagination" style="margin-top: 20px;"></div>
 </div>
 
 <!-- Reports de Comentários Pendentes -->
@@ -772,8 +970,8 @@
     <div id="reportsComentariosList">
         <p>Carregando...</p>
     </div>
+    <div id="paginacaoReportsComentarios" class="pagination" style="margin-top: 20px;"></div>
 </div>
-    </div>
 
 <!-- Gestão de Templates -->
 <div class="painel-section">
@@ -786,6 +984,7 @@
     <div id="templatesList" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 20px;">
         <div class="empty-state">Carregando templates...</div>
     </div>
+</div>
 </div>
 
 <!-- Modal de Template -->
@@ -807,14 +1006,9 @@
             </div>
             <div class="form-group">
                 <label>Categoria *</label>
-                <select id="templateCategoria" class="filter-select" required>
-                    <option value="">Selecione...</option>
-                    <option value="Infraestrutura de Rede">📡 Infraestrutura de Rede</option>
-                    <option value="Software Educacional">💻 Software Educacional</option>
-                    <option value="Sustentabilidade">🌱 Sustentabilidade</option>
-                    <option value="Acessibilidade">♿ Acessibilidade</option>
-                    <option value="Melhoria de Processos">⚙️ Melhoria de Processos</option>
-                </select>
+    <select id="templateCategoria" class="filter-select" required>
+        <option value="">🔽 Carregando categorias...</option>
+    </select>
             </div>
             <div class="form-group">
                 <label>Campos do Template (JSON)</label>
@@ -835,7 +1029,7 @@
 <div id="modalJustificativa" class="modal" style="display: none;">
     <div class="modal-content">
         <div class="modal-header">
-            <h3><i class="fas fa-exclamation-triangle"></i> Excluir Ideia com Justificativa</h3>
+            <h3><i class="fas fa-exclamation-triangle"></i> Avisar ao Autor das Consequências</h3>
             <span onclick="fecharModalJustificativa()" class="modal-close">&times;</span>
         </div>
         <form id="formJustificativa">
@@ -916,41 +1110,307 @@
         let usuarioLogado = null;
         let categoriasChart = null;
         let intervaloDashboard = null;
-        
-        // No DOMContentLoaded
+   
+        // Função de verificação de login simplificada
+async function verificarLogin() {
+    const userSalvo = sessionStorage.getItem('ideaHubUser');
+    
+    if (!userSalvo) {
+        window.location.href = '../index.html';
+        return false;
+    }
+    
+    try {
+        const usuario = JSON.parse(userSalvo);
+        usuarioLogado = usuario;
+        return true;
+    } catch(e) {
+        window.location.href = '../index.html';
+        return false;
+    }
+}
+
+// ==========================================
+// DOMContentLoaded CORRIGIDO
+// ==========================================
 document.addEventListener('DOMContentLoaded', async () => {
-    await verificarLogin();
-    if (usuarioLogado && (usuarioLogado.cargo === 'gestor' || usuarioLogado.cargo === 'ti_staff')) {
+    // Verificar sessão usando sessionStorage
+    const userSalvo = sessionStorage.getItem('ideaHubUser');
+    
+    if (!userSalvo) {
+        alert('Faça login primeiro!');
+        window.location.href = '../index.html';
+        return;
+    }
+    
+    try {
+        usuarioLogado = JSON.parse(userSalvo);
+        
+        // Verificar se é admin
+        const isAdmin = usuarioLogado.cargo === 'gestor' || usuarioLogado.cargo === 'ti_staff';
+        if (!isAdmin) {
+            alert('Acesso negado. Você não tem permissão.');
+            window.location.href = '../index.html';
+            return;
+        }
+        
+        console.log('✅ Admin logado:', usuarioLogado.nome);
+        
         // Carregar dashboard com período "todos" (padrão)
         await carregarDashboardInovacao();
+        
         // Carregar categorias para o filtro do mapa
         await carregarCategoriasMapa();
+        
         // Carregar mapa de calor
         await carregarMapaCalor();
+        
         // Carregar outros componentes
-        carregarLogs();
-        carregarUsuariosInativos();
-        carregarUsuarios();
-        carregarReports();
+        await carregarLogs();
+        await carregarUsuariosInativos();
+        await carregarUsuarios();
+        await carregarReports();
+        await carregarReportsComentarios(); // ← Chamar diretamente, sem setTimeout
+        await carregarTemplates();
         
-        // ========== CARREGAR DENÚNCIAS DE COMENTÁRIOS ==========
-        // Usar setTimeout para garantir que o DOM está pronto
-        setTimeout(() => {
-            if (typeof carregarReportsComentarios === 'function') {
-                carregarReportsComentarios();
-            } else {
-                console.warn('⚠️ Função carregarReportsComentarios não encontrada');
-            }
-        }, 500);
-        // =======================================================
+        // Iniciar polling de logs
+        iniciarPollingLogs();
+        iniciarPollingDashboard();
+
+        // Parar polling ao sair da página
+        window.addEventListener('beforeunload', () => {
+            pararPollingLogs();
+        });
         
-        carregarTemplates();
-    } else {
-        alert('Acesso negado. Você não tem permissão.');
+    } catch (error) {
+        console.error('❌ Erro na inicialização:', error);
+        alert('Erro ao carregar página. Faça login novamente.');
         window.location.href = '../index.html';
     }
 });
+
+// ==========================================
+// VARIÁVEIS DE PAGINAÇÃO
+// ==========================================
+const ITENS_POR_PAGINA = 15;
+
+// Logs
+let logsPaginaAtual = 1;
+let logsTotalItens = 0;
+let logsCache = [];
+
+// Usuários
+let usuariosPaginaAtual = 1;
+let usuariosTotalItens = 0;
+let usuariosCache = [];
+
+// Usuários Inativos
+let inativosPaginaAtual = 1;
+let inativosTotalItens = 0;
+let inativosCache = [];
+
+// Reports de Ideias
+let reportsIdeiasPaginaAtual = 1;
+let reportsIdeiasTotalItens = 0;
+let reportsIdeiasCache = [];
+
+// Reports de Comentários
+let reportsComentariosPaginaAtual = 1;
+let reportsComentariosTotalItens = 0;
+let reportsComentariosCache = [];
+
+// ==========================================
+// AUTOCOMPLETE PARA LOGS DE ATIVIDADES
+// ==========================================
+let timeoutSugestoesLogs = null;
+
+async function buscarSugestoesLogs(query) {
+    console.log('🔍 Buscando sugestões para logs:', query);
+    
+    const sugestoesDiv = document.getElementById('sugestoesLogs');
+    if (!sugestoesDiv) {
+        console.warn('Elemento sugestoesLogs não encontrado');
+        return;
+    }
+    
+    if (!query || query.trim() === '') {
+        sugestoesDiv.classList.remove('show');
+        sugestoesDiv.innerHTML = '';
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/admin/usuarios/sugestoes?q=${encodeURIComponent(query)}`);
+        const usuarios = await response.json();
         
+        if (!usuarios || usuarios.length === 0) {
+            sugestoesDiv.innerHTML = '<div class="sugestao-item" style="color: #999;">Nenhum usuário encontrado</div>';
+            sugestoesDiv.classList.add('show');
+            return;
+        }
+        
+        let html = '';
+        for (let i = 0; i < usuarios.length; i++) {
+            const user = usuarios[i];
+            html += `
+                <div class="sugestao-item" onclick="selecionarUsuarioLogs('${escapeHtml(user.nome)}', ${user.id})">
+                    <span class="sugestao-nome">${escapeHtml(user.nome)}</span>
+                    <span class="sugestao-email">${escapeHtml(user.email)}</span>
+                    <span class="sugestao-cargo">${getCargoTextoSimples(user.cargo)}</span>
+                </div>
+            `;
+        }
+        
+        sugestoesDiv.innerHTML = html;
+        sugestoesDiv.classList.add('show');
+        
+    } catch (error) {
+        console.error('Erro ao buscar sugestões:', error);
+    }
+}
+
+function selecionarUsuarioLogs(nome, id) {
+    console.log('✅ Selecionando usuário:', nome, 'ID:', id);
+    
+    const inputBusca = document.getElementById('buscaLogs');
+    if (inputBusca) {
+        inputBusca.value = nome;
+        inputBusca.setAttribute('data-usuario-id', id);
+    }
+    
+    const sugestoesDiv = document.getElementById('sugestoesLogs');
+    if (sugestoesDiv) {
+        sugestoesDiv.classList.remove('show');
+        sugestoesDiv.innerHTML = '';
+    }
+    
+    carregarLogs();
+}
+
+function selecionarUsuarioLogs(nome, id) {
+    const inputBusca = document.getElementById('buscaLogs');
+    if (inputBusca) {
+        inputBusca.value = nome;
+        inputBusca.setAttribute('data-usuario-id', id);
+    }
+    
+    const sugestoesDiv = document.getElementById('sugestoesLogs');
+    if (sugestoesDiv) {
+        sugestoesDiv.classList.remove('show');
+        sugestoesDiv.innerHTML = '';
+    }
+    
+    carregarLogs();
+}
+
+// ==========================================
+// AUTOCOMPLETE PARA GESTÃO DE USUÁRIOS
+// ==========================================
+let timeoutSugestoesUsuarios = null;
+
+async function buscarSugestoesUsuarios(query) {
+    console.log('🔍 Buscando sugestões para usuários:', query);
+    
+    const sugestoesDiv = document.getElementById('sugestoesUsuarios');
+    if (!sugestoesDiv) {
+        console.warn('Elemento sugestoesUsuarios não encontrado');
+        return;
+    }
+    
+    if (!query || query.trim() === '') {
+        sugestoesDiv.classList.remove('show');
+        sugestoesDiv.innerHTML = '';
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/admin/usuarios/sugestoes?q=${encodeURIComponent(query)}`);
+        const usuarios = await response.json();
+        
+        if (!usuarios || usuarios.length === 0) {
+            sugestoesDiv.innerHTML = '<div class="sugestao-item" style="color: #999;">Nenhum usuário encontrado</div>';
+            sugestoesDiv.classList.add('show');
+            return;
+        }
+        
+        let html = '';
+        for (let i = 0; i < usuarios.length; i++) {
+            const user = usuarios[i];
+            html += `
+                <div class="sugestao-item" onclick="selecionarUsuarioGestao('${escapeHtml(user.nome)}', ${user.id})">
+                    <span class="sugestao-nome">${escapeHtml(user.nome)}</span>
+                    <span class="sugestao-email">${escapeHtml(user.email)}</span>
+                    <span class="sugestao-cargo">${getCargoTextoSimples(user.cargo)}</span>
+                </div>
+            `;
+        }
+        
+        sugestoesDiv.innerHTML = html;
+        sugestoesDiv.classList.add('show');
+        
+    } catch (error) {
+        console.error('Erro:', error);
+    }
+}
+
+function selecionarUsuarioGestao(nome, id) {
+    const inputBusca = document.getElementById('buscaUsuarios');
+    if (inputBusca) {
+        inputBusca.value = nome;
+        inputBusca.setAttribute('data-usuario-id', id);
+    }
+    
+    const sugestoesDiv = document.getElementById('sugestoesUsuarios');
+    if (sugestoesDiv) {
+        sugestoesDiv.classList.remove('show');
+        sugestoesDiv.innerHTML = '';
+    }
+    
+    filtroUsuarioNome = nome;
+    carregarUsuarios();
+}
+// ==========================================
+// FUNÇÕES DE PAGINAÇÃO (ESTILO INDEX.HTML)
+// ==========================================
+
+function renderizarPaginacao(containerId, paginaAtual, totalItens, funcaoCarregar) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    
+    const totalPaginas = Math.ceil(totalItens / ITENS_POR_PAGINA);
+    
+    if (totalPaginas <= 1) {
+        container.innerHTML = '';
+        return;
+    }
+    
+    let html = '<div class="pagination-controls">';
+    
+    // Botão Anterior
+    html += `<button class="page-btn" onclick="${funcaoCarregar}(${paginaAtual - 1})" ${paginaAtual === 1 ? 'disabled' : ''}>
+                <i class="fas fa-chevron-left"></i> Anterior
+            </button>`;
+    
+    // Números das páginas
+    for (let i = 1; i <= totalPaginas; i++) {
+        if (i === 1 || i === totalPaginas || (i >= paginaAtual - 2 && i <= paginaAtual + 2)) {
+            html += `<button class="page-btn ${i === paginaAtual ? 'active' : ''}" onclick="${funcaoCarregar}(${i})">
+                        ${i}
+                    </button>`;
+        } else if (i === paginaAtual - 3 || i === paginaAtual + 3) {
+            html += `<span class="page-dots">...</span>`;
+        }
+    }
+    
+    // Botão Próximo
+    html += `<button class="page-btn" onclick="${funcaoCarregar}(${paginaAtual + 1})" ${paginaAtual === totalPaginas ? 'disabled' : ''}>
+                Próximo <i class="fas fa-chevron-right"></i>
+            </button>`;
+    
+    html += '</div>';
+    container.innerHTML = html;
+}
+
         async function carregarDashboard() {
     try {
         const response = await fetch('/admin/dashboard', {
@@ -1171,20 +1631,84 @@ function exportarMapaImagem() {
         });
 }
 
+// Adicione esta função showMessage se não existir
+function showMessage(message, type = 'success') {
+    // Criar elemento de toast se não existir
+    let toastContainer = document.getElementById('toast-container');
+    if (!toastContainer) {
+        toastContainer = document.createElement('div');
+        toastContainer.id = 'toast-container';
+        toastContainer.style.cssText = `
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 9999;
+        `;
+        document.body.appendChild(toastContainer);
+    }
+    
+    const toast = document.createElement('div');
+    toast.className = `toast-notification toast-${type}`;
+    toast.style.cssText = `
+        background: ${type === 'error' ? '#dc3545' : '#28a745'};
+        color: white;
+        padding: 12px 20px;
+        border-radius: 8px;
+        margin-top: 10px;
+        animation: slideIn 0.3s ease;
+        cursor: pointer;
+    `;
+    toast.textContent = message;
+    toast.onclick = () => toast.remove();
+    
+    toastContainer.appendChild(toast);
+    
+    setTimeout(() => {
+        if (toast.parentElement) toast.remove();
+    }, 5000);
+}
+
 async function carregarCategoriasMapa() {
     try {
+        console.log('🔄 Carregando categorias para o mapa...');
+        
         const response = await fetch('/categorias');
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
         const categorias = await response.json();
         const select = document.getElementById('mapaCategoria');
+        
+        if (!select) {
+            console.error('❌ Elemento mapaCategoria não encontrado');
+            return;
+        }
+        
+        // Limpar opções existentes
         select.innerHTML = '<option value="todos">📌 Todas as categorias</option>';
-        categorias.forEach(cat => {
-            const option = document.createElement('option');
-            option.value = cat.id;
-            option.textContent = `${cat.icone} ${cat.nome}`;
-            select.appendChild(option);
-        });
+        
+        // Adicionar categorias
+        if (categorias && categorias.length > 0) {
+            categorias.forEach(cat => {
+                const option = document.createElement('option');
+                option.value = cat.id;
+                option.textContent = `${cat.icone || '📁'} ${cat.nome}`;
+                select.appendChild(option);
+            });
+            console.log(`✅ ${categorias.length} categorias carregadas no mapa`);
+        } else {
+            console.warn('⚠️ Nenhuma categoria encontrada');
+            select.innerHTML += '<option value="" disabled>Nenhuma categoria disponível</option>';
+        }
+        
     } catch (error) {
-        console.error('Erro ao carregar categorias:', error);
+        console.error('❌ Erro ao carregar categorias para o mapa:', error);
+        const select = document.getElementById('mapaCategoria');
+        if (select) {
+            select.innerHTML = '<option value="todos">📌 Todas as categorias</option><option value="" disabled>❌ Erro ao carregar categorias</option>';
+        }
     }
 }
 
@@ -1295,22 +1819,62 @@ function verDetalhesIdeia(ideiaId) {
     window.open(`../pages/ideia.html?id=${ideiaId}`, '_blank');
 }
 
-       async function carregarUsuarios() {
+let filtroUsuarioNome = '';
+let filtroUsuarioCargo = 'todos';
+let filtroUsuarioStatus = 'todos';
+
+async function carregarUsuarios(pagina = 1) {
+    showLoading(true);
     try {
-        const response = await fetch('/admin/usuarios');
+        let url = '/admin/usuarios?';
+        const params = [];
+        
+        if (filtroUsuarioNome && filtroUsuarioNome.trim() !== '') {
+            params.push(`busca=${encodeURIComponent(filtroUsuarioNome)}`);
+        }
+        if (filtroUsuarioCargo && filtroUsuarioCargo !== 'todos') {
+            params.push(`cargo=${filtroUsuarioCargo}`);
+        }
+        if (filtroUsuarioStatus && filtroUsuarioStatus !== 'todos') {
+            params.push(`status=${filtroUsuarioStatus}`);
+        }
+        
+        if (params.length > 0) {
+            url += params.join('&');
+        } else {
+            url = '/admin/usuarios';
+        }
+        
+        const response = await fetch(url);
+        if (!response.ok) throw new Error('Erro ao carregar usuários');
+        
         const usuarios = await response.json();
         
+        usuariosCache = usuarios;
+        usuariosTotalItens = usuarios.length;
+        usuariosPaginaAtual = pagina;
+        
+        const start = (pagina - 1) * ITENS_POR_PAGINA;
+        const end = start + ITENS_POR_PAGINA;
+        const usuariosPaginados = usuarios.slice(start, end);
+        
         const tbody = document.getElementById('usuariosList');
-        if (usuarios.length === 0) {
-            tbody.innerHTML = '发展<td colspan="8">Nenhum usuário encontrado</td></td>';
+        if (!tbody) return;
+        
+        if (usuariosPaginados.length === 0) {
+            tbody.innerHTML = '发展<td colspan="8" style="text-align: center;">Nenhum usuário encontrado</tr>';
+            renderizarPaginacao('paginacaoUsuarios', pagina, usuariosTotalItens, 'carregarUsuarios');
             return;
         }
         
-        tbody.innerHTML = usuarios.map(user => {
-            // Badge de advertências
+        // ✅ MONTAR A TABELA VERTICALMENTE (UMA LINHA POR USUÁRIO)
+        let html = '';
+        for (let i = 0; i < usuariosPaginados.length; i++) {
+            const user = usuariosPaginados[i];
+            
             let advertenciasHtml = `
                 <div style="display: flex; align-items: center; gap: 8px;">
-                    <span class="advertencia-badge ${user.total_advertencias > 0 ? 'tem-advertencia' : ''}" style="background: ${user.total_advertencias > 0 ? '#fef3c7' : '#e2e8f0'}; padding: 4px 8px; border-radius: 20px;">
+                    <span class="advertencia-badge" style="background: ${user.total_advertencias > 0 ? '#fef3c7' : '#e2e8f0'}; padding: 4px 8px; border-radius: 20px;">
                         ⚠️ ${user.total_advertencias || 0}
                     </span>
                     ${user.total_advertencias > 0 ? `
@@ -1321,7 +1885,6 @@ function verDetalhesIdeia(ideiaId) {
                 </div>
             `;
             
-            // Badge de ideias removidas com cores diferentes
             let removidasHtml = '';
             const removidas = user.ideias_removidas || 0;
             if (removidas === 0) {
@@ -1332,7 +1895,7 @@ function verDetalhesIdeia(ideiaId) {
                 removidasHtml = `<span style="background: #fee2e2; color: #991b1b; padding: 4px 8px; border-radius: 20px; font-size: 12px;">🔴 ${removidas}</span>`;
             }
             
-            return `
+            html += `
                 <tr>
                     <td style="font-weight: 500; color: #4a5568;">${user.id}</td>
                     <td>
@@ -1359,22 +1922,144 @@ function verDetalhesIdeia(ideiaId) {
                         </span>
                     </td>
                     <td>
-                        <button onclick="toggleUsuarioStatus(${user.id}, ${!user.ativo})" 
-                                style="background: ${user.ativo ? '#dc3545' : '#28a745'}; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer;">
-                            ${user.ativo ? '🔒 Desativar' : '🔓 Ativar'}
-                        </button>
+                        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                            <button onclick="toggleUsuarioStatus(${user.id}, ${!user.ativo})" 
+                                    style="background: ${user.ativo ? '#dc3545' : '#28a745'}; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer;">
+                                ${user.ativo ? '🔒 Desativar' : '🔓 Ativar'}
+                            </button>
+                            <button onclick="banirUsuario(${user.id})" 
+                                    style="background: #6c757d; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer;">
+                                <i class="fas fa-ban"></i> Banir
+                            </button>
+                        </div>
                     </td>
                 </tr>
             `;
-        }).join('');
+        }
+        
+        tbody.innerHTML = html;
+        renderizarPaginacao('paginacaoUsuarios', pagina, usuariosTotalItens, 'carregarUsuarios');
         
     } catch (error) {
-        console.error('Erro:', error);
-        document.getElementById('usuariosList').innerHTML = '发展<td colspan="8">❌ Erro ao carregar usuários</td></tr>';
+        console.error('Erro ao carregar usuários:', error);
+        document.getElementById('usuariosList').innerHTML = '<tr><td colspan="8" style="text-align: center; color: #dc3545;">❌ Erro ao carregar usuários</td></tr>';
+    } finally {
+        showLoading(false);
+    }
+}
+
+// ==========================================
+// BANIR USUÁRIO (EXCLUIR PERMANENTEMENTE)
+// ==========================================
+async function banirUsuario(usuarioId) {
+    console.log('🔍 banirUsuario chamado para ID:', usuarioId);
+    
+    const userSalvo = sessionStorage.getItem('ideaHubUser');
+    if (!userSalvo) {
+        alert('Faça login novamente');
+        return;
+    }
+    
+    let admin;
+    try {
+        admin = JSON.parse(userSalvo);
+        console.log('✅ Admin:', admin.nome);
+    } catch(e) {
+        alert('Sessão inválida');
+        return;
+    }
+    
+    const isAdmin = admin.cargo === 'gestor' || admin.cargo === 'ti_staff';
+    if (!isAdmin) {
+        alert('Acesso negado. Apenas administradores podem banir usuários.');
+        return;
+    }
+    
+    // Buscar nome do usuário
+    let nomeUsuario = '';
+    try {
+        const response = await fetch('/admin/usuarios');
+        const usuarios = await response.json();
+        const user = usuarios.find(u => u.id === usuarioId);
+        nomeUsuario = user ? user.nome : 'este usuário';
+    } catch(e) {
+        nomeUsuario = 'este usuário';
+    }
+    
+    // Confirmar exclusão permanente
+    const confirmado = confirm(`⚠️ ATENÇÃO: Você está prestes a BANIR PERMANENTEMENTE o usuário "${nomeUsuario}" (ID: ${usuarioId}).
+
+🔴 CONSEQUÊNCIAS:
+- Todas as ideias do usuário serão EXCLUÍDAS
+- Todos os comentários serão EXCLUÍDOS
+- Todos os votos serão REMOVIDOS
+- Todas as conquistas serão PERDIDAS
+- Esta ação NÃO PODE SER DESFEITA!
+
+Clique em OK para continuar ou Cancelar para abortar.`);
+    
+    if (!confirmado) return;
+    
+    // Segunda confirmação textual
+    const textoConfirmacao = prompt('Digite "BANIR" para confirmar a exclusão permanente deste usuário:');
+    if (textoConfirmacao !== 'BANIR') {
+        alert('❌ Operação cancelada. Digite "BANIR" para confirmar.');
+        return;
+    }
+    
+    showLoading(true);
+    
+    try {
+        console.log('📡 Enviando requisição para banir...');
+        
+        const response = await fetch(`/admin/usuarios/${usuarioId}/banir`, {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ adminId: admin.id })
+        });
+        
+        console.log('📡 Status da resposta:', response.status);
+        
+        // Verificar se a resposta é JSON
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+            const text = await response.text();
+            console.error('Resposta não é JSON:', text.substring(0, 200));
+            throw new Error('Servidor retornou resposta inválida');
+        }
+        
+        const data = await response.json();
+        
+        if (response.ok && data.sucesso) {
+            alert(`✅ Usuário "${nomeUsuario}" foi banido permanentemente da plataforma!`);
+            await carregarUsuarios();
+        } else {
+            alert(data.erro || '❌ Erro ao banir usuário');
+        }
+    } catch (error) {
+        console.error('❌ Erro detalhado:', error);
+        alert('❌ Erro de conexão ao banir usuário: ' + error.message);
+    } finally {
+        showLoading(false);
     }
 }
 
 async function resetarAdvertencias(usuarioId) {
+    // Usar sessionStorage
+    const userSalvo = sessionStorage.getItem('ideaHubUser');
+    if (!userSalvo) {
+        alert('Faça login novamente');
+        return;
+    }
+    
+    let usuario;
+    try {
+        usuario = JSON.parse(userSalvo);
+    } catch(e) {
+        alert('Sessão inválida');
+        return;
+    }
+    
     if (!confirm('⚠️ Tem certeza que deseja resetar o contador de advertências deste usuário? Esta ação não pode ser desfeita.')) {
         return;
     }
@@ -1384,7 +2069,7 @@ async function resetarAdvertencias(usuarioId) {
         const response = await fetch(`/admin/usuarios/${usuarioId}/resetar-advertencias`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ adminId: usuarioLogado.id })
+            body: JSON.stringify({ adminId: usuario.id })
         });
         const data = await response.json();
         
@@ -1496,21 +2181,84 @@ async function resetarAdvertencias(usuarioId) {
             }
         });
         
-       async function carregarReportsComentarios() {
+async function resolverReportComentario(reportId, acao) {
+    console.log(`🔧 resolverReportComentario chamado: reportId=${reportId}, acao=${acao}`);
     
-    const container = document.getElementById('reportsComentariosList');
-    if (!container) {
-        console.error('❌ Elemento "reportsComentariosList" não encontrado no DOM!');
+    // Usar sessionStorage
+    const userSalvo = sessionStorage.getItem('ideaHubUser');
+    
+    if (!userSalvo) {
+        alert('Faça login novamente');
         return;
     }
     
-    if (!usuarioLogado || !usuarioLogado.id) {
-        console.warn('⚠️ Usuário não logado');
+    let usuario;
+    try {
+        usuario = JSON.parse(userSalvo);
+    } catch(e) {
+        alert('Sessão inválida. Faça login novamente.');
+        return;
+    }
+    
+    if (!usuario || !usuario.id) {
+        alert('Usuário não identificado.');
+        return;
+    }
+    
+    const confirmMsg = acao === 'excluir' 
+        ? '⚠️ Tem certeza que deseja EXCLUIR este comentário? O autor será notificado.'
+        : 'Deseja IGNORAR esta denúncia?';
+    
+    if (!confirm(confirmMsg)) return;
+    
+    showLoading(true);
+    
+    try {
+        const response = await fetch(`/admin/reports/comentarios/${reportId}/resolver`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ adminId: usuario.id, acao: acao })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok && data.sucesso) {
+            alert(data.mensagem);
+            // Recarregar as denúncias
+            await carregarReportsComentarios();
+        } else {
+            alert(data.erro || 'Erro ao processar');
+        }
+    } catch (error) {
+        console.error('Erro:', error);
+        alert('Erro de conexão: ' + error.message);
+    } finally {
+        showLoading(false);
+    }
+}
+
+async function carregarReportsComentarios(pagina = 1) {
+    const container = document.getElementById('reportsComentariosList');
+    if (!container) {
+        console.error('❌ Elemento "reportsComentariosList" não encontrado');
+        return;
+    }
+    
+    const userSalvo = sessionStorage.getItem('ideaHubUser');
+    if (!userSalvo) {
         container.innerHTML = '<div class="empty-state">❌ Faça login para ver denúncias.</div>';
         return;
     }
     
-    const adminId = usuarioLogado.id;
+    let usuario;
+    try {
+        usuario = JSON.parse(userSalvo);
+    } catch(e) {
+        container.innerHTML = '<div class="error-state">❌ Sessão inválida.</div>';
+        return;
+    }
+    
+    const adminId = usuario.id;
 
     try {
         const response = await fetch(`/admin/reports/comentarios?adminId=${adminId}`);
@@ -1526,12 +2274,20 @@ async function resetarAdvertencias(usuarioId) {
         
         const reports = await response.json();
         
-        if (!reports || reports.length === 0) {
+        reportsComentariosCache = reports;
+        reportsComentariosTotalItens = reports.length;
+        reportsComentariosPaginaAtual = pagina;
+        
+        const start = (pagina - 1) * ITENS_POR_PAGINA;
+        const end = start + ITENS_POR_PAGINA;
+        const reportsPaginados = reports.slice(start, end);
+        
+        if (!reportsPaginados || reportsPaginados.length === 0) {
             container.innerHTML = '<div class="empty-state">✅ Nenhuma denúncia de comentário pendente</div>';
+            renderizarPaginacao('paginacaoReportsComentarios', pagina, reportsComentariosTotalItens, 'carregarReportsComentarios');
             return;
         }
         
-        // Função para formatar motivo
         const getMotivoComentario = (motivo) => {
             const motivos = {
                 'conteudo_improprio': '🔞 Conteúdo impróprio',
@@ -1544,10 +2300,9 @@ async function resetarAdvertencias(usuarioId) {
         };
         
         let html = '';
-        for (let i = 0; i < reports.length; i++) {
-            const report = reports[i];
+        for (let i = 0; i < reportsPaginados.length; i++) {
+            const report = reportsPaginados[i];
             
-            // Formatar a descrição se existir
             const descricaoHtml = report.descricao && report.descricao.trim() !== '' 
                 ? `<div style="background: #f8f9fa; padding: 8px; border-radius: 6px; margin: 8px 0;">
                         <strong><i class="fas fa-comment-dots"></i> Descrição do denunciante:</strong><br>
@@ -1580,47 +2335,11 @@ async function resetarAdvertencias(usuarioId) {
         }
         
         container.innerHTML = html;
+        renderizarPaginacao('paginacaoReportsComentarios', pagina, reportsComentariosTotalItens, 'carregarReportsComentarios');
         
     } catch (error) {
         console.error('❌ Erro:', error);
         container.innerHTML = `<div class="error-state">❌ Erro ao carregar: ${error.message}</div>`;
-    }
-}
-
-async function resolverReportComentario(reportId, acao) {
-    if (!usuarioLogado || !usuarioLogado.id) {
-        alert('Faça login novamente');
-        return;
-    }
-    
-    const mensagem = acao === 'excluir' 
-        ? '⚠️ Tem certeza que deseja EXCLUIR este comentário? O autor será notificado.'
-        : 'Deseja IGNORAR esta denúncia?';
-    
-    if (!confirm(mensagem)) return;
-    
-    showLoading(true);
-    try {
-        const response = await fetch(`/admin/reports/comentarios/${reportId}/resolver`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ adminId: usuarioLogado.id, acao: acao })
-        });
-        
-        const data = await response.json();
-        
-        if (data.sucesso) {
-            alert(data.mensagem);
-            // Recarregar as denúncias
-            await carregarReportsComentarios();
-        } else {
-            alert(data.erro || 'Erro ao processar');
-        }
-    } catch (error) {
-        console.error('Erro:', error);
-        alert('Erro de conexão ao processar denúncia');
-    } finally {
-        showLoading(false);
     }
 }
 
@@ -1641,6 +2360,8 @@ function getMotivoTexto(motivo) {
         'discurso_odio': '😡 Discurso de ódio',
         'spam': '📧 Spam ou publicidade',
         'fake_news': '❓ Informação falsa',
+        'duplicada': '📝 Ideia duplicada',
+        'fora_tema': '📌 Fora do tema',
         'outro': '📝 Outro motivo'
     };
     return motivos[motivo] || motivo;
@@ -1775,11 +2496,22 @@ document.getElementById('formJustificativa')?.addEventListener('submit', async (
 // ==========================================
 
 async function carregarTemplates() {
-    if (!usuarioLogado || !usuarioLogado.id) {
-        console.warn('Usuário não logado ou sem ID, não é possível carregar templates');
+    // ✅ USAR sessionStorage
+    const userSalvo = sessionStorage.getItem('ideaHubUser');
+    
+    if (!userSalvo) {
+        console.warn('Usuário não logado');
         return;
     }
-    const adminId = usuarioLogado.id;
+    
+    let usuario;
+    try {
+        usuario = JSON.parse(userSalvo);
+    } catch(e) {
+        return;
+    }
+    
+    const adminId = usuario.id;
 
     try {
         const response = await fetch(`/admin/templates?adminId=${adminId}`);
@@ -1793,35 +2525,35 @@ async function carregarTemplates() {
         }
         
         container.innerHTML = templates.map(tmpl => `
-            <div class="template-card" style="background: #f8fafc; border-radius: 12px; padding: 15px; border-left: 4px solid ${tmpl.recomendado ? '#f59e0b' : '#667eea'}">
-                <div style="display: flex; justify-content: space-between; align-items: start; gap: 10px;">
-                    <div style="flex: 1;">
-                        <h4 style="margin-bottom: 5px;">${escapeHtml(tmpl.titulo)}</h4>
-                        <span style="font-size: 12px; color: #718096;">${escapeHtml(tmpl.categoria)}</span>
-                        ${tmpl.recomendado ? '<span style="margin-left: 8px; background: #fef3c7; color: #b45309; padding: 2px 8px; border-radius: 20px; font-size: 11px;">⭐ Recomendado</span>' : ''}
-                    </div>
-                    <div style="display: flex; gap: 8px;">
-                        <button onclick="editarTemplate(${tmpl.id})" class="btn-editar" style="background: #ffc107; padding: 5px 10px;">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        <button onclick="excluirTemplate(${tmpl.id})" class="btn-editar" style="background: #dc3545; color: white;">
-                            <i class="fas fa-trash-alt"></i>
-                        </button>
-                    </div>
-                </div>
-                <p style="margin-top: 10px; font-size: 13px; color: #4a5568;">${escapeHtml(tmpl.descricao)}</p>
-                <div style="margin-top: 8px; font-size: 12px; color: #a0aec0;">
-                    <i class="fas fa-chart-line"></i> Usado ${tmpl.total_usos || 0} vez(es)
-                </div>
+    <div class="template-card" style="background: #f8fafc; border-radius: 12px; padding: 15px; border-left: 4px solid ${tmpl.recomendado ? '#f59e0b' : '#667eea'}">
+        <div style="display: flex; justify-content: space-between; align-items: start; gap: 10px;">
+            <div style="flex: 1;">
+                <h4 style="margin-bottom: 5px;">${escapeHtml(tmpl.titulo)}</h4>
+                <span style="font-size: 12px; color: #718096;">${escapeHtml(tmpl.categoria)}</span>
+                ${tmpl.recomendado ? '<span style="margin-left: 8px; background: #fef3c7; color: #b45309; padding: 2px 8px; border-radius: 20px; font-size: 11px;">⭐ Recomendado</span>' : ''}
             </div>
-        `).join('');
+            <div style="display: flex; gap: 8px;">
+                <button onclick="editarTemplate(${tmpl.id})" class="btn-editar" style="background: #ffc107; padding: 5px 10px;">
+                    <i class="fas fa-edit"></i>
+                </button>
+                <button onclick="excluirTemplate(${tmpl.id})" class="btn-editar" style="background: #dc3545; color: white;">
+                    <i class="fas fa-trash-alt"></i>
+                </button>
+            </div>
+        </div>
+        <p style="margin-top: 10px; font-size: 13px; color: #4a5568;">${escapeHtml(tmpl.descricao)}</p>
+        <div style="margin-top: 8px; font-size: 12px; color: #a0aec0;">
+            <i class="fas fa-chart-line"></i> Usado ${tmpl.total_usos || 0} vez(es)
+        </div>
+    </div>
+`).join('');
     } catch (error) {
         console.error('Erro:', error);
         document.getElementById('templatesList').innerHTML = '<div class="empty-state">Erro ao carregar templates.</div>';
     }
 }
 
-async function abrirModalTemplate(template = null) {
+function abrirModalTemplate(template = null) {
     const modal = document.getElementById('modalTemplate');
     const tituloModal = document.getElementById('modalTemplateTitulo');
     const idInput = document.getElementById('templateId');
@@ -1831,20 +2563,30 @@ async function abrirModalTemplate(template = null) {
     const camposTextarea = document.getElementById('templateCampos');
     const recomendadoCheck = document.getElementById('templateRecomendado');
     
-    if (template) {
+    // Carregar categorias dinamicamente
+    carregarCategoriasParaTemplate();
+    
+    if (template && template.id) {
         tituloModal.textContent = 'Editar Template';
         idInput.value = template.id;
-        tituloInput.value = template.titulo;
+        tituloInput.value = template.titulo || '';
         descricaoInput.value = template.descricao || '';
-        categoriaSelect.value = template.categoria;
-        camposTextarea.value = JSON.stringify(template.campos_json, null, 2);
-        recomendadoCheck.checked = template.recomendado;
+        
+        // Aguardar um pouco para as categorias carregarem antes de selecionar
+        setTimeout(() => {
+            if (categoriaSelect) {
+                categoriaSelect.value = template.categoria || '';
+            }
+        }, 100);
+        
+        camposTextarea.value = template.campos_json ? JSON.stringify(template.campos_json, null, 2) : '';
+        recomendadoCheck.checked = template.recomendado || false;
     } else {
         tituloModal.textContent = 'Novo Template';
         idInput.value = '';
         tituloInput.value = '';
         descricaoInput.value = '';
-        categoriaSelect.value = '';
+        if (categoriaSelect) categoriaSelect.value = '';
         camposTextarea.value = '';
         recomendadoCheck.checked = false;
     }
@@ -1852,8 +2594,24 @@ async function abrirModalTemplate(template = null) {
 }
 
 async function editarTemplate(id) {
-    if (!usuarioLogado) return;
-    const adminId = usuarioLogado.id;
+    // ✅ USAR sessionStorage
+    const userSalvo = sessionStorage.getItem('ideaHubUser');
+    
+    if (!userSalvo) {
+        alert('Faça login novamente');
+        return;
+    }
+    
+    let usuario;
+    try {
+        usuario = JSON.parse(userSalvo);
+    } catch(e) {
+        alert('Sessão inválida. Faça login novamente.');
+        return;
+    }
+    
+    const adminId = usuario.id;
+    
     try {
         const response = await fetch(`/admin/templates/${id}?adminId=${adminId}`);
         if (!response.ok) throw new Error('Template não encontrado');
@@ -1866,32 +2624,67 @@ async function editarTemplate(id) {
 }
 
 async function excluirTemplate(id) {
-    if (!usuarioLogado) return;
-    if (!confirm('Excluir este template permanentemente?')) return;
+    // ✅ USAR sessionStorage
+    const userSalvo = sessionStorage.getItem('ideaHubUser');
+    
+    if (!userSalvo) {
+        alert('Faça login novamente');
+        return;
+    }
+    
+    let usuario;
+    try {
+        usuario = JSON.parse(userSalvo);
+    } catch(e) {
+        alert('Sessão inválida. Faça login novamente.');
+        return;
+    }
+    
+    if (!confirm('⚠️ Excluir este template permanentemente? Esta ação não pode ser desfeita.')) return;
+    
     showLoading(true);
     try {
         const response = await fetch(`/admin/templates/${id}`, {
             method: 'DELETE',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ adminId: usuarioLogado.id })
+            body: JSON.stringify({ adminId: usuario.id })
         });
         const data = await response.json();
+        
         if (data.sucesso) {
-            alert('Template excluído!');
-            carregarTemplates();
+            alert('✅ Template excluído com sucesso!');
+            carregarTemplates(); // Recarregar a lista
         } else {
-            alert(data.erro);
+            alert(data.erro || 'Erro ao excluir template');
         }
     } catch (error) {
-        alert('Erro ao excluir');
+        console.error('Erro:', error);
+        alert('Erro de conexão ao excluir template');
     } finally {
         showLoading(false);
     }
 }
 
 // Formulário de template
+// Formulário de template (já deve estar ok, mas vamos garantir)
 document.getElementById('formTemplate')?.addEventListener('submit', async (e) => {
     e.preventDefault();
+    
+    // ✅ USAR sessionStorage
+    const userSalvo = sessionStorage.getItem('ideaHubUser');
+    
+    if (!userSalvo) {
+        alert('Faça login novamente');
+        return;
+    }
+    
+    let usuario;
+    try {
+        usuario = JSON.parse(userSalvo);
+    } catch(e) {
+        alert('Sessão inválida. Faça login novamente.');
+        return;
+    }
     
     const id = document.getElementById('templateId').value;
     const titulo = document.getElementById('templateTitulo').value;
@@ -1910,7 +2703,7 @@ document.getElementById('formTemplate')?.addEventListener('submit', async (e) =>
         camposJson = camposJsonStr ? JSON.parse(camposJsonStr) : [];
         if (!Array.isArray(camposJson)) throw new Error();
     } catch (error) {
-        alert('JSON dos campos está inválido. Use o formato correto.');
+        alert('❌ JSON dos campos está inválido. Use o formato correto.\n\nExemplo: [{"nome":"Problema","placeholder":"Descreva..."}]');
         return;
     }
     
@@ -1922,68 +2715,166 @@ document.getElementById('formTemplate')?.addEventListener('submit', async (e) =>
             method,
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                titulo, descricao, categoria, campos_json: camposJson, recomendado,
-                adminId: usuarioLogado.id
+                titulo,
+                descricao,
+                categoria,
+                campos_json: camposJson,
+                recomendado,
+                adminId: usuario.id
             })
         });
         const data = await response.json();
+        
         if (data.sucesso) {
-            alert(id ? 'Template atualizado!' : 'Template criado!');
+            alert(id ? '✅ Template atualizado com sucesso!' : '✅ Template criado com sucesso!');
             fecharModal('modalTemplate');
-            carregarTemplates();
+            carregarTemplates(); // Recarregar a lista
         } else {
-            alert(data.erro);
+            alert(data.erro || 'Erro ao salvar template');
         }
     } catch (error) {
-        alert('Erro ao salvar template');
+        console.error('Erro:', error);
+        alert('Erro de conexão ao salvar template');
     } finally {
         showLoading(false);
     }
 });
 
-        async function alterarCargo(usuarioId, novoCargo) {
-            showLoading(true);
-            try {
-                const response = await fetch(`/admin/usuarios/${usuarioId}/cargo`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ cargo: novoCargo, adminId: usuarioLogado.id })
-                });
-                const data = await response.json();
-                if (data.sucesso) {
-                    alert('Cargo atualizado!');
-                    carregarUsuarios();
-                } else {
-                    alert(data.erro);
-                }
-            } catch (error) {
-                alert('Erro ao alterar cargo');
-            } finally {
-                showLoading(false);
-            }
+// Função para carregar categorias do banco de dados
+async function carregarCategoriasParaTemplate() {
+    try {
+        const response = await fetch('/categorias');
+        const categorias = await response.json();
+        
+        const selectCategoria = document.getElementById('templateCategoria');
+        if (selectCategoria) {
+            selectCategoria.innerHTML = '<option value="">🔽 Selecione uma categoria</option>';
+            categorias.forEach(cat => {
+                const option = document.createElement('option');
+                option.value = cat.nome; // Usando o nome da categoria
+                option.textContent = `${cat.icone || '📁'} ${cat.nome}`;
+                selectCategoria.appendChild(option);
+            });
         }
+    } catch (error) {
+        console.error('Erro ao carregar categorias:', error);
+    }
+}
+
+        async function alterarCargo(usuarioId, novoCargo) {
+    // Usar sessionStorage
+    const userSalvo = sessionStorage.getItem('ideaHubUser');
+    if (!userSalvo) {
+        alert('Faça login novamente');
+        return;
+    }
+    
+    let usuario;
+    try {
+        usuario = JSON.parse(userSalvo);
+    } catch(e) {
+        alert('Sessão inválida');
+        return;
+    }
+    
+    showLoading(true);
+    try {
+        const response = await fetch(`/admin/usuarios/${usuarioId}/cargo`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ cargo: novoCargo, adminId: usuario.id })
+        });
+        const data = await response.json();
+        
+        if (data.sucesso) {
+            alert('✅ Cargo atualizado com sucesso!');
+            carregarUsuarios(); // Recarregar a tabela
+        } else {
+            alert(data.erro || 'Erro ao alterar cargo');
+        }
+    } catch (error) {
+        console.error('Erro:', error);
+        alert('Erro de conexão ao alterar cargo');
+    } finally {
+        showLoading(false);
+    }
+}
         
         async function toggleUsuarioStatus(usuarioId, ativar) {
-            showLoading(true);
-            try {
-                const response = await fetch(`/admin/usuarios/${usuarioId}/ativar`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ ativo: ativar, adminId: usuarioLogado.id })
-                });
-                const data = await response.json();
-                if (data.sucesso) {
-                    alert(data.mensagem);
-                    carregarUsuarios();
-                } else {
-                    alert(data.erro);
-                }
-            } catch (error) {
-                alert('Erro ao alterar status');
-            } finally {
-                showLoading(false);
-            }
+    // Usar sessionStorage
+    const userSalvo = sessionStorage.getItem('ideaHubUser');
+    if (!userSalvo) {
+        alert('Faça login novamente');
+        return;
+    }
+    
+    let usuario;
+    try {
+        usuario = JSON.parse(userSalvo);
+    } catch(e) {
+        alert('Sessão inválida');
+        return;
+    }
+    
+    const acaoTexto = ativar ? 'ativar' : 'desativar';
+    if (!confirm(`⚠️ Tem certeza que deseja ${ativar ? 'ATIVAR' : 'DESATIVAR'} este usuário?`)) return;
+    
+    showLoading(true);
+    try {
+        const response = await fetch(`/admin/usuarios/${usuarioId}/ativar`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ativo: ativar, adminId: usuario.id })
+        });
+        const data = await response.json();
+        
+        if (data.sucesso) {
+            alert(`✅ Usuário ${ativar ? 'ativado' : 'desativado'} com sucesso!`);
+            carregarUsuarios(); // Recarregar a tabela
+        } else {
+            alert(data.erro || `Erro ao ${ativar ? 'ativar' : 'desativar'} usuário`);
         }
+    } catch (error) {
+        console.error('Erro:', error);
+        alert('Erro de conexão');
+    } finally {
+        showLoading(false);
+    }
+}
+
+function filtrarUsuarios() {
+    const inputBusca = document.getElementById('buscaUsuarioGestao');
+    filtroUsuarioNome = inputBusca ? inputBusca.value : '';
+    filtroUsuarioCargo = document.getElementById('filtroUsuarioCargo')?.value || 'todos';
+    filtroUsuarioStatus = document.getElementById('filtroUsuarioStatus')?.value || 'todos';
+    carregarUsuarios();
+}
+
+function limparFiltrosUsuarios() {
+    const inputBusca = document.getElementById('buscaUsuarioGestao');
+    if (inputBusca) {
+        inputBusca.value = '';
+        inputBusca.removeAttribute('data-usuario-id');
+    }
+    
+    const selectCargo = document.getElementById('filtroUsuarioCargo');
+    if (selectCargo) selectCargo.value = 'todos';
+    
+    const selectStatus = document.getElementById('filtroUsuarioStatus');
+    if (selectStatus) selectStatus.value = 'todos';
+    
+    const sugestoesDiv = document.getElementById('sugestoesUsuarioGestao');
+    if (sugestoesDiv) {
+        sugestoesDiv.classList.remove('show');
+        sugestoesDiv.innerHTML = '';
+    }
+    
+    filtroUsuarioNome = '';
+    filtroUsuarioCargo = 'todos';
+    filtroUsuarioStatus = 'todos';
+    
+    carregarUsuarios();
+}
 
 // ==========================================
 // US13 - MÉTRICAS E LOGS
@@ -2012,9 +2903,17 @@ async function carregarMetricas() {
     }
 }
 
-async function carregarLogs() {
+// Adicione estas variáveis no início do script
+let intervaloLogs = null;
+let ultimoLogId = 0;
+
+// Função para carregar apenas logs novos (polling)
+async function carregarLogsNovos() {
+    // Verificar se o usuário está logado
+    const userSalvo = sessionStorage.getItem('ideaHubUser');
+    if (!userSalvo) return;
     
-    const buscaUsuario = document.getElementById('buscaUsuario');
+    const buscaUsuario = document.getElementById('buscaLogs');
     const buscaNome = buscaUsuario ? buscaUsuario.value : '';
     const usuarioId = buscaUsuario ? buscaUsuario.getAttribute('data-usuario-id') : '';
     const acaoSelect = document.getElementById('filtroAcao');
@@ -2022,7 +2921,13 @@ async function carregarLogs() {
     const dataInicio = document.getElementById('filtroDataInicio')?.value || '';
     const dataFim = document.getElementById('filtroDataFim')?.value || '';
     
-    let url = '/admin/logs?limit=100';
+    // ✅ SÓ BUSCAR SE TIVER ÚLTIMO ID REGISTRADO
+    if (!ultimoLogId || ultimoLogId === 0) {
+        console.log('⚠️ Nenhum log ID registrado, aguardando...');
+        return;
+    }
+    
+    let url = `/admin/logs?limit=20&ultimoId=${ultimoLogId}`;
     
     if (usuarioId && usuarioId !== 'null' && usuarioId !== '') {
         url += `&usuarioId=${usuarioId}`;
@@ -2040,87 +2945,307 @@ async function carregarLogs() {
         const response = await fetch(url);
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         
+        const novosLogs = await response.json();
+        
+        if (novosLogs && novosLogs.length > 0) {
+            console.log(`📋 ${novosLogs.length} novos logs detectados`);
+            
+            // ✅ ATUALIZAR O ÚLTIMO ID (pegar o maior ID dos novos logs)
+            const maiorId = Math.max(...novosLogs.map(l => l.id), ultimoLogId);
+            ultimoLogId = maiorId;
+            
+            // Adicionar novos logs no topo da tabela
+            adicionarLogsNoTopo(novosLogs);
+            
+            // Mostrar notificação visual (apenas para não atrapalhar)
+            if (typeof mostrarToastLogs === 'function') {
+                mostrarToastLogs(novosLogs.length);
+            }
+        }
+    } catch (error) {
+        console.error('Erro ao buscar novos logs:', error);
+    }
+}
+
+// Função para adicionar logs no topo da tabela
+function adicionarLogsNoTopo(novosLogs) {
+    const tbody = document.getElementById('logsList');
+    if (!tbody) return;
+    
+    // ✅ VERIFICAR SE JÁ EXISTEM LOGS NA PÁGINA ATUAL
+    const linhasExistentes = tbody.querySelectorAll('tr');
+    
+    // Se não houver logs ou a tabela estiver vazia, apenas renderizar
+    if (linhasExistentes.length === 0 || linhasExistentes[0].innerHTML.includes('Nenhum log encontrado')) {
+        carregarLogs(logsPaginaAtual);
+        return;
+    }
+    
+    // Filtrar apenas logs que ainda não estão na tabela (evitar duplicação)
+    const idsExistentes = [];
+    for (let i = 0; i < linhasExistentes.length; i++) {
+        const linha = linhasExistentes[i];
+        const idAttr = linha.getAttribute('data-log-id');
+        if (idAttr) idsExistentes.push(parseInt(idAttr));
+    }
+    
+    const logsNaoDuplicados = novosLogs.filter(log => !idsExistentes.includes(log.id));
+    
+    if (logsNaoDuplicados.length === 0) return;
+    
+    // Inverter a ordem para mostrar do mais recente primeiro
+    const logsHtml = logsNaoDuplicados.map(log => `
+        <tr data-log-id="${log.id}">
+            <td style="white-space: nowrap;">${formatarData(log.data_acao)}</td>
+            <td><strong>${escapeHtml(log.usuario_nome || 'Sistema')}</strong></td>
+            <td><span class="acao-badge ${getAcaoClass(log.acao)}">${getAcaoTexto(log.acao)}</span></td>
+            <td style="max-width: 400px; word-wrap: break-word;">${escapeHtml(log.descricao || '-')}</td>
+        </tr>
+    `).join('');
+    
+    // Adicionar no topo
+    tbody.innerHTML = logsHtml + tbody.innerHTML;
+    
+    // Destacar os novos logs
+    const primeirasLinhas = tbody.querySelectorAll('tr');
+    for (let i = 0; i < logsNaoDuplicados.length && i < primeirasLinhas.length; i++) {
+        primeirasLinhas[i].style.backgroundColor = '#e8f4f8';
+        primeirasLinhas[i].style.transition = 'background-color 0.5s';
+        setTimeout(() => {
+            if (primeirasLinhas[i]) {
+                primeirasLinhas[i].style.backgroundColor = '';
+            }
+        }, 2000);
+    }
+    
+    // ✅ ATUALIZAR TOTAL DE ITENS E PAGINAÇÃO
+    logsTotalItens += logsNaoDuplicados.length;
+    if (typeof renderizarPaginacao === 'function') {
+        renderizarPaginacao('paginacaoLogs', logsPaginaAtual, logsTotalItens, 'carregarLogs');
+    }
+}
+
+// Função para mostrar toast de novos logs
+function mostrarToastLogs(quantidade) {
+    const toast = document.createElement('div');
+    toast.className = 'toast-notificacao';
+    toast.innerHTML = `
+        <div class="toast-icon">
+            <i class="fas fa-history"></i>
+        </div>
+        <div class="toast-content">
+            <div class="toast-titulo">📋 Novos Logs</div>
+            <div class="toast-mensagem">${quantidade} nova(s) atividade(s) registrada(s)</div>
+        </div>
+        <button class="toast-close" onclick="this.parentElement.remove()">×</button>
+    `;
+    
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+        if (toast.parentElement) toast.remove();
+    }, 4000);
+}
+
+// Iniciar polling de logs (buscar a cada 10 segundos)
+function iniciarPollingLogs() {
+    if (intervaloLogs) clearInterval(intervaloLogs);
+    
+    // ✅ NÃO BUSCAR IMEDIATAMENTE NA INICIALIZAÇÃO
+    // Aguardar 5 segundos antes de começar o polling
+    
+    setTimeout(() => {
+        // Buscar apenas se já tiver logs carregados
+        if (ultimoLogId > 0) {
+            carregarLogsNovos();
+        }
+    }, 5000);
+    
+    // Depois a cada 30 segundos (intervalo maior)
+    intervaloLogs = setInterval(() => {
+        if (ultimoLogId > 0 && document.getElementById('logsList')) {
+            carregarLogsNovos();
+        }
+    }, 30000); // 30 segundos
+}
+
+// Parar polling de logs
+function pararPollingLogs() {
+    if (intervaloLogs) {
+        clearInterval(intervaloLogs);
+        intervaloLogs = null;
+    }
+}
+
+// Função para forçar recarregamento completo
+function recarregarLogs() {
+    carregarLogs();
+    ultimoLogId = 0;
+}
+
+async function carregarLogs(pagina = 1) {
+    console.log('🔍 carregarLogs chamado, página:', pagina);
+    
+    // Aguardar um pequeno delay para garantir que o DOM está pronto
+    await new Promise(resolve => setTimeout(resolve, 100));
+    
+    const tbody = document.getElementById('logsList');
+    if (!tbody) {
+        console.error('❌ Elemento logsList não encontrado!');
+        setTimeout(() => carregarLogs(pagina), 500);
+        return;
+    }
+    
+    const buscaLogsInput = document.getElementById('buscaLogs');
+    const filtroAcaoSelect = document.getElementById('filtroAcao');
+    const dataInicioInput = document.getElementById('filtroDataInicio');
+    const dataFimInput = document.getElementById('filtroDataFim');
+    
+    const buscaNome = buscaLogsInput ? buscaLogsInput.value : '';
+    const usuarioId = buscaLogsInput ? buscaLogsInput.getAttribute('data-usuario-id') : '';
+    const acao = filtroAcaoSelect ? filtroAcaoSelect.value : 'todos';
+    const dataInicio = dataInicioInput ? dataInicioInput.value : '';
+    const dataFim = dataFimInput ? dataFimInput.value : '';
+    
+    let url = '/admin/logs?limit=1000';
+    
+    if (usuarioId && usuarioId !== 'null' && usuarioId !== '') {
+        url += `&usuarioId=${usuarioId}`;
+    } else if (buscaNome && buscaNome.trim() !== '') {
+        url += `&buscaUsuario=${encodeURIComponent(buscaNome)}`;
+    }
+    
+    if (acao && acao !== 'todos') {
+        url += `&acao=${acao}`;
+    }
+    if (dataInicio) url += `&dataInicio=${dataInicio}`;
+    if (dataFim) url += `&dataFim=${dataFim}`;
+    
+    console.log('📡 URL:', url);
+    
+    try {
+        showLoading(true);
+        
+        const response = await fetch(url);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        
         const logs = await response.json();
-        const tbody = document.getElementById('logsList');
+        console.log(`📊 Logs recebidos: ${logs.length}`);
         
-        if (!tbody) {
-            console.error('Elemento logsList não encontrado');
+        // ✅ ATUALIZAR O ÚLTIMO ID (pegar o maior ID de todos os logs)
+        if (logs && logs.length > 0) {
+            ultimoLogId = Math.max(...logs.map(l => l.id));
+            console.log(`✅ Último log ID registrado: ${ultimoLogId}`);
+        } else {
+            ultimoLogId = 0;
+        }
+        
+        logsCache = logs;
+        logsTotalItens = logs.length;
+        logsPaginaAtual = pagina;
+        
+        const start = (pagina - 1) * ITENS_POR_PAGINA;
+        const end = start + ITENS_POR_PAGINA;
+        const logsPaginados = logs.slice(start, end);
+        
+        if (!logsPaginados || logsPaginados.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 40px;"><i class="fas fa-inbox" style="font-size: 48px; color: #cbd5e0; display: block; margin-bottom: 10px;"></i>📭 Nenhum log encontrado</td></tr>';
+            if (typeof renderizarPaginacao === 'function') {
+                renderizarPaginacao('paginacaoLogs', pagina, logsTotalItens, 'carregarLogs');
+            }
+            showLoading(false);
             return;
         }
         
-        // CORREÇÃO: Verificar se não há logs
-        if (!logs || logs.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 40px;">📭 Nenhum log encontrado</td></tr>';
-            return;
+        // Montar tabela
+        let html = '';
+        for (let i = 0; i < logsPaginados.length; i++) {
+            const log = logsPaginados[i];
+            html += `
+                <tr>
+                    <td style="white-space: nowrap;">${formatarData(log.data_acao)}</td>
+                    <td><strong>${escapeHtml(log.usuario_nome || 'Sistema')}</strong></td>
+                    <td><span class="acao-badge ${getAcaoClass(log.acao)}">${getAcaoTexto(log.acao)}</span></td>
+                    <td style="max-width: 400px; word-wrap: break-word;">${escapeHtml(log.descricao || '-')}</td>
+                </tr>
+            `;
         }
         
-        // Montar tabela com os logs
-        tbody.innerHTML = logs.map(log => `
-            <tr>
-                <td style="white-space: nowrap;">${formatarData(log.data_acao)}</td>
-                <td><strong>${escapeHtml(log.usuario_nome || 'Sistema')}</strong></td>
-                <td><span class="acao-badge ${getAcaoClass(log.acao)}">${getAcaoTexto(log.acao)}</span></td>
-                <td style="max-width: 400px; word-wrap: break-word;">${escapeHtml(log.descricao || '-')}</td>
-            </tr>
-        `).join('');
+        tbody.innerHTML = html;
+        
+        if (typeof renderizarPaginacao === 'function') {
+            renderizarPaginacao('paginacaoLogs', pagina, logsTotalItens, 'carregarLogs');
+        }
         
     } catch (error) {
         console.error('❌ Erro ao carregar logs:', error);
-        const tbody = document.getElementById('logsList');
         if (tbody) {
-            tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #dc3545; padding: 40px;">❌ Erro ao carregar logs: ' + error.message + '</td></tr>';
+            tbody.innerHTML = `发展<td colspan="5" style="text-align: center; color: #dc3545; padding: 40px;">❌ Erro ao carregar logs: ${error.message}</td></tr>`;
         }
+    } finally {
+        showLoading(false);
     }
 }
 
 function limparFiltrosLogs() {
+    console.log('🔧 Limpando filtros de logs');
     
-    // Limpar campo de busca
-    const buscaUsuario = document.getElementById('buscaUsuario');
-    if (buscaUsuario) {
-        buscaUsuario.value = '';
-        buscaUsuario.removeAttribute('data-usuario-id');
+    // ✅ Usar o ID correto do input
+    const inputBusca = document.getElementById('buscaLogs');
+    if (inputBusca) {
+        inputBusca.value = '';
+        inputBusca.removeAttribute('data-usuario-id');
     }
     
-    // Limpar filtro de ação
     const filtroAcao = document.getElementById('filtroAcao');
     if (filtroAcao) filtroAcao.value = 'todos';
     
-    // Limpar datas
     const dataInicio = document.getElementById('filtroDataInicio');
     const dataFim = document.getElementById('filtroDataFim');
     if (dataInicio) dataInicio.value = '';
     if (dataFim) dataFim.value = '';
     
     // Limpar sugestões
-    const sugestoes = document.getElementById('sugestoesList');
-    if (sugestoes) {
-        sugestoes.innerHTML = '';
-        sugestoes.classList.remove('show');
+    const sugestoesDiv = document.getElementById('sugestoesLogs');
+    if (sugestoesDiv) {
+        sugestoesDiv.innerHTML = '';
+        sugestoesDiv.classList.remove('show');
     }
     
     // Recarregar logs
     carregarLogs();
 }
 
-async function carregarUsuariosInativos() {
+async function carregarUsuariosInativos(pagina = 1) {
     try {
         const response = await fetch('/admin/usuarios/inativos');
         const usuarios = await response.json();
         
+        inativosCache = usuarios;
+        inativosTotalItens = usuarios.length;
+        inativosPaginaAtual = pagina;
+        
+        const start = (pagina - 1) * ITENS_POR_PAGINA;
+        const end = start + ITENS_POR_PAGINA;
+        const usuariosPaginados = usuarios.slice(start, end);
+        
         const container = document.getElementById('inativosList');
-        if (!usuarios || usuarios.length === 0) {
+        
+        if (usuariosPaginados.length === 0) {
             container.innerHTML = '<p>✅ Nenhum usuário inativo no momento.</p>';
+            renderizarPaginacao('paginacaoInativos', pagina, inativosTotalItens, 'carregarUsuariosInativos');
             return;
         }
         
         container.innerHTML = `
             <table class="logs-table">
-                <thead><tr><th>Usuário</th><th>Email</th><th>Cargo</th><th>Último Acesso</th><th>Ideias</th></tr></thead>
+                <thead>
+                    <tr><th>Usuário</th><th>Email</th><th>Cargo</th><th>Último Acesso</th><th>Ideias</th></tr>
+                </thead>
                 <tbody>
-                    ${usuarios.map(user => `
+                    ${usuariosPaginados.map(user => `
                         <tr>
-                            <td>${escapeHtml(user.nome)}</td>
+                            <td><a href="../pages/perfil.html?id=${user.id}" target="_blank" style="color: #667eea;">${escapeHtml(user.nome)}</a></td>
                             <td>${escapeHtml(user.email)}</td>
                             <td>${escapeHtml(user.cargo)}</td>
                             <td>${user.ultimo_acesso ? formatarData(user.ultimo_acesso) : 'Nunca acessou'}</td>
@@ -2130,6 +3255,9 @@ async function carregarUsuariosInativos() {
                 </tbody>
             </table>
         `;
+        
+        renderizarPaginacao('paginacaoInativos', pagina, inativosTotalItens, 'carregarUsuariosInativos');
+        
     } catch (error) {
         console.error('Erro:', error);
         document.getElementById('inativosList').innerHTML = '<p>Erro ao carregar usuários inativos</p>';
@@ -2162,67 +3290,6 @@ function exportarLogs() {
     url += params.join('&');
     
     window.open(url, '_blank');
-}
-
-// ==========================================
-// AUTOCOMPLETE - SUGESTÕES DE USUÁRIOS
-// ==========================================
-
-let timeoutSugestoes = null;
-
-async function buscarSugestoes(query) {
-    if (!query || query.trim() === '') {
-        const sugestoesDiv = document.getElementById('sugestoesList');
-        sugestoesDiv.classList.remove('show');
-        sugestoesDiv.innerHTML = '';
-        return;
-    }
-    
-    try {
-        const response = await fetch(`/admin/usuarios/sugestoes?q=${encodeURIComponent(query)}`);
-        const usuarios = await response.json();
-        
-        const sugestoesDiv = document.getElementById('sugestoesList');
-        
-        if (usuarios.length === 0) {
-            sugestoesDiv.innerHTML = '<div class="sugestao-item" style="color: #999;">Nenhum usuário encontrado</div>';
-            sugestoesDiv.classList.add('show');
-            return;
-        }
-        
-        let html = '';
-        for (let i = 0; i < usuarios.length; i++) {
-            const user = usuarios[i];
-            const cargoTexto = getCargoTextoSimples(user.cargo);
-            html += `
-                <div class="sugestao-item" onclick="selecionarUsuario('${escapeHtml(user.nome)}', ${user.id})">
-                    <span class="sugestao-nome">${escapeHtml(user.nome)}</span>
-                    <span class="sugestao-email">${escapeHtml(user.email)}</span>
-                    <span class="sugestao-cargo">${cargoTexto}</span>
-                </div>
-            `;
-        }
-        
-        sugestoesDiv.innerHTML = html;
-        sugestoesDiv.classList.add('show');
-        
-    } catch (error) {
-        console.error('Erro ao buscar sugestões:', error);
-    }
-}
-
-function selecionarUsuario(nome, id) {
-    const inputBusca = document.getElementById('buscaUsuario');
-    inputBusca.value = nome;
-    inputBusca.setAttribute('data-usuario-id', id);
-    
-    // Esconder sugestões
-    const sugestoesDiv = document.getElementById('sugestoesList');
-    sugestoesDiv.classList.remove('show');
-    sugestoesDiv.innerHTML = '';
-    
-    // Carregar logs automaticamente
-    carregarLogs();
 }
 
 function getCargoTextoSimples(cargo) {
@@ -2358,7 +3425,6 @@ function atualizarGraficoPeriodo(dados) {
 }
 
 function atualizarGraficoCategorias(dados) {
-    
     const canvas = document.getElementById('graficoCategorias');
     if (!canvas) {
         console.error('Elemento graficoCategorias não encontrado');
@@ -2370,20 +3436,22 @@ function atualizarGraficoCategorias(dados) {
     
     const ctx = canvas.getContext('2d');
     
+    // Destruir gráfico anterior se existir
     if (graficoCategorias) {
         graficoCategorias.destroy();
     }
     
     if (!dados || dados.length === 0) {
+        console.warn('Sem dados para o gráfico de categorias');
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.font = '14px Arial';
         ctx.fillStyle = '#999';
         ctx.textAlign = 'center';
-        ctx.fillText('Sem dados disponíveis', canvas.width / 2, canvas.height / 2);
+        ctx.fillText('Sem dados disponíveis no período selecionado', canvas.width / 2, canvas.height / 2);
         return;
     }
     
-    // ========== CORES EXCLUSIVAS POR CATEGORIA ==========
+    // Cores para cada categoria (fixas para consistência)
     const coresPorCategoria = {
         'Tecnologia e Inovação': '#667eea',
         'Gestão e Administração': '#764ba2',
@@ -2421,20 +3489,32 @@ function atualizarGraficoCategorias(dados) {
         total: typeof c.total === 'number' ? c.total : parseInt(c.total) || 0
     }));
     
-    // Calcular total
-    const total = dadosNumericos.reduce((sum, c) => sum + c.total, 0);
+    // Filtrar categorias com total > 0 (opcional)
+    const dadosFiltrados = dadosNumericos.filter(c => c.total > 0);
+    
+    if (dadosFiltrados.length === 0) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.font = '14px Arial';
+        ctx.fillStyle = '#999';
+        ctx.textAlign = 'center';
+        ctx.fillText('Nenhuma ideia nesta categoria no período', canvas.width / 2, canvas.height / 2);
+        return;
+    }
     
     // Gerar cores na ordem correta
-    const cores = dadosNumericos.map(categoria => {
+    const cores = dadosFiltrados.map(categoria => {
         return coresPorCategoria[categoria.nome] || `hsl(${Math.random() * 360}, 70%, 60%)`;
     });
+    
+    // Calcular total para porcentagens
+    const total = dadosFiltrados.reduce((sum, c) => sum + c.total, 0);
     
     graficoCategorias = new Chart(ctx, {
         type: 'pie',
         data: {
-            labels: dadosNumericos.map(c => `${iconesPorCategoria[c.nome] || '📁'} ${c.nome}`),
+            labels: dadosFiltrados.map(c => `${iconesPorCategoria[c.nome] || '📁'} ${c.nome}`),
             datasets: [{
-                data: dadosNumericos.map(c => c.total),
+                data: dadosFiltrados.map(c => c.total),
                 backgroundColor: cores,
                 borderWidth: 2,
                 borderColor: '#ffffff'
@@ -2448,7 +3528,7 @@ function atualizarGraficoCategorias(dados) {
                     position: 'right',
                     labels: { 
                         font: { size: 11 },
-                        // Função para gerar legendas com porcentagem
+                        // Gerar legendas com porcentagem
                         generateLabels: function(chart) {
                             const data = chart.data;
                             const dataset = data.datasets[0];
@@ -2483,6 +3563,7 @@ function atualizarGraficoCategorias(dados) {
         }
     });
     
+    console.log(`✅ Gráfico de categorias atualizado com ${dadosFiltrados.length} categorias (total: ${total} ideias)`);
 }
 
 function criarLegendaPersonalizada(dados, total) {
@@ -2619,34 +3700,52 @@ function atualizarGraficoStatus(dados) {
     });
     
 }
-// Carregar Dashboard
+// ==========================================
+// CARREGAR DASHBOARD DE INOVAÇÃO (COM DEBUG)
+// ==========================================
 async function carregarDashboardInovacao() {
     showLoading(true);
     
     const periodo = document.getElementById('periodoDashboard')?.value || 'todos';
+    console.log('📊 Carregando dashboard com período:', periodo);
     
     try {
-        const response = await fetch(`/admin/dashboard/inovacao?periodo=${periodo}`);
+        const url = `/admin/dashboard/inovacao?periodo=${periodo}`;
+        console.log('🔍 Fazendo requisição para:', url);
+        
+        const response = await fetch(url);
+        
+        console.log('📡 Status da resposta:', response.status);
         
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         
         const data = await response.json();
+        console.log('✅ Dados recebidos:', data);
+        console.log('📊 Categorias recebidas:', data.ideiasPorCategoria);
         
         // Atualizar cards
-        document.getElementById('totalIdeias').textContent = data.totalIdeias;
-        document.getElementById('totalUsuarios').textContent = data.totalUsuarios;
-        document.getElementById('ideiasAprovadas').textContent = data.ideiasAprovadas;
-        document.getElementById('ideiasConvertidas').textContent = data.ideiasConvertidas;
-        document.getElementById('ideiasPendentes').textContent = data.ideiasPendentes;
-        document.getElementById('taxaConversao').textContent = `${data.taxaConversao}%`;
+        const totalIdeiasEl = document.getElementById('totalIdeias');
+        const totalUsuariosEl = document.getElementById('totalUsuarios');
+        const ideiasAprovadasEl = document.getElementById('ideiasAprovadas');
+        const ideiasConvertidasEl = document.getElementById('ideiasConvertidas');
+        const ideiasPendentesEl = document.getElementById('ideiasPendentes');
+        const taxaConversaoEl = document.getElementById('taxaConversao');
         
-        // ATUALIZAR GRÁFICOS
+        if (totalIdeiasEl) totalIdeiasEl.textContent = data.totalIdeias || 0;
+        if (totalUsuariosEl) totalUsuariosEl.textContent = data.totalUsuarios || 0;
+        if (ideiasAprovadasEl) ideiasAprovadasEl.textContent = data.ideiasAprovadas || 0;
+        if (ideiasConvertidasEl) ideiasConvertidasEl.textContent = data.ideiasConvertidas || 0;
+        if (ideiasPendentesEl) ideiasPendentesEl.textContent = data.ideiasPendentes || 0;
+        if (taxaConversaoEl) taxaConversaoEl.textContent = `${data.taxaConversao || 0}%`;
+        
+        // ATUALIZAR GRÁFICO DE PERÍODO (LINHA)
         if (data.ideiasPorPeriodo && data.ideiasPorPeriodo.length > 0) {
+            console.log('📈 Atualizando gráfico de período com', data.ideiasPorPeriodo.length, 'pontos');
             atualizarGraficoPeriodo(data.ideiasPorPeriodo);
         } else {
-            // Mostrar mensagem no canvas
+            console.warn('⚠️ Nenhum dado para gráfico de período');
             const canvas = document.getElementById('graficoPeriodo');
             if (canvas) {
                 const ctx = canvas.getContext('2d');
@@ -2657,10 +3756,24 @@ async function carregarDashboardInovacao() {
             }
         }
         
+        // ATUALIZAR GRÁFICO DE PIZZA (CATEGORIAS)
         if (data.ideiasPorCategoria && data.ideiasPorCategoria.length > 0) {
+            console.log('🥧 Atualizando gráfico de categorias com', data.ideiasPorCategoria.length, 'categorias');
             atualizarGraficoCategorias(data.ideiasPorCategoria);
+        } else {
+            console.warn('⚠️ Nenhum dado para gráfico de categorias');
+            const canvas = document.getElementById('graficoCategorias');
+            if (canvas) {
+                const ctx = canvas.getContext('2d');
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.font = '14px Arial';
+                ctx.fillStyle = '#999';
+                ctx.textAlign = 'center';
+                ctx.fillText('Nenhuma categoria no período selecionado', canvas.width / 2, canvas.height / 2);
+            }
         }
         
+        // ATUALIZAR GRÁFICO DE STATUS
         if (data.ideiasPorStatus && data.ideiasPorStatus.length > 0) {
             atualizarGraficoStatus(data.ideiasPorStatus);
         }
@@ -2695,7 +3808,7 @@ async function carregarDashboardInovacao() {
         
     } catch (error) {
         console.error('❌ Erro ao carregar dashboard:', error);
-        showMessage('Erro ao carregar dashboard de inovação', 'error');
+        showMessage('Erro ao carregar dashboard de inovação: ' + error.message, 'error');
     } finally {
         showLoading(false);
     }
@@ -2704,11 +3817,20 @@ async function carregarDashboardInovacao() {
 function iniciarPollingDashboard() {
     if (intervaloDashboard) clearInterval(intervaloDashboard);
     
+    // Atualizar a cada 30 segundos
     intervaloDashboard = setInterval(() => {
         if (document.getElementById('periodoDashboard')) {
+            console.log('🔄 Atualizando dashboard automaticamente...');
             carregarDashboardInovacao();
         }
-    }, 60000); // 60 segundos
+    }, 30000); // 30 segundos
+}
+
+function pararPollingDashboard() {
+    if (intervaloDashboard) {
+        clearInterval(intervaloDashboard);
+        intervaloDashboard = null;
+    }
 }
 
 // Função auxiliar para formato do cargo
@@ -2988,26 +4110,67 @@ if (graficoStatus && graficoStatus.toDataURL) {
     }
 }
 
-// Configurar evento de input com debounce
+// ==========================================
+// DOMContentLoaded
+// ==========================================
+// ==========================================
+// DOMContentLoaded CORRIGIDO
+// ==========================================
 document.addEventListener('DOMContentLoaded', function() {
-    const inputBusca = document.getElementById('buscaUsuario');
-    if (inputBusca) {
-        inputBusca.addEventListener('input', function(e) {
-            if (timeoutSugestoes) clearTimeout(timeoutSugestoes);
-            timeoutSugestoes = setTimeout(() => {
-                buscarSugestoes(e.target.value);
+    console.log('🔧 Inicializando autocompletes...');
+    
+    // AutoComplete para LOGS (input: buscaLogs, sugestoes: sugestoesLogs)
+    const inputBuscaLogs = document.getElementById('buscaLogs');
+    if (inputBuscaLogs) {
+        console.log('✅ Input buscaLogs encontrado');
+        inputBuscaLogs.addEventListener('input', function(e) {
+            if (timeoutSugestoesLogs) clearTimeout(timeoutSugestoesLogs);
+            timeoutSugestoesLogs = setTimeout(() => {
+                buscarSugestoesLogs(e.target.value);
             }, 300);
         });
-        
-        // Fechar sugestões ao clicar fora
-        document.addEventListener('click', function(e) {
-            const container = document.querySelector('.autocomplete-container');
-            if (container && !container.contains(e.target)) {
-                const sugestoesDiv = document.getElementById('sugestoesList');
-                sugestoesDiv.classList.remove('show');
-            }
-        });
+    } else {
+        console.warn('⚠️ Elemento buscaLogs não encontrado');
     }
+    
+    // AutoComplete para USUÁRIOS (input: buscaUsuarios, sugestoes: sugestoesUsuarios)
+    const inputBuscaUsuarios = document.getElementById('buscaUsuarios');
+    if (inputBuscaUsuarios) {
+        console.log('✅ Input buscaUsuarios encontrado');
+        inputBuscaUsuarios.addEventListener('input', function(e) {
+            if (timeoutSugestoesUsuarios) clearTimeout(timeoutSugestoesUsuarios);
+            timeoutSugestoesUsuarios = setTimeout(() => {
+                buscarSugestoesUsuarios(e.target.value);
+            }, 300);
+        });
+    } else {
+        console.warn('⚠️ Elemento buscaUsuarios não encontrado');
+    }
+    
+    // Fechar sugestões ao clicar fora
+    document.addEventListener('click', function(e) {
+        // Para LOGS
+        const containerLogs = document.getElementById('buscaLogs')?.closest('.autocomplete-container');
+        if (containerLogs && !containerLogs.contains(e.target)) {
+            const divLogs = document.getElementById('sugestoesLogs');
+            if (divLogs) {
+                divLogs.classList.remove('show');
+                divLogs.innerHTML = '';
+            }
+        }
+        
+        // Para USUÁRIOS
+        const containerUsuarios = document.getElementById('buscaUsuarios')?.closest('.autocomplete-container');
+        if (containerUsuarios && !containerUsuarios.contains(e.target)) {
+            const divUsuarios = document.getElementById('sugestoesUsuarios');
+            if (divUsuarios) {
+                divUsuarios.classList.remove('show');
+                divUsuarios.innerHTML = '';
+            }
+        }
+    });
+    
+    console.log('✅ Autocompletes configurados');
 });
 
 function getAcaoClass(acao) {
@@ -3017,11 +4180,16 @@ function getAcaoClass(acao) {
         'criar_ideia': 'acao-criar_ideia',
         'votar': 'acao-votar',
         'comentar': 'acao-comentar',
-        'moderar': 'acao-moderar'
+        'moderar': 'acao-moderar',
+        'resetar_advertencias': 'acao-resetar',
+        'alterar_cargo': 'acao-cargo',
+        'toggle_usuario': 'acao-toggle',
+        'banir_usuario': 'acao-banir'  // ✅ NOVA AÇÃO
     };
     return classes[acao] || 'acao-login';
 }
 
+// Função para obter texto com emoji para cada ação
 function getAcaoTexto(acao) {
     const textos = {
         'login': '🔐 Login',
@@ -3029,11 +4197,14 @@ function getAcaoTexto(acao) {
         'criar_ideia': '💡 Criar Ideia',
         'votar': '👍 Votar',
         'comentar': '💬 Comentar',
-        'moderar': '⚖️ Moderar'
+        'moderar': '⚖️ Moderar',
+        'resetar_advertencias': '⚠️ Resetar Advertências',
+        'alterar_cargo': '👔 Alterar Cargo',
+        'toggle_usuario': '🔓 Ativar/Desativar Usuário',
+        'banir_usuario': '🗑️ Banir Usuário'  // ✅ NOVA AÇÃO
     };
     return textos[acao] || acao;
 }
-
 async function carregarUsuariosParaFiltro() {
     try {
         const response = await fetch('/admin/usuarios');
@@ -3060,26 +4231,54 @@ async function carregarUsuariosParaFiltro() {
     }
 }
 
-async function carregarReports() {
-    if (!usuarioLogado || !usuarioLogado.id) {
+async function carregarReports(pagina = 1) {
+    const userSalvo = sessionStorage.getItem('ideaHubUser');
+    if (!userSalvo) {
         console.warn('⚠️ Usuário não logado');
         return;
     }
     
-    const adminId = usuarioLogado.id;
+    let usuario;
+    try {
+        usuario = JSON.parse(userSalvo);
+    } catch(e) {
+        return;
+    }
+    
+    const adminId = usuario.id;
     
     try {
         const response = await fetch(`/admin/reports?adminId=${adminId}`);
         const reports = await response.json();
+        
+        reportsIdeiasCache = reports;
+        reportsIdeiasTotalItens = reports.length;
+        reportsIdeiasPaginaAtual = pagina;
+        
+        const start = (pagina - 1) * ITENS_POR_PAGINA;
+        const end = start + ITENS_POR_PAGINA;
+        const reportsPaginados = reports.slice(start, end);
+        
         const container = document.getElementById('reportsList');
         
-        if (!reports || reports.length === 0) {
+        if (!reportsPaginados || reportsPaginados.length === 0) {
             container.innerHTML = '<div class="empty-state">✅ Nenhuma denúncia de ideia pendente</div>';
+            renderizarPaginacao('paginacaoReportsIdeias', pagina, reportsIdeiasTotalItens, 'carregarReports');
             return;
         }
         
-        container.innerHTML = reports.map(report => {
-            // Formatar a descrição se existir
+        const getMotivoTexto = (motivo) => {
+            const motivos = {
+                'conteudo_improprio': '🔞 Conteúdo impróprio',
+                'discurso_odio': '😡 Discurso de ódio',
+                'spam': '📧 Spam ou publicidade',
+                'fake_news': '❓ Informação falsa',
+                'outro': '📝 Outro motivo'
+            };
+            return motivos[motivo] || motivo;
+        };
+        
+        container.innerHTML = reportsPaginados.map(report => {
             const descricaoHtml = report.descricao && report.descricao.trim() !== '' 
                 ? `<div style="background: #f8f9fa; padding: 8px; border-radius: 6px; margin: 8px 0;">
                         <strong><i class="fas fa-comment-dots"></i> Descrição do denunciante:</strong><br>
@@ -3106,11 +4305,14 @@ async function carregarReports() {
                     <div style="margin-top: 15px; display: flex; gap: 10px;">
                         <button onclick="verIdeiaDenunciada(${report.id_ideia})" class="btn-ver-ideia">Ver Ideia</button>
                         <button onclick="resolverReport(${report.id}, 'ignorar')" class="btn-ignorar">Ignorar</button>
-                        <button onclick="resolverReport(${report.id}, 'excluir')" class="btn-excluir-denuncia">Excluir Ideia</button>
+                        <button onclick="resolverReport(${report.id}, 'excluir')" class="btn-excluir-denuncia">Avisar ao Autor</button>
                     </div>
                 </div>
             `;
         }).join('');
+        
+        renderizarPaginacao('paginacaoReportsIdeias', pagina, reportsIdeiasTotalItens, 'carregarReports');
+        
     } catch (error) {
         console.error('Erro:', error);
         const container = document.getElementById('reportsList');
@@ -3149,8 +4351,11 @@ async function carregarReports() {
         }
         
         function showLoading(show) {
-            document.getElementById('loading').style.display = show ? 'flex' : 'none';
-        }
+    const loading = document.getElementById('loading');
+    if (loading) {
+        loading.style.display = show ? 'flex' : 'none';
+    }
+}
     </script>
 </body>
 </html>

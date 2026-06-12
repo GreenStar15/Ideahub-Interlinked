@@ -203,7 +203,7 @@ app.put('/admin/usuarios/:id/resetar-advertencias', async (req, res) => {
     try {
         // Verificar se o admin tem permissão
         const adminCheck = await pool.query(
-            'SELECT cargo FROM usuarios WHERE id = $1',
+            'SELECT cargo FROM usuarios WHERE id = $1 AND ativo = true',
             [adminId]
         );
         
@@ -212,20 +212,34 @@ app.put('/admin/usuarios/:id/resetar-advertencias', async (req, res) => {
             return res.status(403).json({ erro: 'Acesso negado' });
         }
         
+        // ✅ BUSCAR INFORMAÇÕES DO USUÁRIO ANTES DE RESETAR
+        const usuarioInfo = await pool.query('SELECT nome, total_advertencias FROM usuarios WHERE id = $1', [usuarioId]);
+        
+        if (usuarioInfo.rows.length === 0) {
+            return res.status(404).json({ erro: 'Usuário não encontrado' });
+        }
+        
+        const nomeUsuario = usuarioInfo.rows[0].nome;
+        const advertenciasAntigas = usuarioInfo.rows[0].total_advertencias || 0;
+        
         // Resetar advertências
         await pool.query('UPDATE usuarios SET total_advertencias = 0 WHERE id = $1', [usuarioId]);
         
-        // Registrar no log
-        await pool.query(
-            `INSERT INTO logs_auditoria (acao, descricao, id_usuario) 
-             VALUES ($1, $2, $3)`,
-            ['reset_advertencias', `Advertências do usuário ${usuarioId} resetadas`, adminId]
+        // ✅ REGISTRAR LOG DETALHADO
+        await registrarLog(
+            adminId, 
+            'resetar_advertencias', 
+            `⚠️ Resetou ${advertenciasAntigas} advertência(s) do usuário "${nomeUsuario}" (ID: ${usuarioId})`, 
+            req.ip, 
+            req.headers['user-agent']
         );
         
-        res.json({ sucesso: true, mensagem: 'Advertências resetadas!' });
+        console.log(`✅ Advertências do usuário ${nomeUsuario} (ID: ${usuarioId}) resetadas: ${advertenciasAntigas} → 0`);
+        
+        res.json({ sucesso: true, mensagem: 'Advertências resetadas com sucesso!' });
         
     } catch (err) {
-        console.error('❌ Erro:', err);
+        console.error('❌ Erro ao resetar advertências:', err);
         res.status(500).json({ erro: err.message });
     }
 });
@@ -287,7 +301,9 @@ app.post('/admin/moderar/ideia/:id', async (req, res) => {
         } else {
             mensagem = `🟠 ADVERTÊNCIA RECEBIDA\n\n📌 Ideia: "${tituloIdeia.substring(0, 80)}"\n📋 Motivo: ${motivoTexto}\n💬 Justificativa: ${justificativa || 'Não informada pela moderação'}\n\nℹ️ Acumular 3 advertências pode resultar em suspensão da conta.`;
         }
-        
+      
+        await registrarLog(adminId, 'moderar', `Moderou ideia ID: ${ideiaId} - Ação: ${acao}`, req.ip, req.headers['user-agent']);
+
         // ✅ INSERIR NOTIFICAÇÃO PRIMEIRO (enquanto a ideia ainda existe)
         await pool.query(
             `INSERT INTO notificacoes (mensagem, id_usuario, id_ideia, categoria, data_envio) 
@@ -549,6 +565,10 @@ app.post('/cadastrar', async (req, res) => {
         
         res.json({ sucesso: true, mensagem: 'Cadastro realizado!', usuario: result.rows[0] });
         
+    if (response.ok && data.sucesso) {
+        await registrarLog(usuarioId, 'cadastro', `Novo usuário cadastrado: ${nome}`, req.ip, req.headers['user-agent']);
+    }
+
     } catch (err) {
         if (err.code === '23505') {
             return res.status(400).json({ erro: 'Email já cadastrado!' });
@@ -558,6 +578,9 @@ app.post('/cadastrar', async (req, res) => {
     }
 });
 
+// ==========================================
+// ROTA DE LOGIN (CORRIGIDA)
+// ==========================================
 app.post('/login', async (req, res) => {
     const { email, senha } = req.body;
     
@@ -596,7 +619,7 @@ app.post('/login', async (req, res) => {
             console.log('❌ Login falhou: Senha incorreta para o email:', email);
             return res.status(401).json({ 
                 erro: '🔐 Senha incorreta',
-                mensagem: 'A senha digitada está incorreta. Tente novamente ou clique em "Esqueci minha senha" para recuperar o acesso.'
+                mensagem: 'A senha digitada está incorreta. Tente novamente.'
             });
         }
         
@@ -605,28 +628,37 @@ app.post('/login', async (req, res) => {
             console.log('❌ Login falhou: Usuário desativado');
             return res.status(401).json({ 
                 erro: '🚫 Usuário desativado',
-                mensagem: 'Sua conta está desativada. Entre em contato com o administrador do sistema para reativar seu acesso.'
+                mensagem: 'Sua conta está desativada. Entre em contato com o administrador.'
             });
         }
         
         // CASO 4: SUCESSO - TUDO CERTO
         await pool.query('UPDATE usuarios SET ultimo_acesso = NOW() WHERE id = $1', [usuario.id]);
         
+        // Registrar log de login
+        try {
+            await registrarLog(usuario.id, 'login', `Login realizado com sucesso`, req.ip, req.headers['user-agent']);
+        } catch (logErr) {
+            console.error('Erro ao registrar log:', logErr);
+        }
+        
         console.log('✅ Login bem-sucedido para:', usuario.email);
         
-        res.json({ 
+        // RETORNAR SUCESSO (APENAS UMA VEZ)
+        return res.json({ 
             sucesso: true, 
             usuario: {
                 id: usuario.id,
                 nome: usuario.nome,
-                cargo: usuario.cargo
+                cargo: usuario.cargo,
+                email: usuario.email
             },
             mensagem: `🎉 Bem-vindo de volta, ${usuario.nome}!`
         });
         
     } catch (err) {
         console.error('❌ Erro no login:', err);
-        res.status(500).json({ 
+        return res.status(500).json({ 
             erro: '⚠️ Erro interno',
             mensagem: 'Ocorreu um erro inesperado no servidor. Tente novamente mais tarde.'
         });
@@ -1475,10 +1507,10 @@ app.post('/ideias', async (req, res) => {
         
         // Query corrigida: 6 placeholders ($1 a $6)
         const result = await client.query(
-            `INSERT INTO ideias (titulo, descricao, categoria_id, id_usuario, anonima, status, id_local)
-             VALUES ($1, $2, $3, $4, $5, 'pendente', $6) RETURNING id`,
-            [titulo, descricao, categoria_id, id_usuario, anonima === true, id_local || null]
-        );
+        `INSERT INTO ideias (titulo, descricao, categoria_id, id_usuario, anonima, status, id_local, data_publicacao)
+         VALUES ($1, $2, $3, $4, $5, 'pendente', $6, NOW()) RETURNING id`,  // ✅ NOW() define a data atual
+        [titulo, descricao, categoria_id, id_usuario, anonima === true, id_local || null]
+    );
         
         const ideiaId = result.rows[0].id;
         
@@ -1505,7 +1537,9 @@ app.post('/ideias', async (req, res) => {
         }
         
         res.json({ sucesso: true, id: ideiaId });
-        
+    
+    await registrarLog(id_usuario, 'criar_ideia', `Criou ideia: "${titulo}" (ID: ${ideiaId})`, req.ip, req.headers['user-agent']);
+
     } catch (err) {
         await client.query('ROLLBACK');
         console.error('❌ Erro:', err);
@@ -1518,19 +1552,20 @@ app.post('/ideias', async (req, res) => {
 // ========== US20 - TEMPLATES DE IDEIAS ==========
 // Listar templates ativos (para usuários)
 // ==========================================
-// ========== TEMPLATES (PÚBLICOS) ==========
 let templateAtualId = null;
 
 app.get('/api/templates', async (req, res) => {
     try {
         const result = await pool.query(`
-            SELECT id, titulo, descricao, categoria, campos_json, recomendado 
+            SELECT id, titulo, descricao, categoria, campos_json, recomendado, 
+                   COALESCE(total_usos, 0) as total_usos
             FROM templates_ideias 
             WHERE ativo = true 
             ORDER BY recomendado DESC, total_usos DESC
         `);
         res.json(result.rows);
     } catch (err) {
+        console.error('❌ Erro ao buscar templates:', err);
         res.status(500).json({ erro: err.message });
     }
 });
@@ -1552,10 +1587,26 @@ app.get('/api/templates/:id', async (req, res) => {
 // Incrementar uso do template
 app.post('/api/templates/:id/usar', async (req, res) => {
     const templateId = req.params.id;
+    
     try {
-        await pool.query('UPDATE templates_ideias SET total_usos = total_usos + 1 WHERE id = $1', [templateId]);
-        res.json({ sucesso: true });
+        const result = await pool.query(
+            'UPDATE templates_ideias SET total_usos = COALESCE(total_usos, 0) + 1 WHERE id = $1 RETURNING total_usos',
+            [templateId]
+        );
+        
+        if (result.rows.length === 0) {
+            return res.status(404).json({ erro: 'Template não encontrado' });
+        }
+        
+        console.log(`✅ Template ${templateId} usado ${result.rows[0].total_usos} vezes`);
+        
+        res.json({ 
+            sucesso: true, 
+            mensagem: 'Uso contabilizado',
+            total_usos: result.rows[0].total_usos
+        });
     } catch (err) {
+        console.error('❌ Erro ao incrementar uso:', err);
         res.status(500).json({ erro: err.message });
     }
 });
@@ -1892,7 +1943,6 @@ app.get('/ideias', async (req, res) => {
 });
 
 // ========== BUSCAR IDEIA COM IMAGENS ==========
-// ========== BUSCAR IDEIA COM IMAGENS ==========
 app.get('/ideias/:id', async (req, res) => {
     const ideiaId = req.params.id;
     const isAdmin = req.query.isAdmin === 'true';
@@ -2054,6 +2104,9 @@ app.post('/ideias/:id/votar', async (req, res) => {
             
             res.json({ sucesso: true, acao: 'adicionado', mensagem: 'Voto registrado!' });
         }
+
+    await registrarLog(usuarioId, 'votar', `Votou na ideia ID: ${ideiaId}`, req.ip, req.headers['user-agent']);
+
     } catch (err) {
         console.error('❌ Erro ao votar:', err);
         res.status(500).json({ erro: err.message });
@@ -2084,11 +2137,15 @@ app.get('/ideias/:id/comentarios', async (req, res) => {
     
     try {
         const result = await pool.query(`
-            SELECT c.*, 
-                   u.nome as autor_nome,
-                   u.cargo as autor_cargo,
-                   u.id as autor_id,
-                   COALESCE(p.nivel, 1) as autor_nivel
+            SELECT 
+                c.id,
+                c.texto,
+                c.data_comentario,
+                c.id_usuario,
+                c.anexo_url,  -- ✅ ADICIONAR ESTA LINHA
+                u.nome as autor_nome,
+                u.cargo as autor_cargo,
+                COALESCE(p.nivel, 1) as autor_nivel
             FROM comentarios c
             JOIN usuarios u ON c.id_usuario = u.id
             LEFT JOIN pontuacao_usuario p ON u.id = p.id_usuario
@@ -2096,57 +2153,297 @@ app.get('/ideias/:id/comentarios', async (req, res) => {
             ORDER BY c.data_comentario ASC
         `, [ideiaId]);
         
-        res.json(result.rows);
+        return res.json(result.rows);
         
     } catch (err) {
-        console.error('❌ Erro:', err);
-        res.status(500).json({ erro: err.message });
+        console.error('❌ Erro ao listar comentários:', err);
+        return res.status(500).json({ erro: err.message });
     }
 });
 
-app.post('/ideias/:id/comentarios', async (req, res) => {
+const garantirPastasComentarios = () => {
+    const pastas = [
+        './uploads',
+        './uploads/comentarios',
+        './uploads/comentarios/temp'
+    ];
+    
+    pastas.forEach(pasta => {
+        if (!fs.existsSync(pasta)) {
+            fs.mkdirSync(pasta, { recursive: true });
+            console.log(`📁 Pasta criada: ${pasta}`);
+        }
+    });
+};
+
+garantirPastasComentarios();
+
+// Configuração do storage para anexos de comentários
+const storageAnexoTemp = multer.diskStorage({
+    destination: (req, file, cb) => {
+        const dir = './uploads/comentarios/temp';
+        cb(null, dir);
+    },
+    filename: (req, file, cb) => {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        const ext = path.extname(file.originalname);
+        cb(null, 'comment-' + uniqueSuffix + ext);
+    }
+});
+
+// Filtro de tipos de arquivo permitidos
+const fileFilterAnexoTemp = (req, file, cb) => {
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'application/pdf'];
+    if (allowedTypes.includes(file.mimetype)) {
+        cb(null, true);
+    } else {
+        cb(new Error('Tipo de arquivo não suportado. Use imagens ou PDF.'), false);
+    }
+};
+
+// Configurar o multer
+const uploadAnexoTemp = multer({
+    storage: storageAnexoTemp,
+    limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+    fileFilter: fileFilterAnexoTemp
+});
+
+console.log('✅ Multer configurado para anexos de comentários');
+
+// ==========================================
+// ADICIONAR COMENTÁRIO (COM SUPORTE A ANEXO - FORM DATA)
+// ==========================================
+app.post('/ideias/:id/comentarios', uploadAnexoTemp.single('anexo'), async (req, res) => {
     const ideiaId = req.params.id;
     const { texto, id_usuario } = req.body;
     
+    console.log(`📝 Tentativa de comentário - Ideia ID: ${ideiaId}, Usuário ID: ${id_usuario}`);
+    
+    // Validação do texto
     if (!texto || !texto.trim()) {
         return res.status(400).json({ erro: 'Comentário não pode estar vazio' });
     }
     
+    // Validação do usuário
+    if (!id_usuario) {
+        return res.status(401).json({ erro: 'Usuário não autenticado' });
+    }
+    
     try {
-        const result = await pool.query(
-            'INSERT INTO comentarios (texto, id_usuario, id_ideia) VALUES ($1, $2, $3) RETURNING id',
-            [texto.trim(), id_usuario, ideiaId]
+        // Buscar informações da ideia
+        const ideiaInfo = await pool.query(
+            'SELECT id_usuario, titulo FROM ideias WHERE id = $1',
+            [ideiaId]
         );
         
-        // ========== ADICIONAR AQUI - VERIFICAR CONQUISTAS ==========
-        // O usuário comentou, verificar conquistas de comentário
+        if (ideiaInfo.rows.length === 0) {
+            return res.status(404).json({ erro: 'Ideia não encontrada' });
+        }
+        
+        const autorIdeiaId = ideiaInfo.rows[0].id_usuario;
+        const tituloIdeia = ideiaInfo.rows[0].titulo;
+        
+        // Buscar nome do autor do comentário
+        const autorComentarioInfo = await pool.query(
+            'SELECT nome FROM usuarios WHERE id = $1',
+            [id_usuario]
+        );
+        const nomeAutorComentario = autorComentarioInfo.rows[0]?.nome || 'Usuário';
+        
+        // Processar anexo se houver
+        let anexo_url = null;
+        if (req.file) {
+            anexo_url = `/uploads/comentarios/temp/${req.file.filename}`;
+            console.log('📎 Anexo salvo em:', anexo_url);
+        }
+        
+        // Inserir comentário
+        const result = await pool.query(
+            `INSERT INTO comentarios (texto, id_usuario, id_ideia, anexo_url, data_comentario) 
+             VALUES ($1, $2, $3, $4, NOW()) RETURNING id`,
+            [texto.trim(), id_usuario, ideiaId, anexo_url]
+        );
+        
+        console.log(`✅ Comentário ID ${result.rows[0].id} adicionado na ideia ${ideiaId}`);
+        
+        // ✅ REGISTRAR LOG DE COMENTÁRIO
+        try {
+            await registrarLog(
+                id_usuario, 
+                'comentar', 
+                `Comentou na ideia "${tituloIdeia.substring(0, 50)}" (ID: ${ideiaId})`, 
+                req.ip, 
+                req.headers['user-agent']
+            );
+            console.log(`✅ Log de comentário registrado para usuário ${id_usuario}`);
+        } catch (logErr) {
+            console.error('❌ Erro ao registrar log de comentário:', logErr);
+        }
+        
+        // Registrar pontos
         try {
             await registrarPontos(id_usuario, 'comentar', ideiaId);
             await verificarConquistas(id_usuario, 'comentar');
         } catch (err) {
-            console.error('❌ Erro ao verificar conquistas de comentário:', err);
-            // Não interrompe o fluxo principal se falhar
+            console.error('❌ Erro ao verificar conquistas:', err);
         }
-        // ============================================================
         
-        const ideia = await pool.query('SELECT id_usuario, titulo FROM ideias WHERE id = $1', [ideiaId]);
-        if (ideia.rows[0].id_usuario !== id_usuario) {
-            await pool.query(
-                `INSERT INTO notificacoes (mensagem, id_usuario, id_ideia) 
-                 VALUES ('💬 NOVO COMENTÁRIO NA SUA IDEIA!
+        // Notificar autor da ideia
+        if (autorIdeiaId !== parseInt(id_usuario)) {
+            const mensagem = `💬 NOVO COMENTÁRIO NA SUA IDEIA!
 
 📌 Ideia: "${tituloIdeia.substring(0, 60)}"
-👤 Autor do comentário: ${nomeAutorComentario || 'Um colega'}
+👤 Autor do comentário: ${nomeAutorComentario}
+${anexo_url ? '📎 Com anexo incluído' : ''}
 
-🔗 Clique para visualizar e responder ao comentário.', $1, $2)`,
-                [ideia.rows[0].id_usuario, ideiaId]
+🔗 Clique para visualizar e responder ao comentário.`;
+            
+            await pool.query(
+                `INSERT INTO notificacoes (mensagem, id_usuario, id_ideia, categoria, data_envio)
+                 VALUES ($1, $2, $3, 'comentario', NOW())`,
+                [mensagem, autorIdeiaId, ideiaId]
             );
         }
         
-        res.json({ sucesso: true, mensagem: 'Comentário adicionado!', id: result.rows[0].id });
+        // Retornar sucesso
+        return res.json({ 
+            sucesso: true, 
+            mensagem: 'Comentário adicionado com sucesso!', 
+            id: result.rows[0].id,
+            anexo_url: anexo_url
+        });
+        
     } catch (err) {
-        console.error('Erro:', err);
-        res.status(500).json({ erro: 'Erro ao adicionar comentário' });
+        console.error('❌ Erro ao adicionar comentário:', err);
+        return res.status(500).json({ erro: 'Erro ao adicionar comentário: ' + err.message });
+    }
+});
+
+// Rota de teste para ver logs (TEMPORÁRIA)
+app.get('/debug/logs', async (req, res) => {
+    try {
+        const result = await pool.query(`
+            SELECT l.*, u.nome as usuario_nome 
+            FROM logs_detalhados l
+            LEFT JOIN usuarios u ON l.id_usuario = u.id
+            ORDER BY l.data_acao DESC
+            LIMIT 20
+        `);
+        res.json({ 
+            total: result.rows.length,
+            logs: result.rows 
+        });
+    } catch (err) {
+        res.status(500).json({ erro: err.message });
+    }
+});
+
+// ==========================================
+// BANIR USUÁRIO (EXCLUIR PERMANENTEMENTE)
+// ==========================================
+app.delete('/admin/usuarios/:id/banir', async (req, res) => {
+    const usuarioId = req.params.id;
+    const { adminId } = req.body;
+    
+    console.log(`🗑️ Tentativa de banir usuário ${usuarioId} pelo admin ${adminId}`);
+    
+    if (!adminId) {
+        return res.status(401).json({ erro: 'Usuário não autenticado' });
+    }
+    
+    try {
+        // Verificar permissão do admin
+        const adminCheck = await pool.query(
+            'SELECT id, nome, cargo FROM usuarios WHERE id = $1 AND ativo = true',
+            [adminId]
+        );
+        
+        if (adminCheck.rows.length === 0) {
+            return res.status(401).json({ erro: 'Admin não encontrado' });
+        }
+        
+        if (adminCheck.rows[0].cargo !== 'gestor' && adminCheck.rows[0].cargo !== 'ti_staff') {
+            return res.status(403).json({ erro: 'Acesso negado. Permissão de administrador necessária.' });
+        }
+        
+        const adminNome = adminCheck.rows[0].nome;
+        
+        // Buscar informações do usuário a ser banido
+        const userInfo = await pool.query(
+            'SELECT id, nome, email, cargo FROM usuarios WHERE id = $1',
+            [usuarioId]
+        );
+        
+        if (userInfo.rows.length === 0) {
+            return res.status(404).json({ erro: 'Usuário não encontrado' });
+        }
+        
+        const usuarioBanido = userInfo.rows[0];
+        
+        // Impedir admin de banir a si mesmo
+        if (parseInt(usuarioId) === parseInt(adminId)) {
+            return res.status(400).json({ erro: 'Você não pode banir a si mesmo!' });
+        }
+        
+        // Iniciar transação
+        const client = await pool.connect();
+        
+        try {
+            await client.query('BEGIN');
+            
+            // 1. Registrar log de banimento
+            await client.query(
+    `INSERT INTO logs_detalhados (id_usuario, acao, descricao, ip_address, user_agent, data_acao)
+     VALUES ($1, $2, $3, $4, $5, NOW())`,
+    [adminId, 'banir_usuario', `Baniu permanentemente o usuário "${usuarioBanido.nome}" (ID: ${usuarioId})`, req.ip, req.headers['user-agent']]
+);
+            
+            // 2. Excluir votos do usuário
+            await client.query('DELETE FROM votos WHERE id_usuario = $1', [usuarioId]);
+            
+            // 3. Excluir comentários do usuário
+            await client.query('DELETE FROM comentarios WHERE id_usuario = $1', [usuarioId]);
+            
+            // 4. Excluir notificações do usuário
+            await client.query('DELETE FROM notificacoes WHERE id_usuario = $1', [usuarioId]);
+            
+            // 5. Excluir conquistas do usuário
+            await client.query('DELETE FROM usuario_conquistas WHERE id_usuario = $1', [usuarioId]);
+            
+            // 6. Excluir pontuação do usuário
+            await client.query('DELETE FROM pontuacao_usuario WHERE id_usuario = $1', [usuarioId]);
+            
+            // 7. Excluir preferências de notificação
+            await client.query('DELETE FROM preferencias_notificacoes WHERE id_usuario = $1', [usuarioId]);
+            
+            // 8. Excluir imagens das ideias do usuário
+            await client.query('DELETE FROM ideias_imagens WHERE id_ideia IN (SELECT id FROM ideias WHERE id_usuario = $1)', [usuarioId]);
+            
+            // 9. Excluir ideias do usuário
+            await client.query('DELETE FROM ideias WHERE id_usuario = $1', [usuarioId]);
+            
+            // 10. Finalmente, excluir o usuário
+            await client.query('DELETE FROM usuarios WHERE id = $1', [usuarioId]);
+            
+            await client.query('COMMIT');
+            
+            console.log(`✅ Usuário ${usuarioBanido.nome} (ID: ${usuarioId}) foi banido permanentemente por ${adminNome}`);
+            
+            res.json({ 
+                sucesso: true, 
+                mensagem: `Usuário "${usuarioBanido.nome}" foi banido permanentemente da plataforma.` 
+            });
+            
+        } catch (err) {
+            await client.query('ROLLBACK');
+            throw err;
+        } finally {
+            client.release();
+        }
+        
+    } catch (err) {
+        console.error('❌ Erro ao banir usuário:', err);
+        res.status(500).json({ erro: err.message });
     }
 });
 
@@ -2308,66 +2605,116 @@ app.get('/admin/reports/comentarios', verificarAdmin, async (req, res) => {
 });
 
 // ========== RESOLVER REPORT DE COMENTÁRIO (ADMIN) ==========
-app.put('/admin/reports/comentarios/:id/resolver', verificarAdmin, async (req, res) => {
+// ==========================================
+// RESOLVER REPORT DE COMENTÁRIO (CORRIGIDO)
+// ==========================================
+app.put('/admin/reports/comentarios/:id/resolver', async (req, res) => {
     const reportId = req.params.id;
     const { adminId, acao } = req.body;
     
+    console.log(`🔧 Resolvendo report ${reportId} com ação "${acao}" pelo admin ${adminId}`);
+    
+    if (!adminId) {
+        return res.status(401).json({ erro: 'Usuário não autenticado' });
+    }
+    
     try {
-        // Buscar informações do report
-        const reportInfo = await pool.query(`
-            SELECT rc.id_comentario, c.id_usuario as autor_id, c.texto as comentario_texto,
-                   i.id as ideia_id, i.titulo as ideia_titulo
+        // 1. VERIFICAR PERMISSÃO DO ADMIN
+        const adminCheck = await pool.query(
+            'SELECT id, nome, cargo FROM usuarios WHERE id = $1 AND ativo = true',
+            [adminId]
+        );
+        
+        if (adminCheck.rows.length === 0) {
+            return res.status(401).json({ erro: 'Admin não encontrado' });
+        }
+        
+        if (adminCheck.rows[0].cargo !== 'gestor' && adminCheck.rows[0].cargo !== 'ti_staff') {
+            return res.status(403).json({ erro: 'Acesso negado. Permissão de administrador necessária.' });
+        }
+        
+        const adminNome = adminCheck.rows[0].nome;
+        
+        // 2. BUSCAR INFORMAÇÕES DO REPORT
+        const reportQuery = await pool.query(`
+            SELECT 
+                rc.id as report_id,
+                rc.id_comentario, 
+                rc.motivo,
+                rc.descricao as report_descricao,
+                c.id_usuario as autor_comentario_id, 
+                c.texto as comentario_texto,
+                c.id_ideia,
+                i.id as ideia_id, 
+                i.titulo as ideia_titulo,
+                u.nome as autor_comentario_nome
             FROM reports_comentarios rc
             JOIN comentarios c ON rc.id_comentario = c.id
             JOIN ideias i ON c.id_ideia = i.id
+            JOIN usuarios u ON c.id_usuario = u.id
             WHERE rc.id = $1
         `, [reportId]);
         
-        if (reportInfo.rows.length === 0) {
+        if (reportQuery.rows.length === 0) {
             return res.status(404).json({ erro: 'Report não encontrado' });
         }
         
-        // Atualizar status do report
+        const report = reportQuery.rows[0];
+        const ideiaTitulo = report.ideia_titulo || 'Ideia não identificada';
+        const comentarioTexto = report.comentario_texto || 'Comentário não encontrado';
+        const autorComentarioId = report.autor_comentario_id;
+        const ideiaId = report.ideia_id;
+        const comentarioId = report.id_comentario;
+        
+        console.log(`📋 Report encontrado:`, {
+            reportId: report.report_id,
+            comentarioId: comentarioId,
+            ideiaTitulo: ideiaTitulo,
+            autorComentarioId: autorComentarioId
+        });
+        
+        // 3. ATUALIZAR STATUS DO REPORT
         await pool.query(
             `UPDATE reports_comentarios 
-             SET status = 'resolvido', resolvido_por = $1, data_resolucao = NOW()
+             SET status = 'resolvido', 
+                 resolvido_por = $1, 
+                 data_resolucao = NOW()
              WHERE id = $2`,
             [adminId, reportId]
         );
         
-        // Se a ação for excluir comentário
+        // 4. SE AÇÃO FOR EXCLUIR COMENTÁRIO
         if (acao === 'excluir') {
-            await pool.query('DELETE FROM comentarios WHERE id = $1', [reportInfo.rows[0].id_comentario]);
+            // Excluir o comentário
+            await pool.query('DELETE FROM comentarios WHERE id = $1', [comentarioId]);
             
             // Notificar autor do comentário
-            await pool.query(
-                `INSERT INTO notificacoes (mensagem, id_usuario, id_ideia, categoria, data_envio)
-                 VALUES ('🗑️ SEU COMENTÁRIO FOI REMOVIDO
+            const mensagemNotificacao = `🗑️ SEU COMENTÁRIO FOI REMOVIDO
 
 📌 Ideia: "${ideiaTitulo.substring(0, 60)}"
+📝 Seu comentário: "${comentarioTexto.substring(0, 100)}${comentarioTexto.length > 100 ? '...' : ''}"
+👮 Moderador: ${adminNome}
 📋 Motivo: Violação das diretrizes da comunidade
 
-ℹ️ Sua contribuição foi removida por não seguir as regras de conduta. Consulte nossas diretrizes para evitar novas remoções.', $1, $2, 'moderacao', NOW())`,
-                [reportInfo.rows[0].autor_id, reportInfo.rows[0].ideia_id]
-            );
-        } else {
-            // Apenas ignorar a denúncia
+ℹ️ Sua contribuição foi removida por não seguir as regras de conduta. Consulte nossas diretrizes para evitar novas remoções.`;
+            
             await pool.query(
                 `INSERT INTO notificacoes (mensagem, id_usuario, id_ideia, categoria, data_envio)
-                 VALUES ('✅ DENÚNCIA ANALISADA
-
-📌 Ideia: "${ideiaTitulo.substring(0, 60)}"
-📋 Resultado: Nenhuma ação necessária
-
-ℹ️ A denúncia contra seu comentário foi analisada e considerada improcedente. O comentário permanece no ar.', $1, $2, 'moderacao', NOW())`,
-                [reportInfo.rows[0].autor_id, reportInfo.rows[0].ideia_id]
+                 VALUES ($1, $2, $3, 'moderacao', NOW())`,
+                [mensagemNotificacao, autorComentarioId, ideiaId]
             );
+            
+            console.log(`✅ Comentário ${comentarioId} excluído pelo admin ${adminNome}`);
+            res.json({ sucesso: true, mensagem: 'Comentário excluído com sucesso!' });
+        } 
+        else {
+            // Ação de ignorar (apenas marcar como resolvido)
+            console.log(`✅ Report ${reportId} ignorado pelo admin ${adminNome}`);
+            res.json({ sucesso: true, mensagem: 'Denúncia ignorada com sucesso!' });
         }
         
-        res.json({ sucesso: true, mensagem: acao === 'excluir' ? 'Comentário excluído!' : 'Denúncia ignorada' });
-        
     } catch (err) {
-        console.error('Erro ao resolver report:', err);
+        console.error('❌ Erro ao resolver report:', err);
         res.status(500).json({ erro: err.message });
     }
 });
@@ -2377,48 +2724,75 @@ app.delete('/comentarios/:id', async (req, res) => {
     const comentarioId = req.params.id;
     const { usuarioId } = req.body;
     
+    console.log(`🗑️ Tentativa de excluir comentário ${comentarioId} pelo usuário ${usuarioId}`);
+    
     if (!usuarioId) {
+        console.log('❌ Usuário não autenticado');
         return res.status(401).json({ erro: 'Usuário não autenticado' });
     }
     
     try {
-        // Buscar o comentário e a ideia relacionada
+        // Buscar informações do comentário e da ideia
         const comentarioInfo = await pool.query(`
-            SELECT c.id_usuario as autor_comentario, 
-                   i.id_usuario as autor_ideia
+            SELECT 
+                c.id_usuario as autor_comentario, 
+                i.id_usuario as autor_ideia,
+                i.titulo as ideia_titulo
             FROM comentarios c
             JOIN ideias i ON c.id_ideia = i.id
             WHERE c.id = $1
         `, [comentarioId]);
         
         if (comentarioInfo.rows.length === 0) {
+            console.log('❌ Comentário não encontrado');
             return res.status(404).json({ erro: 'Comentário não encontrado' });
         }
         
         const autorComentario = comentarioInfo.rows[0].autor_comentario;
         const autorIdeia = comentarioInfo.rows[0].autor_ideia;
         
-        // Verificar permissão: admin, autor do comentário ou autor da ideia
+        // Verificar permissão do usuário
         const userCheck = await pool.query(
             'SELECT cargo FROM usuarios WHERE id = $1',
             [usuarioId]
         );
         
         const isAdmin = userCheck.rows[0]?.cargo === 'gestor' || userCheck.rows[0]?.cargo === 'ti_staff';
-        const isAutorComentario = usuarioId === autorComentario;
-        const isAutorIdeia = usuarioId === autorIdeia;
+        const isAutorComentario = parseInt(usuarioId) === parseInt(autorComentario);
+        const isAutorIdeia = parseInt(usuarioId) === parseInt(autorIdeia);
         
-        if (!isAdmin && !isAutorComentario && !isAutorIdeia) {
-            return res.status(403).json({ erro: 'Você não tem permissão para excluir este comentário' });
+        console.log(`📊 Permissões:
+           - isAdmin: ${isAdmin}
+           - isAutorComentario: ${isAutorComentario} (${usuarioId} === ${autorComentario})
+           - isAutorIdeia: ${isAutorIdeia} (${usuarioId} === ${autorIdeia})`);
+        
+        // Verificar se pode excluir
+        const podeExcluir = isAdmin || isAutorComentario || isAutorIdeia;
+        
+        if (!podeExcluir) {
+            console.log(`❌ Acesso negado: usuário ${usuarioId} não tem permissão`);
+            return res.status(403).json({ 
+                erro: 'Você não tem permissão para excluir este comentário',
+                detalhes: {
+                    isAdmin,
+                    isAutorComentario,
+                    isAutorIdeia
+                }
+            });
         }
         
         // Deletar o comentário
         await pool.query('DELETE FROM comentarios WHERE id = $1', [comentarioId]);
         
-        res.json({ sucesso: true, mensagem: 'Comentário excluído!' });
+        console.log(`✅ Comentário ${comentarioId} excluído com sucesso`);
+        
+        res.json({ 
+            sucesso: true, 
+            mensagem: 'Comentário excluído com sucesso!' 
+        });
         
     } catch (err) {
-        console.error('Erro:', err);
+        console.error('❌ Erro ao deletar comentário:', err);
         res.status(500).json({ erro: err.message });
     }
 });
@@ -2744,113 +3118,183 @@ app.post('/admin/dashboard', async (req, res) => {
     }
 });
 
+app.get('/debug/categorias', async (req, res) => {
+    try {
+        const result = await pool.query('SELECT id, nome, icone FROM categorias WHERE ativo = true ORDER BY ordem, nome');
+        res.json({ 
+            sucesso: true, 
+            total: result.rows.length,
+            categorias: result.rows 
+        });
+    } catch (err) {
+        res.status(500).json({ erro: err.message });
+    }
+});
+
 // ========== DASHBOARD DE INOVAÇÃO COM FILTROS ==========
 app.get('/admin/dashboard/inovacao', async (req, res) => {
     const { periodo = 'todos' } = req.query;
     
+    console.log(`📊 Dashboard solicitado com período: ${periodo}`);
+    
     try {
         // Determinar intervalo de data baseado no período
         let dataLimite = null;
+        let intervaloDias = 0;
         
         switch(periodo) {
             case 'semana':
                 dataLimite = new Date();
                 dataLimite.setDate(dataLimite.getDate() - 7);
+                intervaloDias = 7;
                 break;
             case 'mes':
                 dataLimite = new Date();
                 dataLimite.setDate(dataLimite.getDate() - 30);
+                intervaloDias = 30;
                 break;
             case 'trimestre':
                 dataLimite = new Date();
                 dataLimite.setDate(dataLimite.getDate() - 90);
+                intervaloDias = 90;
                 break;
             case 'ano':
                 dataLimite = new Date();
                 dataLimite.setDate(dataLimite.getDate() - 365);
+                intervaloDias = 365;
                 break;
             case 'todos':
             default:
                 dataLimite = null;
+                intervaloDias = 0;
                 break;
         }
         
-        // Condição de data para as queries
-        const condicaoData = dataLimite ? `AND data_publicacao >= '${dataLimite.toISOString()}'` : '';
+        // ✅ CORREÇÃO: Usar $1 como placeholder para evitar SQL injection
+        let params = [];
+        let paramCount = 1;
         
         // 1. Total de Ideias (com filtro de período)
-        const totalIdeias = await pool.query(`
-            SELECT COUNT(*) as total FROM ideias WHERE 1=1 ${condicaoData}
-        `);
+        let sqlTotalIdeias = 'SELECT COUNT(*) as total FROM ideias WHERE 1=1';
+        if (dataLimite) {
+            sqlTotalIdeias += ` AND data_publicacao >= $${paramCount}`;
+            params.push(dataLimite.toISOString());
+            paramCount++;
+        }
+        const totalIdeias = await pool.query(sqlTotalIdeias, params.slice(0, paramCount - 1));
         
-        // 2. Usuários Ativos (sempre total, não depende de período)
-        const totalUsuarios = await pool.query(`
-            SELECT COUNT(*) as total FROM usuarios WHERE ativo = true
-        `);
+        // 2. Usuários Ativos (sempre total)
+        const totalUsuarios = await pool.query('SELECT COUNT(*) as total FROM usuarios WHERE ativo = true');
         
-        // 3. Ideias Aprovadas (com filtro de período)
-        const ideiasAprovadas = await pool.query(`
-            SELECT COUNT(*) as total FROM ideias WHERE status = 'aprovada' ${condicaoData}
-        `);
+        // 3. Ideias Aprovadas
+        let sqlAprovadas = 'SELECT COUNT(*) as total FROM ideias WHERE status = $1';
+        let paramsAprovadas = ['aprovada'];
+        let countAprovadas = 2;
+        if (dataLimite) {
+            sqlAprovadas += ` AND data_publicacao >= $${countAprovadas}`;
+            paramsAprovadas.push(dataLimite.toISOString());
+            countAprovadas++;
+        }
+        const ideiasAprovadas = await pool.query(sqlAprovadas, paramsAprovadas);
         
-        // 4. Ideias Convertidas (com filtro de período)
-        const ideiasConvertidas = await pool.query(`
-            SELECT COUNT(*) as total FROM ideias WHERE status = 'convertida' ${condicaoData}
-        `);
+        // 4. Ideias Convertidas
+        let sqlConvertidas = 'SELECT COUNT(*) as total FROM ideias WHERE status = $1';
+        let paramsConvertidas = ['convertida'];
+        let countConvertidas = 2;
+        if (dataLimite) {
+            sqlConvertidas += ` AND data_publicacao >= $${countConvertidas}`;
+            paramsConvertidas.push(dataLimite.toISOString());
+            countConvertidas++;
+        }
+        const ideiasConvertidas = await pool.query(sqlConvertidas, paramsConvertidas);
         
-        // 5. Ideias Pendentes (com filtro de período)
-        const ideiasPendentes = await pool.query(`
-            SELECT COUNT(*) as total FROM ideias WHERE status = 'pendente' ${condicaoData}
-        `);
+        // 5. Ideias Pendentes
+        let sqlPendentes = 'SELECT COUNT(*) as total FROM ideias WHERE status = $1';
+        let paramsPendentes = ['pendente'];
+        let countPendentes = 2;
+        if (dataLimite) {
+            sqlPendentes += ` AND data_publicacao >= $${countPendentes}`;
+            paramsPendentes.push(dataLimite.toISOString());
+            countPendentes++;
+        }
+        const ideiasPendentes = await pool.query(sqlPendentes, paramsPendentes);
         
         // 6. Taxa de Conversão
         const totalIdeiasNum = parseInt(totalIdeias.rows[0].total);
         const convertidasNum = parseInt(ideiasConvertidas.rows[0].total);
         const taxaConversao = totalIdeiasNum > 0 ? ((convertidasNum / totalIdeiasNum) * 100).toFixed(1) : 0;
         
-        // 7. Ideias por Período (detalhado)
+        // 7. Ideias por Período (gráfico de linha)
         let sqlPeriodo = `
             SELECT DATE(data_publicacao) as data, COUNT(*) as total
             FROM ideias
             WHERE 1=1
         `;
+        let paramsPeriodo = [];
+        let countPeriodo = 1;
         if (dataLimite) {
-            sqlPeriodo += ` AND data_publicacao >= '${dataLimite.toISOString()}'`;
+            sqlPeriodo += ` AND data_publicacao >= $${countPeriodo}`;
+            paramsPeriodo.push(dataLimite.toISOString());
+            countPeriodo++;
         }
-        sqlPeriodo += ` GROUP BY DATE(data_publicacao) ORDER BY data ASC`;
+        sqlPeriodo += ` GROUP BY DATE(data_publicacao) ORDER BY data ASC LIMIT 100`;
         
-        const ideiasPorPeriodo = await pool.query(sqlPeriodo);
+        const ideiasPorPeriodo = await pool.query(sqlPeriodo, paramsPeriodo);
         
-        // 8. Ideias por Categoria
-        const ideiasPorCategoria = await pool.query(`
-            SELECT c.nome, c.icone, COUNT(i.id) as total
+        // 8. Ideias por Categoria (COM FILTRO DE PERÍODO)
+        let sqlCategorias = `
+            SELECT 
+                c.id, 
+                c.nome, 
+                c.icone, 
+                COUNT(i.id) as total
             FROM categorias c
             LEFT JOIN ideias i ON i.categoria_id = c.id
-            GROUP BY c.id, c.nome, c.icone
-            ORDER BY total DESC
-        `);
+            WHERE 1=1
+        `;
+        let paramsCategorias = [];
+        let countCategorias = 1;
+        if (dataLimite) {
+            sqlCategorias += ` AND (i.data_publicacao >= $${countCategorias} OR i.id IS NULL)`;
+            paramsCategorias.push(dataLimite.toISOString());
+            countCategorias++;
+        }
+        sqlCategorias += ` GROUP BY c.id, c.nome, c.icone ORDER BY total DESC`;
+        
+        const ideiasPorCategoria = await pool.query(sqlCategorias, paramsCategorias);
         
         // 9. Ideias por Status
-        const ideiasPorStatus = await pool.query(`
-            SELECT status, COUNT(*) as total
-            FROM ideias
-            WHERE 1=1 ${condicaoData}
-            GROUP BY status
-        `);
+        let sqlStatus = 'SELECT status, COUNT(*) as total FROM ideias WHERE 1=1';
+        let paramsStatus = [];
+        let countStatus = 1;
+        if (dataLimite) {
+            sqlStatus += ` AND data_publicacao >= $${countStatus}`;
+            paramsStatus.push(dataLimite.toISOString());
+            countStatus++;
+        }
+        sqlStatus += ` GROUP BY status`;
         
-        // 10. Ranking de Usuários (com filtro de período)
+        const ideiasPorStatus = await pool.query(sqlStatus, paramsStatus);
+        
+        // 10. Ranking de Usuários
         let sqlRanking = `
             SELECT u.id, u.nome, u.cargo, COUNT(i.id) as total_ideias
             FROM usuarios u
             LEFT JOIN ideias i ON u.id = i.id_usuario
             WHERE u.ativo = true
         `;
+        let paramsRanking = [];
+        let countRanking = 1;
         if (dataLimite) {
-            sqlRanking += ` AND (i.data_publicacao >= '${dataLimite.toISOString()}' OR i.id IS NULL)`;
+            sqlRanking += ` AND (i.data_publicacao >= $${countRanking} OR i.id IS NULL)`;
+            paramsRanking.push(dataLimite.toISOString());
+            countRanking++;
         }
         sqlRanking += ` GROUP BY u.id, u.nome, u.cargo ORDER BY total_ideias DESC LIMIT 10`;
         
-        const rankingUsuarios = await pool.query(sqlRanking);
+        const rankingUsuarios = await pool.query(sqlRanking, paramsRanking);
+        
+        console.log(`✅ Dashboard carregado: Total ideias=${totalIdeiasNum}, Período=${periodo}`);
         
         res.json({
             totalIdeias: parseInt(totalIdeias.rows[0].total),
@@ -2871,24 +3315,87 @@ app.get('/admin/dashboard/inovacao', async (req, res) => {
     }
 });
 
-// Listar usuários
-app.get('/admin/usuarios', async (req, res) => {
+// Rota de teste para verificar dashboard
+app.get('/debug/dashboard/teste', async (req, res) => {
     try {
-        const result = await pool.query(`
-            SELECT 
-                u.id, 
-                u.nome, 
-                u.email, 
-                u.cargo, 
-                u.ativo, 
-                u.data_cadastro, 
-                u.ultimo_acesso,
-                COALESCE(u.total_advertencias, 0) as total_advertencias,
-                COALESCE(u.ideias_removidas, 0) as ideias_removidas
-            FROM usuarios u
-            ORDER BY u.ideias_removidas DESC, u.total_advertencias DESC, u.data_cadastro DESC
+        // Verificar se a tabela de ideias existe
+        const checkTable = await pool.query(`
+            SELECT EXISTS (
+                SELECT FROM information_schema.tables 
+                WHERE table_name = 'ideias'
+            );
         `);
         
+        // Contar ideias por período
+        const totalIdeias = await pool.query('SELECT COUNT(*) as total FROM ideias');
+        
+        // Contar ideias por categoria
+        const categorias = await pool.query(`
+            SELECT c.nome, COUNT(i.id) as total
+            FROM categorias c
+            LEFT JOIN ideias i ON i.categoria_id = c.id
+            GROUP BY c.id, c.nome
+            ORDER BY total DESC
+        `);
+        
+        res.json({
+            sucesso: true,
+            tabelaExiste: checkTable.rows[0].exists,
+            totalIdeias: totalIdeias.rows[0].total,
+            categorias: categorias.rows
+        });
+    } catch (err) {
+        res.status(500).json({ erro: err.message });
+    }
+});
+
+// Listar usuários
+app.get('/admin/usuarios', async (req, res) => {
+    const { busca, cargo, status } = req.query;
+    
+    let query = `
+        SELECT 
+            u.id, 
+            u.nome, 
+            u.email, 
+            u.cargo, 
+            u.ativo, 
+            u.data_cadastro, 
+            u.ultimo_acesso,
+            COALESCE(u.total_advertencias, 0) as total_advertencias,
+            COALESCE(u.ideias_removidas, 0) as ideias_removidas
+        FROM usuarios u
+        WHERE 1=1
+    `;
+    let params = [];
+    let paramCount = 1;
+    
+    // Filtro por nome
+    if (busca && busca.trim() !== '') {
+        query += ` AND u.nome ILIKE $${paramCount}`;
+        params.push(`%${busca.trim()}%`);
+        paramCount++;
+    }
+    
+    // Filtro por cargo
+    if (cargo && cargo !== 'todos') {
+        query += ` AND u.cargo = $${paramCount}`;
+        params.push(cargo);
+        paramCount++;
+    }
+    
+    // Filtro por status
+    if (status && status !== 'todos') {
+        const ativo = status === 'ativo';
+        query += ` AND u.ativo = $${paramCount}`;
+        params.push(ativo);
+        paramCount++;
+    }
+    
+    query += ` ORDER BY u.ideias_removidas DESC, u.total_advertencias DESC, u.data_cadastro DESC`;
+    
+    try {
+        const result = await pool.query(query, params);
         res.json(result.rows);
     } catch (err) {
         console.error('Erro:', err);
@@ -2896,7 +3403,12 @@ app.get('/admin/usuarios', async (req, res) => {
     }
 });
 
-// Alterar cargo do usuário
+// ==========================================
+// ATIVAR/DESATIVAR USUÁRIO (COM LOG DETALHADO)
+// ==========================================
+// ==========================================
+// ALTERAR CARGO DO USUÁRIO (COM LOG DETALHADO)
+// ==========================================
 app.put('/admin/usuarios/:id/cargo', async (req, res) => {
     const usuarioId = req.params.id;
     const { cargo, adminId } = req.body;
@@ -2906,11 +3418,50 @@ app.put('/admin/usuarios/:id/cargo', async (req, res) => {
         return res.status(400).json({ erro: 'Cargo inválido' });
     }
     
+    if (!adminId) {
+        return res.status(401).json({ erro: 'Usuário não autenticado' });
+    }
+    
     try {
+        // Verificar permissão do admin
+        const adminCheck = await pool.query(
+            'SELECT cargo FROM usuarios WHERE id = $1 AND ativo = true',
+            [adminId]
+        );
+        
+        if (adminCheck.rows.length === 0 || 
+            (adminCheck.rows[0].cargo !== 'gestor' && adminCheck.rows[0].cargo !== 'ti_staff')) {
+            return res.status(403).json({ erro: 'Acesso negado' });
+        }
+        
+        // ✅ BUSCAR CARGO ATUAL ANTES DE ALTERAR
+        const usuarioAtual = await pool.query('SELECT nome, cargo FROM usuarios WHERE id = $1', [usuarioId]);
+        
+        if (usuarioAtual.rows.length === 0) {
+            return res.status(404).json({ erro: 'Usuário não encontrado' });
+        }
+        
+        const cargoAntigo = usuarioAtual.rows[0].cargo;
+        const nomeUsuario = usuarioAtual.rows[0].nome;
+        
+        // ✅ EXECUTAR A ATUALIZAÇÃO
         await pool.query('UPDATE usuarios SET cargo = $1 WHERE id = $2', [cargo, usuarioId]);
-        res.json({ sucesso: true, mensagem: 'Permissão atualizada!' });
+        
+        // ✅ REGISTRAR LOG COM CARGO ANTIGO E NOVO (MAIS DETALHADO)
+        await registrarLog(
+            adminId, 
+            'alterar_cargo', 
+            `👔 Alterou cargo do usuário "${nomeUsuario}" (ID: ${usuarioId}) de "${cargoAntigo}" para "${cargo}"`, 
+            req.ip, 
+            req.headers['user-agent']
+        );
+        
+        console.log(`✅ Cargo do usuário ${nomeUsuario} (ID: ${usuarioId}) alterado: ${cargoAntigo} → ${cargo}`);
+        
+        res.json({ sucesso: true, mensagem: 'Cargo atualizado com sucesso!' });
+        
     } catch (err) {
-        console.error('Erro:', err);
+        console.error('❌ Erro ao alterar cargo:', err);
         res.status(500).json({ erro: err.message });
     }
 });
@@ -2920,11 +3471,54 @@ app.put('/admin/usuarios/:id/ativar', async (req, res) => {
     const usuarioId = req.params.id;
     const { ativo, adminId } = req.body;
     
+    if (!adminId) {
+        return res.status(401).json({ erro: 'Usuário não autenticado' });
+    }
+    
     try {
+        // Verificar permissão do admin
+        const adminCheck = await pool.query(
+            'SELECT cargo FROM usuarios WHERE id = $1 AND ativo = true',
+            [adminId]
+        );
+        
+        if (adminCheck.rows.length === 0 || 
+            (adminCheck.rows[0].cargo !== 'gestor' && adminCheck.rows[0].cargo !== 'ti_staff')) {
+            return res.status(403).json({ erro: 'Acesso negado' });
+        }
+        
+        // ✅ BUSCAR INFORMAÇÕES DO USUÁRIO
+        const usuarioInfo = await pool.query('SELECT nome, ativo as status_atual FROM usuarios WHERE id = $1', [usuarioId]);
+        
+        if (usuarioInfo.rows.length === 0) {
+            return res.status(404).json({ erro: 'Usuário não encontrado' });
+        }
+        
+        const nomeUsuario = usuarioInfo.rows[0].nome;
+        const statusAntigo = usuarioInfo.rows[0].status_atual ? 'ativo' : 'inativo';
+        const statusNovo = ativo ? 'ativo' : 'inativo';
+        
+        // Executar a ativação/desativação
         await pool.query('UPDATE usuarios SET ativo = $1 WHERE id = $2', [ativo, usuarioId]);
-        res.json({ sucesso: true, mensagem: `Usuário ${ativo ? 'ativado' : 'desativado'}!` });
+        
+        // ✅ REGISTRAR LOG DETALHADO
+        const acaoTexto = ativo ? 'Ativou' : 'Desativou';
+        const emoji = ativo ? '🔓' : '🔒';
+        
+        await registrarLog(
+            adminId, 
+            'toggle_usuario', 
+            `${emoji} ${acaoTexto} o usuário "${nomeUsuario}" (ID: ${usuarioId}) - Status anterior: ${statusAntigo} → ${statusNovo}`, 
+            req.ip, 
+            req.headers['user-agent']
+        );
+        
+        console.log(`✅ Usuário ${nomeUsuario} (ID: ${usuarioId}): ${statusAntigo} → ${statusNovo}`);
+        
+        res.json({ sucesso: true, mensagem: `Usuário ${ativo ? 'ativado' : 'desativado'} com sucesso!` });
+        
     } catch (err) {
-        console.error('Erro:', err);
+        console.error('❌ Erro ao alterar status:', err);
         res.status(500).json({ erro: err.message });
     }
 });
@@ -3808,14 +4402,31 @@ app.get('/equipamentos/:id', async (req, res) => {
 // ==========================================
 
 // Registrar log (função auxiliar)
+// Função para registrar log (CORRIGIDA)
 async function registrarLog(usuarioId, acao, descricao, ip = null, userAgent = null, dadosAntes = null, dadosDepois = null) {
     try {
-        await pool.query(`
+        // Verificar se a tabela existe
+        const checkTable = await pool.query(`
+            SELECT EXISTS (
+                SELECT FROM information_schema.tables 
+                WHERE table_name = 'logs_detalhados'
+            );
+        `);
+        
+        if (!checkTable.rows[0].exists) {
+            console.error('❌ Tabela logs_detalhados não existe!');
+            return;
+        }
+        
+        const result = await pool.query(`
             INSERT INTO logs_detalhados (id_usuario, acao, descricao, ip_address, user_agent, dados_antes, dados_depois)
             VALUES ($1, $2, $3, $4, $5, $6, $7)
+            RETURNING id
         `, [usuarioId, acao, descricao, ip, userAgent, dadosAntes, dadosDepois]);
+        
+        console.log(`✅ Log registrado: ID ${result.rows[0].id} - Ação: ${acao} - Usuário: ${usuarioId}`);
     } catch (err) {
-        console.error('Erro ao registrar log:', err);
+        console.error('❌ Erro ao registrar log:', err.message);
     }
 }
 
@@ -4205,12 +4816,27 @@ app.get('/admin/metricas', async (req, res) => {
     }
 });
 
-// Listar logs com filtros
+// ==========================================
+// ROTA PARA LISTAR LOGS (COMPLETA E CORRIGIDA)
+// ==========================================
 app.get('/admin/logs', async (req, res) => {
-    const { usuarioId, buscaUsuario, acao, dataInicio, dataFim, limit = 100 } = req.query;
+    const { usuarioId, buscaUsuario, acao, dataInicio, dataFim, limit = 100, ultimoId } = req.query;
+    
+    console.log('📋 Requisição de logs recebida:', { usuarioId, buscaUsuario, acao, dataInicio, dataFim, limit, ultimoId });
     
     let query = `
-        SELECT l.*, u.nome as usuario_nome, u.email as usuario_email
+        SELECT 
+            l.id,
+            l.id_usuario,
+            l.acao,
+            l.descricao,
+            l.ip_address,
+            l.user_agent,
+            l.dados_antes,
+            l.dados_depois,
+            l.data_acao,
+            u.nome as usuario_nome, 
+            u.email as usuario_email
         FROM logs_detalhados l
         LEFT JOIN usuarios u ON l.id_usuario = u.id
         WHERE 1=1
@@ -4218,48 +4844,110 @@ app.get('/admin/logs', async (req, res) => {
     let params = [];
     let paramCount = 1;
     
-    // Filtro por ID do usuário
-    if (usuarioId && usuarioId !== 'todos' && usuarioId !== 'null' && usuarioId !== 'undefined') {
+    // Filtro por ID do usuário (adminId)
+    if (usuarioId && usuarioId !== 'todos' && usuarioId !== 'null' && usuarioId !== 'undefined' && usuarioId !== '') {
         query += ` AND l.id_usuario = $${paramCount}`;
         params.push(parseInt(usuarioId));
         paramCount++;
+        console.log(`🔍 Filtrando por usuário ID: ${usuarioId}`);
     }
     
-    // FILTRO POR NOME DO USUÁRIO (busca parcial)
-    if (buscaUsuario && buscaUsuario.trim() !== '') {
+    // Filtro por nome do usuário (busca parcial)
+    if (buscaUsuario && buscaUsuario.trim() !== '' && buscaUsuario !== 'null' && buscaUsuario !== 'undefined') {
         query += ` AND u.nome ILIKE $${paramCount}`;
         params.push(`%${buscaUsuario.trim()}%`);
         paramCount++;
+        console.log(`🔍 Buscando por nome: ${buscaUsuario}`);
+    }
+    
+    // Se ultimoId for fornecido, buscar apenas logs mais recentes (para polling)
+    if (ultimoId && ultimoId !== '0' && ultimoId !== '' && ultimoId !== 'null' && ultimoId !== 'undefined') {
+        query += ` AND l.id > $${paramCount}`;
+        params.push(parseInt(ultimoId));
+        paramCount++;
+        console.log(`🔄 Buscando logs mais recentes que ID: ${ultimoId}`);
     }
     
     // Filtro por ação
-    if (acao && acao !== 'todos' && acao !== 'null' && acao !== 'undefined') {
+    if (acao && acao !== 'todos' && acao !== 'null' && acao !== 'undefined' && acao !== '') {
         query += ` AND l.acao = $${paramCount}`;
         params.push(acao);
         paramCount++;
+        console.log(`🔍 Filtrando por ação: ${acao}`);
     }
     
-    // Filtro por data
-    if (dataInicio && dataInicio !== '') {
+    // Filtro por data de início
+    if (dataInicio && dataInicio !== '' && dataInicio !== 'null' && dataInicio !== 'undefined') {
         query += ` AND DATE(l.data_acao) >= $${paramCount}`;
         params.push(dataInicio);
         paramCount++;
+        console.log(`📅 Data início: ${dataInicio}`);
     }
     
-    if (dataFim && dataFim !== '') {
+    // Filtro por data de fim
+    if (dataFim && dataFim !== '' && dataFim !== 'null' && dataFim !== 'undefined') {
         query += ` AND DATE(l.data_acao) <= $${paramCount}`;
         params.push(dataFim);
         paramCount++;
+        console.log(`📅 Data fim: ${dataFim}`);
     }
     
+    // Ordenar por data decrescente (mais recentes primeiro)
     query += ` ORDER BY l.data_acao DESC LIMIT $${paramCount}`;
     params.push(parseInt(limit));
     
     try {
         const result = await pool.query(query, params);
-        res.json(result.rows);
+        console.log(`✅ Logs encontrados: ${result.rows.length}`);
+        
+        // Formatar as datas para o frontend
+        const logs = result.rows.map(log => ({
+            ...log,
+            data_acao: log.data_acao ? new Date(log.data_acao).toISOString() : null
+        }));
+        
+        res.json(logs);
+        
     } catch (err) {
-        console.error('❌ Erro:', err);
+        console.error('❌ Erro ao carregar logs:', err);
+        res.status(500).json({ erro: err.message });
+    }
+});
+
+// ==========================================
+// ROTA PARA CONTAR LOGS (ÚTIL PARA POLLING)
+// ==========================================
+app.get('/admin/logs/count', async (req, res) => {
+    const { ultimoId } = req.query;
+    
+    try {
+        let query = 'SELECT COUNT(*) as total FROM logs_detalhados WHERE 1=1';
+        let params = [];
+        let paramCount = 1;
+        
+        if (ultimoId && ultimoId !== '0' && ultimoId !== '') {
+            query += ` AND id > $${paramCount}`;
+            params.push(parseInt(ultimoId));
+            paramCount++;
+        }
+        
+        const result = await pool.query(query, params);
+        res.json({ total: parseInt(result.rows[0].total) });
+        
+    } catch (err) {
+        console.error('❌ Erro ao contar logs:', err);
+        res.status(500).json({ erro: err.message });
+    }
+});
+
+// Rota de teste para verificar se os logs estão sendo registrados
+app.post('/teste/log', async (req, res) => {
+    const { usuarioId, acao, descricao } = req.body;
+    
+    try {
+        await registrarLog(usuarioId, acao, descricao, req.ip, req.headers['user-agent']);
+        res.json({ sucesso: true, mensagem: 'Log de teste registrado!' });
+    } catch (err) {
         res.status(500).json({ erro: err.message });
     }
 });

@@ -6796,3 +6796,373 @@ textarea {
         grid-template-columns: 1fr;
     }
 }
+/* ==========================================
+   DASHBOARD PESSOAL - CARDS ALINHADOS
+   ========================================== */
+
+.dashboard-pessoal-section {
+    background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
+    border-radius: 20px;
+    padding: 25px;
+    margin: 20px 0;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+}
+
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.dashboard-header h3 {
+    margin: 0;
+    color: #2d3748;
+    font-size: 1.3em;
+}
+
+.dashboard-periodo {
+    min-width: 150px;
+}
+
+.dashboard-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 15px;
+    margin-bottom: 30px;
+}
+
+.dashboard-card-mini {
+    background: white;
+    border-radius: 16px;
+    padding: 15px 12px;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    transition: all 0.3s ease;
+    border: 1px solid #e2e8f0;
+    min-width: 0; /* Permite que o card encolha */
+}
+
+.dashboard-card-mini:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(102,126,234,0.15);
+    border-color: #667eea;
+}
+
+.card-icon {
+    font-size: 28px;
+    margin-bottom: 10px;
+    color: #667eea;
+}
+
+.card-info {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.card-value {
+    font-size: 28px;
+    font-weight: 700;
+    color: #2d3748;
+    line-height: 1.2;
+}
+
+.card-label {
+    font-size: 12px;
+    color: #718096;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 500;
+}
+
+/* Responsividade para telas menores */
+@media (max-width: 768px) {
+    .dashboard-cards {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+    }
+    
+    .dashboard-card-mini {
+        padding: 12px 8px;
+    }
+    
+    .card-value {
+        font-size: 22px;
+    }
+    
+    .card-label {
+        font-size: 10px;
+    }
+    
+    .card-icon {
+        font-size: 22px;
+    }
+}
+
+@media (max-width: 480px) {
+    .dashboard-cards {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+/* Estilos para campos com erro */
+.input-error {
+    border: 2px solid #dc3545 !important;
+    animation: shake 0.3s ease;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+}
+
+/* Mensagens de alerta melhoradas */
+.alert-error {
+    background: #dc3545;
+    color: white;
+    border-radius: 10px;
+    padding: 12px 20px;
+    margin: 10px 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    animation: slideIn 0.3s ease;
+}
+
+.alert-warning {
+    background: #ffc107;
+    color: #856404;
+    border-radius: 10px;
+    padding: 12px 20px;
+    margin: 10px 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    animation: slideIn 0.3s ease;
+}
+
+.alert-success {
+    background: #28a745;
+    color: white;
+    border-radius: 10px;
+    padding: 12px 20px;
+    margin: 10px 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateY(-20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+.template-card .contador-usos {
+    background: #e2e8f0;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #4a5568;
+}
+
+.template-card:hover .contador-usos {
+    background: #667eea;
+    color: white;
+}
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.toast-notification {
+    animation: slideInRight 0.3s ease forwards;
+}
+
+.toast-notification:hover {
+    transform: translateX(-5px);
+    transition: transform 0.2s;
+}
+/* ==========================================
+   SISTEMA DE NOTIFICAÇÕES (PADRÃO IDEAHUB)
+   ========================================== */
+.notification-container {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    pointer-events: none;
+}
+
+.notification-toast {
+    min-width: 280px;
+    max-width: 350px;
+    background: white;
+    border-radius: 12px;
+    padding: 14px 18px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    animation: slideInRight 0.3s ease forwards;
+    pointer-events: auto;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Cores por tipo */
+.notification-toast.success {
+    border-left: 4px solid #28a745;
+    background: linear-gradient(135deg, #ffffff 0%, #f0fff4 100%);
+}
+
+.notification-toast.success i {
+    color: #28a745;
+}
+
+.notification-toast.error {
+    border-left: 4px solid #dc3545;
+    background: linear-gradient(135deg, #ffffff 0%, #fff5f5 100%);
+}
+
+.notification-toast.error i {
+    color: #dc3545;
+}
+
+.notification-toast.info {
+    border-left: 4px solid #17a2b8;
+    background: linear-gradient(135deg, #ffffff 0%, #e6f7ff 100%);
+}
+
+.notification-toast.info i {
+    color: #17a2b8;
+}
+
+.notification-toast.warning {
+    border-left: 4px solid #ffc107;
+    background: linear-gradient(135deg, #ffffff 0%, #fff8e7 100%);
+}
+
+.notification-toast.warning i {
+    color: #ffc107;
+}
+
+/* Ícone */
+.notification-icon {
+    font-size: 22px;
+    flex-shrink: 0;
+}
+
+/* Conteúdo */
+.notification-content {
+    flex: 1;
+}
+
+.notification-title {
+    font-weight: 600;
+    font-size: 14px;
+    color: #2d3748;
+    margin-bottom: 4px;
+}
+
+.notification-message {
+    font-size: 13px;
+    color: #4a5568;
+    line-height: 1.4;
+}
+
+/* Barra de progresso */
+.notification-progress {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 3px;
+    background: rgba(0, 0, 0, 0.1);
+    animation: progressShrink 3s linear forwards;
+}
+
+.notification-toast.success .notification-progress {
+    background: #28a745;
+}
+
+.notification-toast.error .notification-progress {
+    background: #dc3545;
+}
+
+.notification-toast.info .notification-progress {
+    background: #17a2b8;
+}
+
+.notification-toast.warning .notification-progress {
+    background: #ffc107;
+}
+
+/* Botão fechar */
+.notification-close {
+    background: none;
+    border: none;
+    font-size: 18px;
+    cursor: pointer;
+    color: #a0aec0;
+    padding: 0 4px;
+    transition: color 0.2s;
+    flex-shrink: 0;
+}
+
+.notification-close:hover {
+    color: #4a5568;
+}
+
+/* Animações */
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOutRight {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+
+@keyframes progressShrink {
+    from {
+        width: 100%;
+    }
+    to {
+        width: 0%;
+    }
+}
+
+.notification-toast.removing {
+    animation: slideOutRight 0.3s ease forwards;
+}

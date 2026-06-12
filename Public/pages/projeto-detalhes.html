@@ -533,6 +533,177 @@
     max-width: 500px;
     margin: 0 auto;
 }
+/* ==========================================
+   EMPTY STATE PADRONIZADO (para todas as seções)
+   ========================================== */
+
+.empty-state {
+    text-align: center;
+    padding: 60px 40px;
+    background: #f8fafc;
+    border-radius: 16px;
+    color: #a0aec0;
+    min-height: 250px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+}
+
+.empty-state i {
+    font-size: 48px;
+    color: #cbd5e0;
+}
+
+.empty-state p {
+    font-size: 16px;
+    margin: 0;
+}
+
+.empty-state small {
+    font-size: 13px;
+    color: #cbd5e0;
+}
+
+.empty-state button {
+    margin-top: 10px;
+}
+
+/* Versão para centralização (quando precisa de max-width) */
+.empty-state-central {
+    text-align: center;
+    padding: 60px 40px;
+    background: #f8fafc;
+    border-radius: 20px;
+    width: 100%;
+    max-width: 500px;
+    margin: 0 auto;
+    color: #a0aec0;
+}
+
+.empty-state-central i {
+    font-size: 48px;
+    color: #cbd5e0;
+    margin-bottom: 15px;
+}
+
+.empty-state-central p {
+    font-size: 16px;
+    margin: 0;
+}
+
+.empty-state-central button {
+    margin-top: 15px;
+}
+/* Garantir que o container de equipamentos use o mesmo padrão */
+#equipamentosList {
+    width: 100%;
+}
+
+#equipamentosList .empty-state {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* Estilo para os cards de equipamento (mantido) */
+.equipamento-card {
+    background: #f8fafc;
+    border-radius: 12px;
+    padding: 20px;
+    border-left: 4px solid #667eea;
+    transition: all 0.3s;
+    width: 100%;
+    max-width: 400px;
+}
+
+.equipamento-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+}
+/* ==========================================
+   EMPTY STATE PADRONIZADO (LARGURA TOTAL)
+   ========================================== */
+
+.empty-state {
+    text-align: center;
+    padding: 60px 40px;
+    background: #f8fafc;
+    border-radius: 16px;
+    color: #a0aec0;
+    min-height: 250px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.empty-state i {
+    font-size: 48px;
+    color: #cbd5e0;
+}
+
+.empty-state p {
+    font-size: 16px;
+    margin: 0;
+}
+
+.empty-state small {
+    font-size: 13px;
+    color: #cbd5e0;
+}
+
+.empty-state button {
+    margin-top: 10px;
+}
+
+/* Garantir que os containers ocupem toda a largura */
+#documentosList,
+#equipamentosList {
+    width: 100%;
+}
+
+.documentos-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+    width: 100%;
+}
+/* Container principal do planejamento */
+.planejamento-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+}
+
+/* Quando estiver vazio, ocupa toda a largura */
+.planejamento-container .empty-state {
+    width: 100%;
+    max-width: none;
+}
+/* Spinner de carregamento */
+.fa-spinner {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.empty-state i.fa-spinner {
+    font-size: 48px;
+    color: #667eea;
+}
     </style>
 </head>
 <body>
@@ -851,75 +1022,75 @@
                 const prioridadeText = getPrioridadeText(projeto.prioridade);
                 
                 document.getElementById('projetoInfo').innerHTML = `
-                    <div class="projeto-info-container">
-                        <div class="projeto-header">
-                            <div class="projeto-icon">
-                                <i class="fas fa-project-diagram"></i>
-                            </div>
-                            <div class="projeto-title">
-                                <h2>${escapeHtml(projeto.nome)}</h2>
-                                <div style="display: flex; gap: 10px; margin-top: 8px; flex-wrap: wrap;">
-                                    <span class="projeto-status ${statusClass}">${statusText}</span>
-                                    <span class="projeto-status ${prioridadeClass}">${prioridadeText}</span>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="info-grid">
-                            <div class="info-row">
-                                <div class="info-card">
-                                    <div class="info-label">
-                                        <i class="fas fa-user-circle"></i> RESPONSÁVEL
-                                    </div>
-                                    <div class="info-value">
-                                        <i class="fas fa-user"></i> ${escapeHtml(projeto.responsavel || 'Não definido')}
-                                    </div>
-                                </div>
-                                
-                                <div class="info-card">
-                                    <div class="info-label">
-                                        <i class="fas fa-calendar-alt"></i> DATA DE CRIAÇÃO
-                                    </div>
-                                    <div class="info-value">
-                                        <i class="fas fa-calendar"></i> ${formatarData(projeto.data_criacao)}
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="info-row">
-                                <div class="info-card">
-                                    <div class="info-label">
-                                        <i class="fas fa-lightbulb"></i> IDEIA ORIGINAL
-                                    </div>
-                                    <div class="info-value">
-                                        ${projeto.ideia_titulo ? 
-                                            `<i class="fas fa-pen"></i> <a href="../pages/ideia.html?id=${projeto.id_ideia}" target="_blank">${escapeHtml(projeto.ideia_titulo)}</a>` : 
-                                            '<i class="fas fa-ban"></i> Não vinculada'}
-                                    </div>
-                                </div>
-                                
-                                <div class="info-card">
-                                    <div class="info-label">
-                                        <i class="fas fa-chart-line"></i> PROGRESSO
-                                    </div>
-                                    <div class="info-value">
-                                        <i class="fas fa-percent"></i> Em desenvolvimento
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="projeto-descricao">
-                            <h4><i class="fas fa-align-left"></i> DESCRIÇÃO DO PROJETO</h4>
-                            <p>${escapeHtml(projeto.descricao || 'Nenhuma descrição fornecida para este projeto.')}</p>
-                        </div>
-                        
-                        <div class="projeto-meta-footer">
-                            <span><i class="fas fa-id-card"></i> ID do Projeto: #${projeto.id}</span>
-                            <span><i class="fas fa-clock"></i> Última atualização: ${formatarData(projeto.data_criacao)}</span>
-                        </div>
+    <div class="projeto-info-container">
+        <div class="projeto-header">
+            <div class="projeto-icon">
+                <i class="fas fa-project-diagram"></i>
+            </div>
+            <div class="projeto-title">
+                <h2>${escapeHtml(projeto.nome)}</h2>
+                <div style="display: flex; gap: 10px; margin-top: 8px; flex-wrap: wrap;">
+                    <span class="projeto-status ${statusClass}">${statusText}</span>
+                    <span class="projeto-status ${prioridadeClass}">${prioridadeText}</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="info-grid">
+            <div class="info-row">
+                <div class="info-card">
+                    <div class="info-label">
+                        <i class="fas fa-user-circle"></i> RESPONSÁVEL
                     </div>
-                `;
+                    <div class="info-value">
+                        <i class="fas fa-user"></i> ${escapeHtml(projeto.responsavel || 'Não definido')}
+                    </div>
+                </div>
+                
+                <div class="info-card">
+                    <div class="info-label">
+                        <i class="fas fa-calendar-alt"></i> DATA DE CRIAÇÃO
+                    </div>
+                    <div class="info-value">
+                        <i class="fas fa-calendar"></i> ${formatarData(projeto.data_criacao)}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="info-row">
+                <div class="info-card">
+                    <div class="info-label">
+                        <i class="fas fa-lightbulb"></i> IDEIA ORIGINAL
+                    </div>
+                    <div class="info-value">
+                        ${projeto.ideia_titulo ? 
+                            `<i class="fas fa-pen"></i> <a href="javascript:void(0)" onclick="abrirIdeia(${projeto.id_ideia})" style="color: #667eea; text-decoration: none; cursor: pointer;">${escapeHtml(projeto.ideia_titulo)}</a>` : 
+                            '<i class="fas fa-ban"></i> Não vinculada'}
+                    </div>
+                </div>
+                
+                <div class="info-card">
+                    <div class="info-label">
+                        <i class="fas fa-chart-line"></i> PROGRESSO
+                    </div>
+                    <div class="info-value">
+                        <i class="fas fa-percent"></i> Em desenvolvimento
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="projeto-descricao">
+            <h4><i class="fas fa-align-left"></i> DESCRIÇÃO DO PROJETO</h4>
+            <p>${escapeHtml(projeto.descricao || 'Nenhuma descrição fornecida para este projeto.')}</p>
+        </div>
+        
+        <div class="projeto-meta-footer">
+            <span><i class="fas fa-id-card"></i> ID do Projeto: #${projeto.id}</span>
+            <span><i class="fas fa-clock"></i> Última atualização: ${formatarData(projeto.data_criacao)}</span>
+        </div>
+    </div>
+`;
             } catch (error) {
                 console.error('❌ Erro:', error);
                 document.getElementById('projetoInfo').innerHTML = `<div class="error">Erro ao carregar projeto: ${error.message}</div>`;
@@ -928,6 +1099,13 @@
             }
         }
 
+function abrirIdeia(ideiaId) {
+    if (!ideiaId) {
+        alert('ID da ideia não encontrado');
+        return;
+    }
+    window.location.href = `../pages/ideia.html?id=${ideiaId}`;
+}
         // ==========================================
         // FUNÇÕES AUXILIARES
         // ==========================================
@@ -986,67 +1164,87 @@
         // ABA DOCUMENTAÇÃO
         // ==========================================
 
-        async function carregarDocumentacao() {
-            showLoading(true);
-            try {
-                const response = await fetch(`/projetos/${projetoId}/documentacao`);
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                
-                const docs = await response.json();
-                const container = document.getElementById('documentosList');
-                
-                if (!docs || docs.length === 0) {
-                    container.innerHTML = `
-                        <div class="empty-state">
-                            <i class="fas fa-file-alt"></i>
-                            <p>Nenhum documento cadastrado</p>
-                            <button onclick="abrirModalDocumento()" class="btn-primary" style="margin-top: 15px;">
-                                <i class="fas fa-plus"></i> Criar primeiro documento
-                            </button>
-                        </div>
-                    `;
-                    return;
-                }
-                
-                container.innerHTML = docs.map(doc => `
-                    <div class="documento-card">
-                        <div class="documento-header">
-                            <span class="documento-titulo">${escapeHtml(doc.titulo)}</span>
-                            <span class="documento-versao">v${escapeHtml(doc.versao || '1.0')}</span>
-                        </div>
-                        <p>${escapeHtml(doc.descricao || 'Sem descrição')}</p>
-                        <div class="documento-meta">
-                            <span><i class="fas fa-user"></i> ${escapeHtml(doc.autor_nome || 'Desconhecido')}</span>
-                            <span><i class="fas fa-calendar"></i> ${formatarData(doc.data_criacao)}</span>
-                        </div>
-                        ${doc.arquivo_url ? `
-                            <div style="margin-top: 10px;">
-                                <a href="${doc.arquivo_url}" target="_blank" class="btn-documento" style="background: #28a745; display: inline-flex; align-items: center; gap: 6px;">
-                                    <i class="fas fa-download"></i> Baixar Anexo
-                                </a>
-                            </div>
-                        ` : ''}
-                        <div style="margin-top: 10px;">
-                            <button onclick="editarDocumento(${doc.id})" class="btn-documento">
-                                <i class="fas fa-edit"></i> Editar
-                            </button>
-                            <button onclick="excluirDocumento(${doc.id})" class="btn-documento btn-documento-excluir">
-                                <i class="fas fa-trash-alt"></i> Excluir
-                            </button>
-                        </div>
-                    </div>
-                `).join('');
-                
-            } catch (error) {
-                console.error('Erro:', error);
-                document.getElementById('documentosList').innerHTML = '<div class="empty-state">Erro ao carregar documentação</div>';
-            } finally {
-                showLoading(false);
-            }
+      async function carregarDocumentacao() {
+    console.log('📄 Carregando documentação...');
+    
+    const container = document.getElementById('documentosList');
+    if (!container) {
+        console.error('❌ Elemento documentosList não encontrado');
+        return;
+    }
+    
+    // ✅ Mostrar estado de carregamento
+    container.innerHTML = `
+        <div class="empty-state">
+            <i class="fas fa-spinner fa-spin" style="font-size: 48px; color: #667eea;"></i>
+            <p>Carregando documentação...</p>
+        </div>
+    `;
+    
+    try {
+        const response = await fetch(`/projetos/${projetoId}/documentacao`);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
         }
+        
+        const docs = await response.json();
+        console.log(`📋 Documentos encontrados: ${docs.length}`);
+        
+        if (!docs || docs.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-file-alt"></i>
+                    <p>Nenhum documento cadastrado</p>
+                    <small>Clique no botão "Novo Documento" para adicionar o primeiro documento</small>
+                    <button onclick="abrirModalDocumento()" class="btn-primary" style="margin-top: 15px;">Criar primeiro documento</button>
+                </div>
+            `;
+            return;
+        }
+        
+        container.innerHTML = docs.map(doc => `
+            <div class="documento-card">
+                <div class="documento-header">
+                    <span class="documento-titulo">${escapeHtml(doc.titulo)}</span>
+                    <span class="documento-versao">v${escapeHtml(doc.versao || '1.0')}</span>
+                </div>
+                <p>${escapeHtml(doc.descricao || 'Sem descrição')}</p>
+                <div class="documento-meta">
+                    <span><i class="fas fa-user"></i> ${escapeHtml(doc.autor_nome || 'Desconhecido')}</span>
+                    <span><i class="fas fa-calendar"></i> ${formatarData(doc.data_criacao)}</span>
+                </div>
+                ${doc.arquivo_url ? `
+                    <div style="margin-top: 10px;">
+                        <a href="${doc.arquivo_url}" target="_blank" class="btn-documento" style="background: #28a745; display: inline-flex; align-items: center; gap: 6px;">
+                            <i class="fas fa-download"></i> Baixar Anexo
+                        </a>
+                    </div>
+                ` : ''}
+                <div style="margin-top: 10px;">
+                    <button onclick="editarDocumento(${doc.id})" class="btn-documento">
+                        <i class="fas fa-edit"></i> Editar
+                    </button>
+                    <button onclick="excluirDocumento(${doc.id})" class="btn-documento btn-documento-excluir">
+                        <i class="fas fa-trash-alt"></i> Excluir
+                    </button>
+                </div>
+            </div>
+        `).join('');
+        
+    } catch (error) {
+        console.error('❌ Erro ao carregar documentação:', error);
+        container.innerHTML = `
+            <div class="empty-state">
+                <i class="fas fa-exclamation-triangle"></i>
+                <p>Erro ao carregar documentação: ${error.message}</p>
+                <button onclick="carregarDocumentacao()" class="btn-primary" style="margin-top: 15px;">
+                    <i class="fas fa-sync-alt"></i> Tentar novamente
+                </button>
+            </div>
+        `;
+    }
+}
 
         function abrirModalDocumento() {
             document.getElementById('modalDocumentoTitulo').textContent = 'Novo Documento';
@@ -1192,92 +1390,117 @@
         // ABA PLANEJAMENTO DE REDE
         // ==========================================
 
-        async function carregarEquipamentos() {
-            showLoading(true);
-            try {
-                const response = await fetch(`/projetos/${projetoId}/equipamentos`);
-                const equipamentos = await response.json();
-                
-                const container = document.getElementById('equipamentosList');
-                
-                if (!equipamentos || equipamentos.length === 0) {
-                    container.innerHTML = `
-                        <div class="empty-state-central">
-                            <i class="fas fa-network-wired" style="font-size: 48px; color: #a0aec0;"></i>
-                            <p style="margin-top: 15px;">Nenhum equipamento cadastrado</p>
-                            <button onclick="abrirModalEquipamento()" class="btn-primary" style="margin-top: 15px;">
-                                <i class="fas fa-plus"></i> Adicionar primeiro equipamento
-                            </button>
+async function carregarEquipamentos() {
+    console.log('🔧 Carregando equipamentos...');
+    
+    const container = document.getElementById('equipamentosList');
+    if (!container) {
+        console.error('❌ Elemento equipamentosList não encontrado');
+        return;
+    }
+    
+    // ✅ Mostrar estado de carregamento
+    container.innerHTML = `
+        <div class="empty-state-central">
+            <i class="fas fa-spinner fa-spin" style="font-size: 48px; color: #667eea;"></i>
+            <p style="margin-top: 15px;">Carregando equipamentos...</p>
+        </div>
+    `;
+    
+    try {
+        const response = await fetch(`/projetos/${projetoId}/equipamentos`);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const equipamentos = await response.json();
+        console.log(`🔧 Equipamentos encontrados: ${equipamentos.length}`);
+        
+        if (!equipamentos || equipamentos.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-network-wired"></i>
+                    <p>Nenhum equipamento cadastrado</p>
+                    <small>Clique no botão "Adicionar Equipamento" para começar o planejamento de rede</small>
+                    <button onclick="abrirModalEquipamento()" class="btn-primary" style="margin-top: 15px;">Adicionar primeiro equipamento</button>
+                </div>
+            `;
+            return;
+        }
+        
+        // Calcular custo total
+        let custoTotal = 0;
+        equipamentos.forEach(eq => {
+            let custo = parseFloat(eq.custo);
+            if (isNaN(custo)) custo = 0;
+            custoTotal += custo;
+        });
+        
+        const resumoHTML = `
+            <div class="resumo-planejamento">
+                <div class="resumo-conteudo">
+                    <div class="resumo-item">
+                        <i class="fas fa-cubes"></i>
+                        <span>Total de Equipamentos:</span>
+                        <strong>${equipamentos.length}</strong>
+                    </div>
+                    <div class="resumo-item">
+                        <i class="fas fa-dollar-sign"></i>
+                        <span>Custo Total:</span>
+                        <strong>R$ ${custoTotal.toFixed(2)}</strong>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        const equipamentosHTML = `
+            <div class="equipamentos-grid">
+                ${equipamentos.map(eq => {
+                    const tipoIcone = getTipoIcone(eq.tipo);
+                    const custoEquip = parseFloat(eq.custo) || 0;
+                    return `
+                        <div class="equipamento-card">
+                            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                                <div>
+                                    <h4 style="margin-bottom: 5px;">${tipoIcone} ${escapeHtml(eq.nome)}</h4>
+                                    <small style="color: #666;">${escapeHtml(eq.fabricante || '')} ${escapeHtml(eq.modelo || '')}</small>
+                                </div>
+                                <div>
+                                    <span style="background: #e2e8f0; padding: 4px 12px; border-radius: 20px; font-size: 12px;">💰 R$ ${custoEquip.toFixed(2)}</span>
+                                </div>
+                            </div>
+                            ${eq.ip_address ? `<div style="margin-top: 10px;"><i class="fas fa-network-wired"></i> IP: ${escapeHtml(eq.ip_address)}</div>` : ''}
+                            ${eq.observacoes ? `<div style="margin-top: 8px; font-size: 13px; color: #666;"><i class="fas fa-comment"></i> ${escapeHtml(eq.observacoes)}</div>` : ''}
+                            <div style="margin-top: 12px;">
+                                <button onclick="editarEquipamento(${eq.id})" class="btn-documento">
+                                    <i class="fas fa-edit"></i> Editar
+                                </button>
+                                <button onclick="excluirEquipamento(${eq.id})" class="btn-documento btn-documento-excluir">
+                                    <i class="fas fa-trash-alt"></i> Excluir
+                                </button>
+                            </div>
                         </div>
                     `;
-                    return;
-                }
-                
-                let custoTotal = 0;
-                equipamentos.forEach(eq => {
-                    let custo = parseFloat(eq.custo);
-                    if (isNaN(custo)) custo = 0;
-                    custoTotal += custo;
-                });
-                
-                const resumoHTML = `
-                    <div class="resumo-planejamento">
-                        <div class="resumo-conteudo">
-                            <div class="resumo-item">
-                                <i class="fas fa-cubes"></i>
-                                <span>Total de Equipamentos:</span>
-                                <strong>${equipamentos.length}</strong>
-                            </div>
-                            <div class="resumo-item">
-                                <i class="fas fa-dollar-sign"></i>
-                                <span>Custo Total:</span>
-                                <strong>R$ ${custoTotal.toFixed(2)}</strong>
-                            </div>
-                        </div>
-                    </div>
-                `;
-                
-                const equipamentosHTML = `
-                    <div class="equipamentos-grid">
-                        ${equipamentos.map(eq => {
-                            const tipoIcone = getTipoIcone(eq.tipo);
-                            const custoEquip = parseFloat(eq.custo) || 0;
-                            return `
-                                <div class="equipamento-card">
-                                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
-                                        <div>
-                                            <h4 style="margin-bottom: 5px;">${tipoIcone} ${escapeHtml(eq.nome)}</h4>
-                                            <small style="color: #666;">${escapeHtml(eq.fabricante || '')} ${escapeHtml(eq.modelo || '')}</small>
-                                        </div>
-                                        <div>
-                                            <span style="background: #e2e8f0; padding: 4px 12px; border-radius: 20px; font-size: 12px;">💰 R$ ${custoEquip.toFixed(2)}</span>
-                                        </div>
-                                    </div>
-                                    ${eq.ip_address ? `<div style="margin-top: 10px;"><i class="fas fa-network-wired"></i> IP: ${escapeHtml(eq.ip_address)}</div>` : ''}
-                                    ${eq.observacoes ? `<div style="margin-top: 8px; font-size: 13px; color: #666;"><i class="fas fa-comment"></i> ${escapeHtml(eq.observacoes)}</div>` : ''}
-                                    <div style="margin-top: 12px;">
-                                        <button onclick="editarEquipamento(${eq.id})" class="btn-documento">
-                                            <i class="fas fa-edit"></i> Editar
-                                        </button>
-                                        <button onclick="excluirEquipamento(${eq.id})" class="btn-documento btn-documento-excluir">
-                                            <i class="fas fa-trash-alt"></i> Excluir
-                                        </button>
-                                    </div>
-                                </div>
-                            `;
-                        }).join('')}
-                    </div>
-                `;
-                
-                container.innerHTML = resumoHTML + equipamentosHTML;
-                
-            } catch (error) {
-                console.error('Erro:', error);
-                document.getElementById('equipamentosList').innerHTML = '<div class="empty-state-central">Erro ao carregar equipamentos</div>';
-            } finally {
-                showLoading(false);
-            }
-        }
+                }).join('')}
+            </div>
+        `;
+        
+        container.innerHTML = resumoHTML + equipamentosHTML;
+        
+    } catch (error) {
+        console.error('❌ Erro ao carregar equipamentos:', error);
+        container.innerHTML = `
+            <div class="empty-state">
+                <i class="fas fa-exclamation-triangle"></i>
+                <p>Erro ao carregar equipamentos: ${error.message}</p>
+                <button onclick="carregarEquipamentos()" class="btn-primary" style="margin-top: 15px;">
+                    <i class="fas fa-sync-alt"></i> Tentar novamente
+                </button>
+            </div>
+        `;
+    }
+}
 
         function abrirModalEquipamento() {
             document.getElementById('modalEquipamentoTitulo').textContent = 'Novo Equipamento';
@@ -1636,37 +1859,52 @@
         // ==========================================
 
         function mostrarAba(aba) {
-            const abaDetalhes = document.getElementById('abaDetalhes');
-            const abaDocumentacao = document.getElementById('abaDocumentacao');
-            const abaPlanejamento = document.getElementById('abaPlanejamento');
-            const abaPeriodos = document.getElementById('abaPeriodos');
-            const botoes = document.querySelectorAll('.tab-projeto');
-            
-            // Esconder todas
-            if (abaDetalhes) abaDetalhes.classList.remove('active');
-            if (abaDocumentacao) abaDocumentacao.classList.remove('active');
-            if (abaPlanejamento) abaPlanejamento.classList.remove('active');
-            if (abaPeriodos) abaPeriodos.classList.remove('active');
-            botoes.forEach(btn => btn.classList.remove('active'));
-            
-            // Mostrar a selecionada
-            if (aba === 'detalhes') {
-                if (abaDetalhes) abaDetalhes.classList.add('active');
-                if (botoes[0]) botoes[0].classList.add('active');
-            } else if (aba === 'documentacao') {
-                if (abaDocumentacao) abaDocumentacao.classList.add('active');
-                if (botoes[1]) botoes[1].classList.add('active');
-                carregarDocumentacao();
-            } else if (aba === 'planejamento') {
-                if (abaPlanejamento) abaPlanejamento.classList.add('active');
-                if (botoes[2]) botoes[2].classList.add('active');
-                carregarEquipamentos();
-            } else if (aba === 'periodos') {
-                if (abaPeriodos) abaPeriodos.classList.add('active');
-                if (botoes[3]) botoes[3].classList.add('active');
-                carregarPeriodos();
-            }
+    const abaDetalhes = document.getElementById('abaDetalhes');
+    const abaDocumentacao = document.getElementById('abaDocumentacao');
+    const abaPlanejamento = document.getElementById('abaPlanejamento');
+    const abaPeriodos = document.getElementById('abaPeriodos');
+    const botoes = document.querySelectorAll('.tab-projeto');
+    
+    // Esconder todas
+    if (abaDetalhes) abaDetalhes.classList.remove('active');
+    if (abaDocumentacao) abaDocumentacao.classList.remove('active');
+    if (abaPlanejamento) abaPlanejamento.classList.remove('active');
+    if (abaPeriodos) abaPeriodos.classList.remove('active');
+    botoes.forEach(btn => btn.classList.remove('active'));
+    
+    // Mostrar a selecionada
+    if (aba === 'detalhes') {
+        if (abaDetalhes) {
+            abaDetalhes.classList.add('active');
+            abaDetalhes.style.display = 'block';
         }
+        if (botoes[0]) botoes[0].classList.add('active');
+    } else if (aba === 'documentacao') {
+        if (abaDocumentacao) {
+            abaDocumentacao.classList.add('active');
+            abaDocumentacao.style.display = 'block';
+        }
+        if (botoes[1]) botoes[1].classList.add('active');
+        // ✅ CARREGAR DOCUMENTAÇÃO
+        carregarDocumentacao();
+    } else if (aba === 'planejamento') {
+        if (abaPlanejamento) {
+            abaPlanejamento.classList.add('active');
+            abaPlanejamento.style.display = 'block';
+        }
+        if (botoes[2]) botoes[2].classList.add('active');
+        // ✅ CARREGAR EQUIPAMENTOS
+        carregarEquipamentos();
+    } else if (aba === 'periodos') {
+        if (abaPeriodos) {
+            abaPeriodos.classList.add('active');
+            abaPeriodos.style.display = 'block';
+        }
+        if (botoes[3]) botoes[3].classList.add('active');
+        // ✅ CARREGAR PERÍODOS
+        carregarPeriodos();
+    }
+}
 
         // ==========================================
         // INICIALIZAÇÃO

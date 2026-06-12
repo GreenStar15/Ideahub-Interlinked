@@ -6,6 +6,7 @@
     <title>IdeaHub - Visualizar Ideia</title>
     <link rel="stylesheet" href="../style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="/js/session-check.js"></script>
     <style>
         .ideia-detalhe {
             max-width: 800px;
@@ -938,6 +939,160 @@
     white-space: nowrap;
     z-index: 10;
 }
+.btn-anexo {
+    background: #e2e8f0;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 13px;
+    transition: all 0.3s;
+}
+
+.btn-anexo:hover {
+    background: #cbd5e0;
+}
+
+#nomeAnexoSelecionado {
+    font-size: 12px;
+    color: #666;
+    margin-left: 10px;
+}
+.anexo-comentario {
+    margin-top: 10px;
+    padding: 8px;
+    background: #f1f5f9;
+    border-radius: 8px;
+    display: inline-block;
+}
+
+.btn-anexo-download {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #667eea;
+    color: white;
+    padding: 6px 12px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-size: 12px;
+    transition: all 0.3s;
+}
+
+.btn-anexo-download:hover {
+    background: #5a67d8;
+    transform: translateY(-2px);
+}
+.anexo-comentario {
+    margin-top: 10px;
+    padding: 8px;
+    background: #f1f5f9;
+    border-radius: 8px;
+    display: inline-block;
+}
+
+.btn-anexo-download {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #667eea;
+    color: white;
+    padding: 6px 12px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-size: 12px;
+    transition: all 0.3s;
+}
+
+.btn-anexo-download:hover {
+    background: #5a67d8;
+    transform: translateY(-2px);
+}
+/* Estilos para anexos */
+.anexo-comentario {
+    margin-top: 10px;
+    padding: 8px;
+    background: #f1f5f9;
+    border-radius: 8px;
+    display: inline-block;
+    transition: all 0.3s;
+}
+
+.anexo-comentario:hover {
+    background: #e2e8f0;
+}
+
+.anexo-link-imagem {
+    text-decoration: none;
+    display: inline-block;
+}
+
+.anexo-nome {
+    font-size: 11px;
+    color: #666;
+    margin-top: 5px;
+    text-align: center;
+}
+
+.btn-anexo-download {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #667eea;
+    color: white;
+    padding: 6px 12px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-size: 12px;
+    transition: all 0.3s;
+}
+
+.btn-anexo-download:hover {
+    background: #5a67d8;
+    transform: translateY(-2px);
+}
+
+/* Efeito de clique no anexo */
+.anexo-link-imagem img {
+    transition: transform 0.2s;
+}
+
+.anexo-link-imagem img:hover {
+    transform: scale(1.02);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+/* Estilo personalizado para tooltip (caso queira um estilo diferente) */
+.comentario-nivel {
+    position: relative;
+}
+
+.comentario-nivel:hover::after {
+    content: attr(title);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1e293b;
+    color: white;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 11px;
+    white-space: nowrap;
+    z-index: 100;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    margin-bottom: 8px;
+}
+
+.comentario-nivel:hover::before {
+    content: '';
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 6px solid transparent;
+    border-top-color: #1e293b;
+    margin-bottom: -4px;
+}
     </style>
 </head>
 <body>
@@ -949,9 +1104,6 @@
     </button>
     <div id="userInfoMini" style="display: flex; align-items: center; gap: 15px;">
         <span id="userNameMini" style="font-weight: 500;"></span>
-        <button onclick="fazerLogout()" class="btn-logout" style="padding: 8px 15px;">
-            <i class="fas fa-sign-out-alt"></i> Sair
-        </button>
     </div>
 </div>
 
@@ -973,7 +1125,7 @@
     <h3><i class="fas fa-comments"></i> Comentários (<span id="comentariosCount">0</span>)</h3>
     
     <div style="margin-top: 10px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-            <button type="button" onclick="abrirSeletorAnexo()" class="btn-anexo" id="btnAnexoComentario">
+            <button type="button" class="btn-anexo" id="btnAnexoComentario">
                 <i class="fas fa-paperclip"></i> Anexar arquivo
             </button>
             <input type="file" id="anexoComentario" style="display: none;" accept="image/*,application/pdf">
@@ -1224,38 +1376,42 @@
 
 let versoesList = [];
 
+// ==========================================
+// FUNÇÃO PARA TROCAR ABAS
+// ==========================================
 function mostrarAbaIdeia(aba) {
-    
     const comentariosSection = document.getElementById('comentariosSection');
     const historicoSection = document.getElementById('historicoSection');
     const botoes = document.querySelectorAll('.tab-ideia-btn');
     
+    // Remover active de todos os botões
     botoes.forEach(btn => btn.classList.remove('active'));
     
     if (aba === 'comentarios') {
         if (comentariosSection) {
-            comentariosSection.classList.add('active');
             comentariosSection.style.display = 'block';
+            comentariosSection.classList.add('active');
         }
         if (historicoSection) {
-            historicoSection.classList.remove('active');
             historicoSection.style.display = 'none';
+            historicoSection.classList.remove('active');
         }
         if (botoes[0]) botoes[0].classList.add('active');
-        
-    } else if (aba === 'historico') {
+    } 
+    else if (aba === 'historico') {
         if (historicoSection) {
-            historicoSection.classList.add('active');
             historicoSection.style.display = 'block';
+            historicoSection.classList.add('active');
+            // Carregar histórico quando abrir a aba
+            if (typeof carregarHistoricoVersoes === 'function') {
+                carregarHistoricoVersoes();
+            }
         }
         if (comentariosSection) {
-            comentariosSection.classList.remove('active');
             comentariosSection.style.display = 'none';
+            comentariosSection.classList.remove('active');
         }
         if (botoes[1]) botoes[1].classList.add('active');
-        
-        // Carregar histórico
-        carregarHistoricoVersoes();
     }
 }
 
@@ -1522,48 +1678,6 @@ async function verVersaoCompleta(versaoId) {
     }
 }
 
- // ==========================================
-// FUNÇÕES DE REPORT - DEFINIDAS GLOBALMENTE
-// ==========================================
-// ========== FUNÇÃO PARA REPORTAR IDEIA ==========
-function reportarIdeia(ideiaId) {
-    
-    // Verificar se usuário está logado
-    const tokenSalvo = localStorage.getItem('ideaHubToken');
-    if (!tokenSalvo) {
-        alert('Faça login para reportar uma ideia');
-        window.location.href = '../index.html';
-        return;
-    }
-    
-    let usuario;
-    try {
-        usuario = JSON.parse(tokenSalvo);
-    } catch(e) {
-        alert('Erro ao verificar usuário');
-        return;
-    }
-    
-    // Verificar se é o autor da ideia
-    const isAutor = usuario.id === ideiaId; // Isso precisa ser verificado melhor
-    
-    if (isAutor) {
-        alert('Você não pode reportar sua própria ideia!');
-        return;
-    }
-    
-    // Abrir modal
-    const modal = document.getElementById('reportModal');
-    if (!modal) {
-        console.error('Modal de report não encontrado');
-        alert('Erro ao abrir formulário de report');
-        return;
-    }
-    
-    document.getElementById('reportIdeiaId').value = ideiaId;
-    modal.style.display = 'flex';
-}
-
 function fecharReportModal() {
     const modal = document.getElementById('reportModal');
     if (modal) {
@@ -1578,24 +1692,76 @@ function fecharReportModal() {
 // ==========================================
 // FUNÇÕES DE REPORT DE IDEIA
 // ==========================================
-function abrirModalReport(ideiaId) {
-    if (!usuarioLogado) {
-        alert('Faça login para reportar');
+// ==========================================
+// REPORTAR IDEIA - VERSÃO ÚNICA (SUBSTITUA TUDO)
+// ==========================================
+
+// Função para ABRIR o modal de report
+function reportarIdeia(ideiaId) {
+    console.log('🔍 Abrindo modal para ideia:', ideiaId);
+    
+    const userSalvo = sessionStorage.getItem('ideaHubUser');
+    if (!userSalvo) {
+        mostrarNotificacao('Faça login para reportar', 'warning', '🔒 Login Necessário');
         return;
     }
-    document.getElementById('reportIdeiaId').value = ideiaId;
-    document.getElementById('reportModal').style.display = 'flex';
+    
+    let usuario;
+    try {
+        usuario = JSON.parse(userSalvo);
+    } catch(e) {
+        mostrarNotificacao('Erro ao verificar usuário', 'error', '❌ Erro');
+        return;
+    }
+    
+    if (window.ideiaAtual && parseInt(window.ideiaAtual.id_usuario) === parseInt(usuario.id)) {
+        mostrarNotificacao('Você não pode reportar sua própria ideia!', 'warning', '⚠️ Ação Inválida');
+        return;
+    }
+    
+    const modal = document.getElementById('reportModal');
+    if (modal) {
+        document.getElementById('reportIdeiaId').value = ideiaId;
+        document.getElementById('reportMotivo').value = '';
+        document.getElementById('reportDescricao').value = '';
+        modal.style.display = 'flex';
+        console.log('✅ Modal aberto');
+    }
 }
 
+// Função para ENVIAR o report (APENAS UMA VEZ)
 async function enviarReportIdeia(event) {
-    if (event) event.preventDefault();
+    if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+    }
     
-    const ideiaId = document.getElementById('reportIdeiaId').value;
-    const motivo = document.getElementById('reportMotivo').value;
-    const descricao = document.getElementById('reportDescricao').value;
+    console.log('📤 Enviando report...');
+    
+    // PEGAR USUÁRIO DIRETAMENTE DO SESSIONSTORAGE (sem depender de variável global)
+    const userSalvo = sessionStorage.getItem('ideaHubUser');
+    
+    if (!userSalvo) {
+        console.log('❌ Usuário não encontrado no sessionStorage');
+        mostrarNotificacao('Faça login para reportar', 'warning', '🔒 Login Necessário');
+        return;
+    }
+    
+    let usuario;
+    try {
+        usuario = JSON.parse(userSalvo);
+        console.log('✅ Usuário:', usuario.nome, 'ID:', usuario.id);
+    } catch(e) {
+        mostrarNotificacao('Erro ao verificar usuário', 'error', '❌ Erro');
+        return;
+    }
+    
+    const ideiaId = document.getElementById('reportIdeiaId')?.value;
+    const motivo = document.getElementById('reportMotivo')?.value;
+    const descricao = document.getElementById('reportDescricao')?.value;
     
     if (!motivo) {
-        mostrarNotificacao('Selecione um motivo para o report!', 'warning', '⚠️ Motivo Obrigatório');
+        mostrarNotificacao('Selecione um motivo', 'warning', '⚠️ Motivo Obrigatório');
         return;
     }
     
@@ -1606,7 +1772,7 @@ async function enviarReportIdeia(event) {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                usuarioId: usuarioLogado.id,
+                usuarioId: usuario.id,
                 motivo: motivo,
                 descricao: descricao
             })
@@ -1614,24 +1780,44 @@ async function enviarReportIdeia(event) {
         
         const data = await response.json();
         
-        if (data.sucesso) {
-            // ✅ NOTIFICAÇÃO DE SUCESSO
-            mostrarNotificacao(
-                'Sua denúncia foi enviada. A moderação irá analisar o caso.',
-                'info',
-                '📢 Denúncia Enviada'
-            );
-            
+        if (response.ok && data.sucesso) {
+            mostrarNotificacao('Denúncia enviada com sucesso!', 'info', '📢 Denúncia Enviada');
             fecharModal('reportModal');
-            document.getElementById('reportForm').reset();
+            const form = document.getElementById('reportForm');
+            if (form) form.reset();
         } else {
-            mostrarNotificacao(data.erro || 'Erro ao enviar denúncia', 'error', '❌ Falha no Report');
+            mostrarNotificacao(data.erro || 'Erro ao enviar', 'error', '❌ Falha');
         }
     } catch (error) {
         console.error('Erro:', error);
-        mostrarNotificacao('Erro de conexão ao enviar denúncia', 'error', '⚠️ Conexão Falhou');
+        mostrarNotificacao('Erro de conexão', 'error', '⚠️ Erro');
     } finally {
         showLoading(false);
+    }
+}
+
+function abrirModalReport(ideiaId) {
+    if (!usuarioLogado) {
+        alert('Faça login para reportar');
+        return;
+    }
+    document.getElementById('reportIdeiaId').value = ideiaId;
+    document.getElementById('reportModal').style.display = 'flex';
+}
+
+// ========== CONTROLAR VISIBILIDADE DO FORMULÁRIO DE COMENTÁRIO ==========
+function controlarVisibilidadeComentario() {
+    const formComentario = document.getElementById('formComentario');
+    const userSalvo = sessionStorage.getItem('ideaHubUser');
+    
+    if (formComentario) {
+        if (userSalvo) {
+            formComentario.style.display = 'block';
+            console.log('✅ Formulário de comentário VISÍVEL');
+        } else {
+            formComentario.style.display = 'none';
+            console.log('🔒 Formulário de comentário OCULTO (usuário não logado)');
+        }
     }
 }
 
@@ -1640,36 +1826,63 @@ async function enviarReportIdeia(event) {
 // ==========================================
 function abrirModalReportComentario(comentarioId) {
     if (!usuarioLogado) {
-        alert('Faça login para reportar um comentário');
+        mostrarNotificacao('Faça login para reportar um comentário', 'warning', '🔒 Login Necessário');
         return;
     }
     
     const modal = document.getElementById('modalReportComentario');
     if (modal) {
+        // Limpar campos ANTES de abrir o modal
         document.getElementById('reportComentarioId').value = comentarioId;
         document.getElementById('reportComentarioMotivo').value = '';
         document.getElementById('reportComentarioDescricao').value = '';
+        
+        // Resetar flag de envio
+        enviandoReportComentario = false;
+        
         modal.style.display = 'flex';
     }
 }
 
+// ==========================================
+// ENVIAR REPORT DE COMENTÁRIO (VERSÃO ÚNICA)
+// ==========================================
+let enviandoReportComentario = false;
+
 async function enviarReportComentario(event) {
     if (event) event.preventDefault();
     
-    const comentarioId = document.getElementById('reportComentarioId').value;
-    const motivo = document.getElementById('reportComentarioMotivo').value;
-    const descricao = document.getElementById('reportComentarioDescricao').value;
+    // Evitar envio duplicado
+    if (enviandoReportComentario) {
+        console.log('⚠️ Report já sendo enviado, aguarde...');
+        return;
+    }
+    
+    const comentarioId = document.getElementById('reportComentarioId')?.value;
+    const motivo = document.getElementById('reportComentarioMotivo')?.value;
+    const descricao = document.getElementById('reportComentarioDescricao')?.value;
     
     if (!motivo) {
         mostrarNotificacao('Selecione um motivo para o report!', 'warning', '⚠️ Motivo Obrigatório');
         return;
     }
     
-    if (!usuarioLogado) {
+    // Verificar login
+    const userSalvo = sessionStorage.getItem('ideaHubUser');
+    if (!userSalvo) {
         mostrarNotificacao('Faça login para reportar', 'warning', '🔒 Login Necessário');
         return;
     }
     
+    let usuario;
+    try {
+        usuario = JSON.parse(userSalvo);
+    } catch(e) {
+        mostrarNotificacao('Erro ao verificar usuário', 'error', '❌ Erro');
+        return;
+    }
+    
+    enviandoReportComentario = true;
     showLoading(true);
     
     try {
@@ -1677,7 +1890,7 @@ async function enviarReportComentario(event) {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                usuarioId: usuarioLogado.id,
+                usuarioId: usuario.id,
                 motivo: motivo,
                 descricao: descricao
             })
@@ -1686,16 +1899,14 @@ async function enviarReportComentario(event) {
         const data = await response.json();
         
         if (data.sucesso) {
-            // ✅ NOTIFICAÇÃO DE SUCESSO
-            mostrarNotificacao(
-                'Denúncia de comentário enviada. A moderação irá analisar.',
-                'info',
-                '📢 Denúncia Enviada'
-            );
-            
+            mostrarNotificacao('Denúncia de comentário enviada. A moderação irá analisar.', 'info', '📢 Denúncia Enviada');
             fecharModal('modalReportComentario');
+            // Limpar formulário
             document.getElementById('reportComentarioMotivo').value = '';
             document.getElementById('reportComentarioDescricao').value = '';
+        } else if (data.erro && data.erro.includes('já reportou')) {
+            mostrarNotificacao('Você já reportou este comentário anteriormente.', 'warning', '⚠️ Report Duplicado');
+            fecharModal('modalReportComentario');
         } else {
             mostrarNotificacao(data.erro || 'Erro ao enviar denúncia', 'error', '❌ Falha no Report');
         }
@@ -1704,6 +1915,7 @@ async function enviarReportComentario(event) {
         mostrarNotificacao('Erro de conexão ao enviar denúncia', 'error', '⚠️ Conexão Falhou');
     } finally {
         showLoading(false);
+        enviandoReportComentario = false;
     }
 }
 
@@ -1713,39 +1925,6 @@ function fecharReportModal() {
         modal.style.display = 'none';
     }
     document.getElementById('reportForm')?.reset();
-}
-
-function reportarIdeia(ideiaId) {
-    
-    const tokenSalvo = localStorage.getItem('ideaHubToken');
-    if (!tokenSalvo) {
-        alert('❌ Faça login para reportar uma ideia');
-        window.location.href = '../index.html';
-        return;
-    }
-    
-    let usuario;
-    try {
-        usuario = JSON.parse(tokenSalvo);
-        usuarioLogado = usuario;
-    } catch(e) {
-        alert('Erro ao identificar usuário');
-        return;
-    }
-    
-    const modal = document.getElementById('reportModal');
-    if (!modal) {
-        console.error('Modal não encontrado!');
-        alert('Erro: Modal de report não encontrado');
-        return;
-    }
-    
-    const ideiaIdInput = document.getElementById('reportIdeiaId');
-    if (ideiaIdInput) {
-        ideiaIdInput.value = ideiaId;
-    }
-    
-    modal.style.display = 'flex';
 }
 
 function fecharReportModal() {
@@ -1796,30 +1975,21 @@ function getStatusText(status) {
     
     // ========== FUNÇÕES DE AUTENTICAÇÃO ==========
     async function verificarLogin() {
-    const tokenSalvo = localStorage.getItem('ideaHubToken');
-    if (tokenSalvo) {
-        try {
-            usuarioLogado = JSON.parse(tokenSalvo);
-            
-            const formComentario = document.getElementById('formComentario');
-            if (formComentario) {
-                formComentario.style.display = 'block';
-            }
-            return true;
-        } catch (e) {
-            console.error('Erro ao parsear token:', e);
-            return false;
-        }
+    const userSalvo = sessionStorage.getItem('ideaHubUser');
+if (userSalvo) {
+    try {
+        usuarioLogado = JSON.parse(userSalvo);
+        console.log('✅ Usuário logado:', usuarioLogado.nome);
+    } catch(e) {
+        console.error('Erro ao carregar sessão:', e);
     }
-    
-    // Esconder formulário se não estiver logado
-    const formComentario = document.getElementById('formComentario');
-    if (formComentario) {
-        formComentario.style.display = 'none';
-    }
-    return false;
+}}
+
+function atualizarUsuarioLogado(usuario) {
+    usuarioLogado = usuario;
+    controlarVisibilidadeComentario();
 }
-    
+
     function abrirModalImagem(url) {
     const modal = document.createElement('div');
     modal.className = 'modal-imagem';
@@ -1853,37 +2023,77 @@ function getCargoTexto(cargo) {
 
 let anexoSelecionado = null;
 
+// ==========================================
+// ABRIR SELETOR DE ANEXO (EVITAR DUPLICAÇÃO)
+// ==========================================
+let seletorAberto = false;
+
 function abrirSeletorAnexo() {
+    // Verificar se o input já está focado/aberto
     const input = document.getElementById('anexoComentario');
-    if (input) input.click();
+    if (input && input.hasAttribute('data-aberto')) {
+        console.log('⚠️ Seletor já aberto, ignorando...');
+        return;
+    }
+    
+    if (input) {
+        input.setAttribute('data-aberto', 'true');
+        input.click();
+        
+        // Remover a flag quando a janela fechar
+        input.addEventListener('change', function() {
+            input.removeAttribute('data-aberto');
+        }, { once: true });
+        
+        // Fallback: remover flag após 1 segundo
+        setTimeout(() => {
+            if (input) input.removeAttribute('data-aberto');
+        }, 1000);
+    }
 }
 
-document.getElementById('anexoComentario')?.addEventListener('change', function(e) {
-    const file = e.target.files[0];
-    if (file) {
-        const maxSize = 5 * 1024 * 1024; // 5MB
-        const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'application/pdf'];
-        
-        if (file.size > maxSize) {
-            alert('❌ Arquivo muito grande! Máximo 5MB.');
-            this.value = '';
-            anexoSelecionado = null;
-            document.getElementById('nomeAnexoSelecionado').innerText = '';
-            return;
-        }
-        
-        if (!allowedTypes.includes(file.type)) {
-            alert('❌ Tipo de arquivo não suportado. Use imagens ou PDF.');
-            this.value = '';
-            anexoSelecionado = null;
-            document.getElementById('nomeAnexoSelecionado').innerText = '';
-            return;
-        }
-        
-        anexoSelecionado = file;
-        document.getElementById('nomeAnexoSelecionado').innerHTML = `<i class="fas fa-paperclip"></i> ${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+// ==========================================
+// CONTROLAR VISIBILIDADE DA ABA "HISTÓRICO"
+// ==========================================
+function controlarVisibilidadeAbaHistorico() {
+    const btnHistorico = document.querySelector('.tab-ideia-btn[onclick*="historico"]');
+    
+    // Verificar se o botão existe
+    if (!btnHistorico) {
+        console.warn('⚠️ Botão de histórico não encontrado');
+        return;
     }
-});
+    
+    // Verificar se usuário está logado
+    if (!usuarioLogado) {
+        btnHistorico.style.display = 'none';
+        console.log('🔒 Aba "Histórico" oculta: usuário não logado');
+        return;
+    }
+    
+    // Verificar se é admin
+    const isAdmin = usuarioLogado.cargo === 'gestor' || usuarioLogado.cargo === 'ti_staff';
+    
+    // Verificar se é o autor da ideia
+    const isAutor = window.ideiaAtual && parseInt(window.ideiaAtual.id_usuario) === parseInt(usuarioLogado.id);
+    
+    // ✅ REGRA: Apenas ADMIN ou AUTOR DA IDEIA podem ver o histórico
+    const podeVerHistorico = isAdmin || isAutor;
+    
+    if (podeVerHistorico) {
+        btnHistorico.style.display = 'inline-flex';
+        console.log('✅ Aba "Histórico" VISÍVEL para:', isAdmin ? 'ADMIN' : 'AUTOR DA IDEIA');
+    } else {
+        btnHistorico.style.display = 'none';
+        console.log('🔒 Aba "Histórico" oculta: usuário não tem permissão');
+        
+        // Se a aba ativa for histórico, voltar para comentários
+        const historicoSection = document.getElementById('historicoSection');
+        if (historicoSection && historicoSection.style.display === 'block') {
+            mostrarAbaIdeia('comentarios');
+        }
+    }
+}
 
 async function carregarIdeia() {
     if (!ideiaId) {
@@ -1893,6 +2103,7 @@ async function carregarIdeia() {
     
     showLoading(true);
     try {
+        // 1. BUSCAR DADOS DA IDEIA
         const isAdmin = usuarioLogado && (usuarioLogado.cargo === 'gestor' || usuarioLogado.cargo === 'ti_staff');
         const response = await fetch(`/ideias/${ideiaId}?isAdmin=${isAdmin}`);
         const ideia = await response.json();
@@ -1902,38 +2113,43 @@ async function carregarIdeia() {
             return;
         }
         
+        // 2. SALVAR IDEIA GLOBALMENTE
         window.ideiaAtual = ideia;
         
-        // ========== BUSCAR VERSÕES PARA INDICADOR DE EDIÇÃO ==========
-        let versaoIndicator = '';
-let totalVersoes = 0;
-let dataUltimaEdicao = '';
-
-try {
-    const versoesResponse = await fetch(`/ideias/${ideiaId}/versoes`);
-    if (versoesResponse.ok) {
-        const versoes = await versoesResponse.json();
-        if (versoes && versoes.length > 0) {
-            totalVersoes = versoes.length;
-            const ultimaVersao = versoes[0];
-            dataUltimaEdicao = formatarData(ultimaVersao.data_alteracao);
-            versaoIndicator = `<span class="versao-indicator" data-tooltip="Esta ideia foi editada ${totalVersoes} vez(es). Última edição: ${dataUltimaEdicao}">✏️ Editada (${totalVersoes})</span>`;
-        }
-    }
-} catch (err) {
-    console.log('Erro ao buscar versões:', err);
-}
-        // ===============================================================
-        
-        const isAdminUser = usuarioLogado && (usuarioLogado.cargo === 'gestor' || usuarioLogado.cargo === 'ti_staff');
-        const autorNome = isAdminUser ? ideia.autor_nome : (ideia.anonima ? 'Anônimo' : ideia.autor_nome);
-        const isAutor = usuarioLogado && usuarioLogado.id === ideia.id_usuario;
-        
-        // ========== CONTROLAR VISIBILIDADE DA ABA "HISTÓRICO" ==========
+        setTimeout(() => {
         controlarVisibilidadeAbaHistorico();
-        // ==============================================================
+        }, 100);
+
+        // 3. DEFINIR VARIÁVEIS DE PERMISSÃO (ANTES DE USAR!)
+        const isAdminUser = usuarioLogado && (usuarioLogado.cargo === 'gestor' || usuarioLogado.cargo === 'ti_staff');
+        const isAutor = usuarioLogado && usuarioLogado.id === ideia.id_usuario;
+        const autorNome = isAdminUser ? ideia.autor_nome : (ideia.anonima ? 'Anônimo' : ideia.autor_nome);
         
-        // Construir galeria de imagens (se houver)
+        console.log('📊 Status da ideia:', ideia.status);
+        console.log('👤 É admin?', isAdminUser);
+        console.log('✏️ É autor?', isAutor);
+        
+        // 4. BUSCAR VERSÕES PARA INDICADOR DE EDIÇÃO
+        let versaoIndicator = '';
+        let totalVersoes = 0;
+        let dataUltimaEdicao = '';
+
+        try {
+            const versoesResponse = await fetch(`/ideias/${ideiaId}/versoes`);
+            if (versoesResponse.ok) {
+                const versoes = await versoesResponse.json();
+                if (versoes && versoes.length > 0) {
+                    totalVersoes = versoes.length;
+                    const ultimaVersao = versoes[0];
+                    dataUltimaEdicao = formatarData(ultimaVersao.data_alteracao);
+                    versaoIndicator = `<span class="versao-indicator" data-tooltip="Esta ideia foi editada ${totalVersoes} vez(es). Última edição: ${dataUltimaEdicao}">✏️ Editada (${totalVersoes})</span>`;
+                }
+            }
+        } catch (err) {
+            console.log('Erro ao buscar versões:', err);
+        }
+        
+        // 5. CONSTRUIR GALERIA DE IMAGENS
         let galeriaHTML = '';
         if (ideia.imagens && ideia.imagens.length > 0) {
             galeriaHTML = `
@@ -1956,172 +2172,92 @@ try {
             window.imagensIdeia = ideia.imagens;
             window.imagemAtualIndex = 0;
         }
-
-// Controlar visibilidade da aba "Histórico" (apenas para admin)
-function controlarVisibilidadeAbaHistorico() {
-    const btnHistorico = document.querySelector('.tab-ideia-btn[onclick*="historico"]');
-    
-    // Verifica se o usuário está logado
-    if (!usuarioLogado) {
-        if (btnHistorico) btnHistorico.style.display = 'none';
-        return;
-    }
-    
-    const isAdmin = usuarioLogado.cargo === 'gestor' || usuarioLogado.cargo === 'ti_staff';
-    const isAutor = window.ideiaAtual && window.ideiaAtual.id_usuario === usuarioLogado.id;
-    
-    // Autor da ideia OU administrador podem ver o histórico
-    const podeVerHistorico = isAdmin || isAutor;
-    
-    if (btnHistorico) {
-        if (!podeVerHistorico) {
-            btnHistorico.style.display = 'none';
-            
-            // Se a aba ativa for histórico, voltar para comentários
-            const historicoSection = document.getElementById('historicoSection');
-            if (historicoSection && historicoSection.classList.contains('active')) {
-                mostrarAbaIdeia('comentarios');
-            }
-        } else {
-            btnHistorico.style.display = 'inline-flex';
-        }
-    } else {
-        console.warn('⚠️ Botão de histórico não encontrado no DOM');
-    }
-}
-
-// ==========================================
-// FUNÇÃO PARA DELETAR IDEIA
-// ==========================================
-async function deletarIdeia(ideiaId) {
-    if (!confirm('⚠️ Tem certeza que deseja deletar esta ideia?\n\nTodas as imagens, votos e comentários serão removidos permanentemente!')) {
-        return;
-    }
-    
-    if (!usuarioLogado) {
-        mostrarNotificacao('Faça login para deletar sua ideia.', 'warning', '🔒 Login Necessário');
-        return;
-    }
-    
-    showLoading(true);
-    
-    try {
-        const response = await fetch(`/ideias/${ideiaId}`, {
-            method: 'DELETE',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-                usuarioId: usuarioLogado.id,
-                isAutor: true
-            })
-        });
         
-        const data = await response.json();
+        // 6. CONSTRUIR BOTÕES (AGORA COM AS VARIÁVEIS CORRETAS)
+        let botoesHTML = '';
         
-        if (data.sucesso) {
-            // ✅ NOTIFICAÇÃO DE SUCESSO
-            mostrarNotificacao(
-                'Sua ideia foi removida permanentemente do sistema.',
-                'warning',
-                '🗑️ Ideia Excluída'
-            );
-            
-            setTimeout(() => {
-                window.location.href = '../index.html';
-            }, 1500);
-        } else {
-            mostrarNotificacao(data.erro || 'Erro ao deletar ideia', 'error', '❌ Falha na Exclusão');
+        // Tag de autor
+        let autorTagHTML = '';
+        if (isAutor) {
+            autorTagHTML = `
+                <div style="text-align: center; margin: 15px 0;">
+                    <span class="autor-tag-detalhe">
+                        <i class="fas fa-pen"></i> Você é o autor desta ideia
+                    </span>
+                </div>
+            `;
         }
-    } catch (error) {
-        console.error('Erro:', error);
-        mostrarNotificacao('Erro de conexão ao deletar', 'error', '⚠️ Conexão Falhou');
-    } finally {
-        showLoading(false);
-    }
-}
-
-// ========== CONSTRUIR BOTÕES COM TAG DE AUTOR ==========
-let botoesHTML = '';
-
-// Tag de autor (minha ideia) - aparece mesmo se for anônima
-let autorTagHTML = '';
-if (isAutor) {
-    autorTagHTML = `
-        <div style="text-align: center; margin: 15px 0;">
-            <span class="autor-tag-detalhe">
-                <i class="fas fa-pen"></i> Você é o autor desta ideia
-            </span>
-        </div>
-    `;
-}
-
-// Botão de aprovar (apenas para admin)
-if (isAdminUser && ideia.status === 'pendente') {
-    botoesHTML += `<button onclick="aprovarIdeia(${ideia.id})" class="btn-aprovar">
-    <i class="fas fa-check-circle"></i> Aprovar
-</button>`;
-}
-
-// Botão de converter (apenas para admin)
-if (isAdminUser && ideia.status === 'aprovada') {
-    botoesHTML += `<button onclick="abrirConversao(${ideia.id})" class="btn-converter">
-    <i class="fas fa-project-diagram"></i> Converter
-</button>`;
-}
-
-// Botão de votar (apenas se NÃO for o autor)
-if (usuarioLogado && !isAutor) {
-    botoesHTML += `<button onclick="votar(${ideia.id})" class="btn-votar" id="votar-btn">
-    <i class="fas fa-thumbs-up"></i> Votar
-</button>`;
-}
-
-// Botão de reportar (apenas se NÃO for admin e NÃO for o autor)
-if (usuarioLogado && !isAdminUser && !isAutor) {
-    botoesHTML += `<button onclick="window.reportarIdeia(${ideia.id})" class="btn-report">
-    <i class="fas fa-flag"></i> Reportar
-</button>`;
-}
-
-// Botão de moderar (apenas para admin)
-if (isAdminUser) {
+        
+        // Botão de editar (autor ou admin, e ideia não convertida)
+        let editarButton = '';
+        if (usuarioLogado && (isAutor || isAdminUser) && ideia.status !== 'convertida') {
+            editarButton = `<button onclick="abrirModalEditarIdeia()" class="btn-editar-ideia">
+                <i class="fas fa-edit"></i> Editar Ideia
+            </button>`;
+        }
+        
+        // Botão de aprovar (apenas admin, ideia pendente)
+        if (isAdminUser && ideia.status === 'pendente') {
+            botoesHTML += `<button onclick="aprovarIdeia(${ideia.id})" class="btn-aprovar">
+                <i class="fas fa-check-circle"></i> Aprovar
+            </button>`;
+        }
+        
+        // Botão de converter (apenas admin, ideia aprovada)
+        if (isAdminUser && ideia.status === 'aprovada') {
+            botoesHTML += `<button onclick="abrirConversao(${ideia.id})" class="btn-converter">
+                <i class="fas fa-project-diagram"></i> Converter
+            </button>`;
+        }
+        
+        // Botão de votar (apenas se NÃO for o autor E usuário logado)
+        if (usuarioLogado && !isAutor) {
+            botoesHTML += `<button onclick="votar(${ideia.id})" class="btn-votar" id="votar-btn">
+                <i class="fas fa-thumbs-up"></i> Votar
+            </button>`;
+        }
+        
+        // Botão de reportar (apenas se NÃO for admin e NÃO for o autor)
+        if (usuarioLogado && !isAdminUser && !isAutor) {
+            botoesHTML += `<button onclick="reportarIdeia(${ideia.id})" class="btn-report">
+                <i class="fas fa-flag"></i> Reportar
+            </button>`;
+        }
+        
+        // Botão de moderar (apenas admin)
+        if (isAdminUser && !isAutor) {  // ✅ Adicionado && !isAutor
     botoesHTML += `<button onclick="abrirModalModeracao(${ideia.id})" class="btn-moderar">
-    <i class="fas fa-gavel"></i> Moderar
-</button>`;
-}
-
-// Botão de deletar (apenas o autor)
-if (usuarioLogado && isAutor) {
-    botoesHTML += `<button onclick="deletarIdeia(${ideia.id})" class="btn-delete-ideia">
-        <i class="fas fa-trash-alt"></i> Deletar
+        <i class="fas fa-gavel"></i> Moderar
     </button>`;
 }
-
-let autorPerfilLink = '';
-if (!ideia.anonima && ideia.id_usuario) {
-    autorPerfilLink = `<a href="perfil.html?id=${ideia.id_usuario}" class="btn-perfil-autor" style="margin-left: 10px; font-size: 12px; background: #e2e8f0; padding: 2px 8px; border-radius: 20px; text-decoration: none; color: #2d3748;">
-        <i class="fas fa-user-circle"></i> Ver Perfil
-    </a>`;
-}
-// Dentro da construção dos botões, adicione:
-let editarButton = '';
-if (usuarioLogado && (isAutor || isAdminUser) && ideia.status !== 'convertida') {
-    editarButton = `<button onclick="abrirModalEditarIdeia()" class="btn-editar-ideia">
-        <i class="fas fa-edit"></i> Editar Ideia
-    </button>`;
-}
-        // ========== FIM DA CONSTRUÇÃO DOS BOTÕES ==========
         
+        // Botão de deletar (apenas o autor)
+        if (usuarioLogado && isAutor) {
+            botoesHTML += `<button onclick="deletarIdeia(${ideia.id})" class="btn-delete-ideia">
+                <i class="fas fa-trash-alt"></i> Deletar
+            </button>`;
+        }
+        
+        // Link para perfil do autor
+        let autorPerfilLink = '';
+        if (!ideia.anonima && ideia.id_usuario) {
+            autorPerfilLink = `<a href="perfil.html?id=${ideia.id_usuario}" class="btn-perfil-autor" style="margin-left: 10px; font-size: 12px; background: #e2e8f0; padding: 2px 8px; border-radius: 20px; text-decoration: none; color: #2d3748;">
+                <i class="fas fa-user-circle"></i> Ver Perfil
+            </a>`;
+        }
+        
+        // 7. RENDERIZAR O HTML
         document.getElementById('ideiaContent').innerHTML = `
-    <div class="ideia-detalhe-card">
-        <div class="ideia-header" style="text-align: center;">
-            <h1 style="margin-bottom: 10px;">
-                ${escapeHtml(ideia.titulo)}
-            </h1>
-            <div style="display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; align-items: center;">
-                <span class="status-badge status-${ideia.status}">${getStatusText(ideia.status)}</span>
-                ${versaoIndicator}
-            </div>
-        </div>
+            <div class="ideia-detalhe-card">
+                <div class="ideia-header" style="text-align: center;">
+                    <h1 style="margin-bottom: 10px;">
+                        ${escapeHtml(ideia.titulo)}
+                    </h1>
+                    <div style="display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; align-items: center;">
+                        <span class="status-badge status-${ideia.status}">${getStatusText(ideia.status)}</span>
+                        ${versaoIndicator}
+                    </div>
+                </div>
                 
                 ${galeriaHTML}
                 
@@ -2135,10 +2271,10 @@ if (usuarioLogado && (isAutor || isAdminUser) && ideia.status !== 'convertida') 
                             <i class="fas fa-calendar-alt"></i> ${formatarData(ideia.data_publicacao)}
                         </span>
                         <span class="meta-tag">
-    <i class="fas fa-user"></i> ${escapeHtml(autorNome)} 
-    <span style="font-size: 11px; opacity: 0.8; margin-left: 4px;">(${getCargoTexto(ideia.autor_cargo)})</span>
-    ${autorPerfilLink}
-</span>
+                            <i class="fas fa-user"></i> ${escapeHtml(autorNome)} 
+                            <span style="font-size: 11px; opacity: 0.8; margin-left: 4px;">(${getCargoTexto(ideia.autor_cargo)})</span>
+                            ${autorPerfilLink}
+                        </span>
                         <span class="meta-tag">
                             <i class="fas fa-thumbs-up"></i> ${ideia.votos_count || 0} votos
                         </span>
@@ -2165,15 +2301,21 @@ if (usuarioLogado && (isAutor || isAdminUser) && ideia.status !== 'convertida') 
                 ${autorTagHTML}
                 
                 <div class="ideia-actions" style="display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-top: 0; padding-top: 20px; border-top: 1px solid #e2e8f0;">
-    ${editarButton}
-    ${botoesHTML}
-</div>
+                    ${editarButton}
+                    ${botoesHTML}
+                </div>
             </div>
         `;
         
+        // 8. VERIFICAR VOTO (se usuário logado)
         if (usuarioLogado) {
             await verificarVoto(ideiaId);
         }
+        
+        // 9. CONTROLAR VISIBILIDADE DA ABA HISTÓRICO (APÓS RENDERIZAR)
+        setTimeout(() => {
+            controlarVisibilidadeAbaHistorico();
+        }, 100);
         
     } catch (error) {
         console.error('Erro:', error);
@@ -2439,7 +2581,7 @@ function fecharModalModeracao() {
         form.reset();
     }
 }
-// Configurar o formulário de moderação (colocar dentro do DOMContentLoaded)
+
 const formModeracao = document.getElementById('formModeracao');
 if (formModeracao) {
     // Remover listeners antigos
@@ -2516,20 +2658,145 @@ if (formModeracao) {
         }
     });
 }
-    function abrirModalReportComentario(comentarioId) {
-    if (!usuarioLogado) {
-        alert('Faça login para reportar um comentário');
+
+// ==========================================
+// FUNÇÃO PARA ENVIAR COMENTÁRIO (COM FORM DATA)
+// ==========================================
+let enviandoComentario = false;
+
+async function enviarComentario() {
+    console.log('📝 enviarComentario chamada');
+    
+    // Evitar envio duplicado
+    if (enviandoComentario) {
+        console.log('⚠️ Já enviando comentário, aguarde...');
         return;
     }
     
-    const modal = document.getElementById('modalReportComentario');
-    if (modal) {
-        document.getElementById('reportComentarioId').value = comentarioId;
-        modal.style.display = 'flex';
+    // 1. VERIFICAR LOGIN
+    const userSalvo = sessionStorage.getItem('ideaHubUser');
+    if (!userSalvo) {
+        mostrarNotificacao('Faça login para comentar!', 'warning', '🔒 Login Necessário');
+        return;
+    }
+    
+    let usuario;
+    try {
+        usuario = JSON.parse(userSalvo);
+        console.log('✅ Usuário logado:', usuario.nome);
+    } catch(e) {
+        mostrarNotificacao('Erro ao verificar usuário', 'error', '❌ Erro');
+        return;
+    }
+    
+    // 2. OBTER TEXTO DO COMENTÁRIO
+    const texto = document.getElementById('novoComentario')?.value.trim();
+    if (!texto) {
+        mostrarNotificacao('Digite um comentário!', 'warning', '⚠️ Campo Vazio');
+        return;
+    }
+    
+    // 3. VERIFICAR SE ideiaId EXISTE
+    if (!ideiaId) {
+        mostrarNotificacao('Erro: ID da ideia não encontrado', 'error', '❌ Erro');
+        return;
+    }
+    
+    enviandoComentario = true;
+    showLoading(true);
+    
+    try {
+        // 4. PREPARAR FORM DATA
+        const formData = new FormData();
+        formData.append('texto', texto);
+        formData.append('id_usuario', usuario.id);
+        
+        const arquivoInput = document.getElementById('anexoComentario');
+        let temAnexo = false;
+        
+        if (arquivoInput && arquivoInput.files && arquivoInput.files[0]) {
+            formData.append('anexo', arquivoInput.files[0]);
+            temAnexo = true;
+            console.log('📎 Anexo incluído:', arquivoInput.files[0].name);
+        }
+        
+        // 5. ENVIAR REQUISIÇÃO (NÃO usar headers com FormData)
+        const fetchResponse = await fetch(`/ideias/${ideiaId}/comentarios`, {
+            method: 'POST',
+            body: formData  // Sem headers 'Content-Type' - o browser define automaticamente
+        });
+        
+        console.log('📡 Status da resposta:', fetchResponse.status);
+        
+        // 6. PROCESSAR RESPOSTA
+        const data = await fetchResponse.json();
+        
+        if (fetchResponse.ok && data.sucesso) {
+            // Limpar campos
+            document.getElementById('novoComentario').value = '';
+            if (arquivoInput) arquivoInput.value = '';
+            document.getElementById('nomeAnexoSelecionado').innerHTML = '';
+            
+            // Recarregar comentários
+            await carregarComentarios();
+            
+            // Mensagem de sucesso
+            if (temAnexo) {
+                mostrarNotificacao('Comentário enviado com anexo!', 'success', '📎 Anexo Incluído');
+            } else {
+                mostrarNotificacao('Comentário adicionado com sucesso!', 'success', '✅ Enviado');
+            }
+        } else {
+            mostrarNotificacao(data.erro || 'Erro ao enviar comentário', 'error', '❌ Falha');
+        }
+        
+    } catch (error) {
+        console.error('❌ Erro no envio:', error);
+        mostrarNotificacao('Erro de conexão. Tente novamente.', 'error', '⚠️ Erro');
+    } finally {
+        showLoading(false);
+        enviandoComentario = false;
     }
 }
 
-    async function carregarComentarios() {
+// ==========================================
+// MOSTRAR NOME DO ANEXO SELECIONADO
+// ==========================================
+function atualizarNomeAnexo() {
+    const input = document.getElementById('anexoComentario');
+    const nomeSpan = document.getElementById('nomeAnexoSelecionado');
+    
+    if (input && input.files && input.files[0]) {
+        const file = input.files[0];
+        const maxSize = 5 * 1024 * 1024; // 5MB
+        const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'application/pdf'];
+        
+        if (file.size > maxSize) {
+            mostrarNotificacao('Arquivo muito grande! Máximo 5MB.', 'warning', '⚠️ Arquivo Grande');
+            input.value = '';
+            nomeSpan.innerHTML = '';
+            return;
+        }
+        
+        if (!allowedTypes.includes(file.type)) {
+            mostrarNotificacao('Tipo de arquivo não suportado. Use imagens ou PDF.', 'warning', '⚠️ Tipo Inválido');
+            input.value = '';
+            nomeSpan.innerHTML = '';
+            return;
+        }
+        
+        nomeSpan.innerHTML = `<i class="fas fa-paperclip"></i> ${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+        console.log('✅ Arquivo selecionado:', file.name);
+    } else {
+        nomeSpan.innerHTML = '';
+    }
+}
+
+// ========== FUNÇÃO PARA CARREGAR COMENTÁRIOS (CORRIGIDA) ==========
+async function carregarComentarios() {
+
+    console.log('📌 usuarioLogado:', usuarioLogado);
+    console.log('📌 ID do usuário logado:', usuarioLogado?.id);
     
     if (!ideiaId) {
         console.error('❌ ideiaId não definido');
@@ -2565,30 +2832,86 @@ if (formModeracao) {
             return;
         }
         
-        // Buscar autor da ideia
+        // ✅ BUSCAR AUTOR DA IDEIA
         let autorIdeiaId = null;
-        try {
-            const ideiaResponse = await fetch(`/ideias/${ideiaId}`);
-            const ideia = await ideiaResponse.json();
-            autorIdeiaId = ideia.id_usuario;
-        } catch (err) {
-            console.error('Erro ao buscar autor:', err);
+        if (window.ideiaAtual && window.ideiaAtual.id_usuario) {
+            autorIdeiaId = window.ideiaAtual.id_usuario;
+            console.log('✅ Autor da ideia:', autorIdeiaId);
+        } else {
+            try {
+                const ideiaResponse = await fetch(`/ideias/${ideiaId}`);
+                const ideia = await ideiaResponse.json();
+                autorIdeiaId = ideia.id_usuario;
+                console.log('✅ Autor da ideia (fetch):', autorIdeiaId);
+            } catch (err) {
+                console.error('Erro ao buscar autor:', err);
+            }
         }
         
-        const isAdmin = usuarioLogado && (usuarioLogado.cargo === 'gestor' || usuarioLogado.cargo === 'ti_staff');
+        // ✅ VERIFICAR SE É ADMIN
+        const isAdminUser = usuarioLogado && (usuarioLogado.cargo === 'gestor' || usuarioLogado.cargo === 'ti_staff');
+        
+        // ✅ VERIFICAR SE É AUTOR DA IDEIA
+        const isAutorDaIdeia = usuarioLogado && parseInt(usuarioLogado.id) === parseInt(autorIdeiaId);
+        
+        console.log('🔍 Permissões:', {
+            isAdminUser: isAdminUser,
+            isAutorDaIdeia: isAutorDaIdeia,
+            usuarioLogadoId: usuarioLogado?.id,
+            autorIdeiaId: autorIdeiaId
+        });
         
         listaComentarios.innerHTML = comentarios.map(com => {
-            const isAutorIdeia = autorIdeiaId === com.id_usuario;
-            const isAutorComentario = usuarioLogado && usuarioLogado.id === com.id_usuario;
+            // ✅ VERIFICAR SE É AUTOR DO COMENTÁRIO
+            const isAutorComentario = usuarioLogado && parseInt(usuarioLogado.id) === parseInt(com.id_usuario);
             
-            // ========== GERAR ESTRELA DO NÍVEL ==========
-            const nivel = com.autor_nivel || 1;
-            const estrelas = '⭐'.repeat(Math.min(nivel, 5)) + '☆'.repeat(Math.max(0, 5 - Math.min(nivel, 5)));
-            const nivelTexto = getNivelTexto(nivel);
+            // ==========================================
+            // REGRAS DO BOTÃO EXCLUIR:
+            // ==========================================
+            // 1. ADMIN pode excluir QUALQUER comentário
+            // 2. AUTOR DA IDEIA pode excluir comentários na sua própria ideia
+            // 3. USUÁRIO COMUM só pode excluir SEU PRÓPRIO comentário
+            // ==========================================
+            let podeExcluir = false;
+            
+            if (isAdminUser) {
+                // REGRA 3: Administrador pode excluir qualquer comentário
+                podeExcluir = true;
+                console.log(`✅ [ADMIN] Comentário ${com.id} - PODE EXCLUIR`);
+            } 
+            else if (isAutorDaIdeia) {
+                // REGRA 2: Autor da ideia pode excluir comentários na sua própria ideia
+                podeExcluir = true;
+                console.log(`✅ [AUTOR DA IDEIA] Comentário ${com.id} - PODE EXCLUIR`);
+            }
+            else if (isAutorComentario) {
+                // REGRA 1 (parte): Usuário comum pode excluir apenas seu próprio comentário
+                podeExcluir = true;
+                console.log(`✅ [AUTOR DO COMENTÁRIO] Comentário ${com.id} - PODE EXCLUIR`);
+            }
+            else {
+                console.log(`❌ [USUÁRIO COMUM] Comentário ${com.id} - NÃO PODE EXCLUIR`);
+            }
+            
+            // ========== GERAR TÍTULO DO NÍVEL PARA TOOLTIP ==========
+const nivel = com.autor_nivel || 1;
+const estrelasCheias = Math.min(nivel, 5);
+const estrelasVazias = 5 - estrelasCheias;
+const estrelas = '⭐'.repeat(estrelasCheias) + '☆'.repeat(estrelasVazias);
+
+// ✅ TÍTULO DO NÍVEL (aparece no hover)
+let tituloNivel = '';
+if (nivel <= 1) tituloNivel = '🌟 Iniciante';
+else if (nivel <= 3) tituloNivel = '📚 Aprendiz';
+else if (nivel <= 5) tituloNivel = '💡 Colaborador';
+else if (nivel <= 7) tituloNivel = '🎯 Especialista';
+else if (nivel <= 9) tituloNivel = '🏆 Mestre';
+else tituloNivel = '👑 Lendário';
+
+// ✅ Adicionar informações adicionais no tooltip
+const tooltipText = `${tituloNivel}`;
             
             // ========== BOTÃO DE EXCLUIR ==========
-            const podeExcluir = usuarioLogado && (isAdmin || isAutorIdeia || isAutorComentario);
-            
             let deleteButton = '';
             if (podeExcluir) {
                 deleteButton = `
@@ -2599,7 +2922,8 @@ if (formModeracao) {
             }
             
             // ========== BOTÃO DE REPORTAR ==========
-            const podeReportar = usuarioLogado && !isAdmin && !isAutorComentario;
+            // Apenas usuário comum (não admin) que NÃO é o autor do comentário
+            const podeReportar = usuarioLogado && !isAdminUser && !isAutorComentario;
             
             let reportButton = '';
             if (podeReportar) {
@@ -2610,33 +2934,65 @@ if (formModeracao) {
                 `;
             }
             
-            return `
-                <div class="comentario-card" data-id="${com.id}">
-                    <div class="comentario-header">
-                        <div class="comentario-autor">
-                            <strong><i class="fas fa-user-circle"></i> ${escapeHtml(com.autor_nome)}</strong>
-                            <a href="perfil.html?id=${com.id_usuario}" class="btn-perfil-comentario" style="margin-left: 8px; font-size: 12px; color: #667eea;">
-                                <i class="fas fa-external-link-alt"></i> Perfil
+            // ========== GERAR HTML DO ANEXO ==========
+            let anexoHtml = '';
+            if (com.anexo_url) {
+                const nomeArquivo = com.anexo_url.split('/').pop();
+                const isImagem = com.anexo_url.match(/\.(jpg|jpeg|png|gif|webp)$/i);
+                
+                if (isImagem) {
+                    anexoHtml = `
+                        <div class="anexo-comentario" style="margin-top: 10px;">
+                            <a href="javascript:void(0)" onclick="abrirAnexo('${com.anexo_url}', '${nomeArquivo}')" class="anexo-link-imagem">
+                                <img src="${com.anexo_url}" alt="Anexo" style="max-width: 200px; max-height: 150px; border-radius: 8px; cursor: pointer;">
+                                <span class="anexo-nome" style="display: block; font-size: 11px; color: #666; margin-top: 5px;">
+                                    <i class="fas fa-image"></i> ${nomeArquivo}
+                                </span>
                             </a>
-                            <span class="comentario-cargo">${getCargoTexto(com.autor_cargo)}</span>
-                            <!-- 🎯 NÍVEL DO USUÁRIO -->
-                            <span class="comentario-nivel" style="margin-left: 8px; background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 2px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px;">
-                                <i class="fas fa-star" style="font-size: 10px;"></i>
-                                Nível ${nivel} ${estrelas.substring(0, 3)}
-                            </span>
-                            ${isAutorIdeia ? '<span class="comentario-badge-autor" style="background: #dbeafe; padding: 2px 8px; border-radius: 12px; font-size: 11px; margin-left: 8px;">📌 Autor da Ideia</span>' : ''}
-                            ${isAutorComentario ? '<span class="comentario-badge-autor" style="background: #e2e8f0; padding: 2px 8px; border-radius: 12px; font-size: 11px; margin-left: 8px;">✏️ Você</span>' : ''}
                         </div>
-                        <span class="comentario-data">${formatarData(com.data_comentario)}</span>
-                    </div>
-                    <div class="comentario-texto">
-                        <p>${escapeHtml(com.texto)}</p>
-                    </div>
-                    <div style="margin-top: 10px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
-                        ${deleteButton}
-                        ${reportButton}
-                    </div>
-                </div>
+                    `;
+                } else {
+                    anexoHtml = `
+                        <div class="anexo-comentario" style="margin-top: 10px;">
+                            <a href="javascript:void(0)" onclick="abrirAnexo('${com.anexo_url}', '${nomeArquivo}')" class="btn-anexo-download">
+                                <i class="fas fa-paperclip"></i> Baixar Anexo: ${nomeArquivo}
+                            </a>
+                        </div>
+                    `;
+                }
+            }
+            
+            return `
+    <div class="comentario-card" data-id="${com.id}">
+        <div class="comentario-header">
+            <div class="comentario-autor">
+                <strong><i class="fas fa-user-circle"></i> ${escapeHtml(com.autor_nome)}</strong>
+                <a href="perfil.html?id=${com.id_usuario}" class="btn-perfil-comentario" style="margin-left: 8px; font-size: 12px; color: #667eea;">
+                    <i class="fas fa-external-link-alt"></i> Perfil
+                </a>
+                <span class="comentario-cargo">${getCargoTexto(com.autor_cargo)}</span>
+                
+                <!-- ✅ BADGE DE NÍVEL COM TOOLTIP -->
+                <span class="comentario-nivel" 
+                      style="margin-left: 8px; background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 2px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; cursor: help;"
+                      title="${tooltipText}">
+                    <i class="fas fa-star" style="font-size: 10px;"></i>
+                    Nível ${nivel} ${estrelas}
+                </span>
+                
+                ${isAutorDaIdeia && !isAdminUser ? '<span class="comentario-badge-autor" style="background: #667eea; color: white; padding: 2px 8px; border-radius: 12px; font-size: 11px; margin-left: 8px;">✏️ OP</span>' : ''}
+            </div>
+            <span class="comentario-data">${formatarData(com.data_comentario)}</span>
+        </div>
+        <div class="comentario-texto">
+            <p>${escapeHtml(com.texto)}</p>
+        </div>
+        ${anexoHtml}
+        <div style="margin-top: 10px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+            ${deleteButton}
+            ${reportButton}
+        </div>
+    </div>
             `;
         }).join('');
         
@@ -2655,25 +3011,24 @@ if (formModeracao) {
     }
 }
 
-// Função auxiliar para texto do nível
+// Função para obter o texto do nível
 function getNivelTexto(nivel) {
-    if (nivel <= 1) return 'Iniciante';
-    if (nivel <= 3) return 'Aprendiz';
-    if (nivel <= 5) return 'Colaborador';
-    if (nivel <= 7) return 'Especialista';
-    if (nivel <= 9) return 'Mestre';
-    return 'Lendário';
+    if (nivel <= 1) return '🌟 Iniciante';
+    if (nivel <= 3) return '📚 Aprendiz';
+    if (nivel <= 5) return '💡 Colaborador';
+    if (nivel <= 7) return '🎯 Especialista';
+    if (nivel <= 9) return '🏆 Mestre';
+    return '👑 Lendário';
 }
     
     // ========== FUNÇÃO PARA DELETAR COMENTÁRIO ==========
 async function deletarComentario(comentarioId) {
-
     if (!confirm('⚠️ Tem certeza que deseja excluir este comentário?')) {
         return;
     }
     
     if (!usuarioLogado) {
-        alert('❌ Faça login para excluir comentários.');
+        mostrarNotificacao('Faça login para excluir comentários!', 'warning', '🔒 Login Necessário');
         return;
     }
     
@@ -2689,17 +3044,41 @@ async function deletarComentario(comentarioId) {
         const data = await response.json();
         
         if (data.sucesso) {
-            alert('✅ Comentário excluído!');
+            // ✅ MENSAGEM DE SUCESSO
+            mostrarNotificacao('🗑️ Comentário excluído com sucesso!', 'success', '✅ Excluído');
+            
+            // Recarregar comentários
             await carregarComentarios();
         } else {
-            alert(data.erro || '❌ Erro ao excluir comentário');
+            mostrarNotificacao(data.erro || 'Erro ao excluir comentário', 'error', '❌ Falha');
         }
     } catch (error) {
         console.error('Erro:', error);
-        alert('❌ Erro de conexão');
+        mostrarNotificacao('Erro de conexão ao excluir', 'error', '⚠️ Erro');
     } finally {
         showLoading(false);
     }
+}
+
+// ==========================================
+// ABRIR ANEXO DO COMENTÁRIO (COM MENSAGEM)
+// ==========================================
+function abrirAnexo(anexoUrl, nomeArquivo) {
+    if (!anexoUrl) {
+        mostrarNotificacao('Arquivo não encontrado!', 'error', '❌ Erro');
+        return;
+    }
+    
+    // Mostrar mensagem de carregamento
+    mostrarNotificacao(`📂 Abrindo arquivo: ${nomeArquivo || 'anexo'}...`, 'info', '📎 Carregando');
+    
+    // Abrir em nova aba
+    window.open(anexoUrl, '_blank');
+    
+    // Pequeno delay para mostrar a notificação
+    setTimeout(() => {
+        mostrarNotificacao(`Arquivo aberto em nova aba!`, 'success', '✅ Sucesso');
+    }, 500);
 }
 
  async function votar(ideiaId) {
@@ -3021,6 +3400,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // 1. CONFIGURAÇÕES INICIAIS
     // ==========================================
     
+    controlarVisibilidadeComentario();
     // Atualizar o nome do usuário no mini header
     atualizarUserInfo();
     
@@ -3048,7 +3428,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             ideiaContent.innerHTML = '<div class="error">❌ Ideia não especificada</div>';
         }
     }
-    
+
     // ==========================================
     // 3. CONFIGURAR FORMULÁRIO DE CONVERSÃO
     // ==========================================
@@ -3112,73 +3492,28 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
     
+    // Configurar input de anexo
+const anexoInput = document.getElementById('anexoComentario');
+if (anexoInput && !anexoInput.hasAttribute('data-listener')) {
+    anexoInput.setAttribute('data-listener', 'true');
+    anexoInput.addEventListener('change', atualizarNomeAnexo);
+}
+
     // ==========================================
     // 4. CONFIGURAR FORMULÁRIO DE REPORT DE IDEIA
     // ==========================================
-    const reportForm = document.getElementById('reportForm');
-    if (reportForm) {
-        // Remover listeners antigos
-        const novoReportForm = reportForm.cloneNode(true);
-        reportForm.parentNode.replaceChild(novoReportForm, reportForm);
-        
-        novoReportForm.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const ideiaId = document.getElementById('reportIdeiaId')?.value;
-            const motivo = document.getElementById('reportMotivo')?.value;
-            const descricao = document.getElementById('reportDescricao')?.value;
-            
-            if (!motivo) {
-                alert('❌ Selecione um motivo!');
-                return;
-            }
-            
-            // Buscar usuário logado
-            const tokenSalvo = localStorage.getItem('ideaHubToken');
-            if (!tokenSalvo) {
-                alert('❌ Faça login para reportar');
-                window.location.href = '../index.html';
-                return;
-            }
-            
-            let usuario;
-            try {
-                usuario = JSON.parse(tokenSalvo);
-            } catch(e) {
-                alert('❌ Erro ao identificar usuário');
-                return;
-            }
-            
-            showLoading(true);
-            
-            try {
-                const response = await fetch(`/ideias/${ideiaId}/reportar`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        usuarioId: usuario.id,
-                        motivo: motivo,
-                        descricao: descricao
-                    })
-                });
-                
-                const data = await response.json();
-                
-                if (data.sucesso) {
-                    alert('✅ Report enviado com sucesso!');
-                    fecharModal('reportModal');
-                    novoReportForm.reset();
-                } else {
-                    alert(data.erro || '❌ Erro ao enviar report');
-                }
-            } catch (error) {
-                console.error('Erro:', error);
-                alert('❌ Erro de conexão');
-            } finally {
-                showLoading(false);
-            }
-        });
-    }
+   // Configurar formulário de report (EVITAR DUPLICAÇÃO)
+const reportForm = document.getElementById('reportForm');
+if (reportForm && !reportForm.hasAttribute('data-listener')) {
+    reportForm.setAttribute('data-listener', 'true');
+    
+    // Remover onsubmit do HTML se existir
+    reportForm.removeAttribute('onsubmit');
+    
+    // Adicionar evento via JavaScript
+    reportForm.addEventListener('submit', enviarReportIdeia);
+    console.log('✅ Formulário de report configurado');
+}
     
     // ==========================================
     // 5. CONFIGURAR FORMULÁRIO DE MODERAÇÃO
@@ -3262,26 +3597,21 @@ document.addEventListener('DOMContentLoaded', async () => {
     // ==========================================
     // 6. CONFIGURAR BOTÃO DE ENVIO DE COMENTÁRIO (CORRIGIDO)
     // ==========================================
-    const btnEnviarComentario = document.getElementById('btnEnviarComentario');
-    if (btnEnviarComentario) {
-        // Remover listeners antigos clonando o botão
-        const novoBtnEnviar = btnEnviarComentario.cloneNode(true);
-        btnEnviarComentario.parentNode.replaceChild(novoBtnEnviar, btnEnviarComentario);
-        
-        // Adicionar o novo listener
-        novoBtnEnviar.addEventListener('click', function(e) {
-            e.preventDefault();
-            if (typeof enviarComentario === 'function') {
-                enviarComentario();
-            } else {
-                console.error('❌ Função enviarComentario não está definida!');
-                alert('Erro: Função de envio não encontrada. Recarregue a página.');
-            }
-        });
-        
-    } else {
-        console.error('❌ Botão btnEnviarComentario não encontrado no DOM!');
-    }
+const btnEnviarComentario = document.getElementById('btnEnviarComentario');
+if (btnEnviarComentario) {
+    // Remover listeners antigos para evitar duplicação
+    const novoBtn = btnEnviarComentario.cloneNode(true);
+    btnEnviarComentario.parentNode.replaceChild(novoBtn, btnEnviarComentario);
+    
+    novoBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        console.log('🔘 Botão de comentário clicado');
+        enviarComentario();
+    });
+    console.log('✅ Botão de comentário configurado');
+} else {
+    console.error('❌ Botão btnEnviarComentario não encontrado!');
+}
     
     // ==========================================
     // 7. CONFIGURAR TECLA DE ATALHO (Ctrl+Enter) NO TEXTAREA
@@ -3302,6 +3632,20 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
     
+
+// Configurar formulário de report de comentário (APENAS UMA VEZ)
+const formReportComentario = document.getElementById('formReportComentario');
+if (formReportComentario && !formReportComentario.hasAttribute('data-listener')) {
+    formReportComentario.setAttribute('data-listener', 'true');
+    
+    // Remover listeners antigos
+    const novoForm = formReportComentario.cloneNode(true);
+    formReportComentario.parentNode.replaceChild(novoForm, formReportComentario);
+    
+    novoForm.addEventListener('submit', enviarReportComentario);
+    console.log('✅ Formulário de report de comentário configurado');
+}
+
     // ==========================================
     // 8. CONFIGURAR INPUT DE ANEXO
     // ==========================================
@@ -3343,19 +3687,46 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
     
+    // Configurar botão de envio de comentário
+const btnEnviar = document.getElementById('btnEnviarComentario');
+if (btnEnviar) {
+    // Remover listeners antigos
+    const novoBtn = btnEnviar.cloneNode(true);
+    btnEnviar.parentNode.replaceChild(novoBtn, btnEnviar);
+    
+    novoBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log('🔘 Botão de comentário clicado');
+        enviarComentario();
+    });
+    console.log('✅ Botão de comentário configurado');
+} else {
+    console.error('❌ Botão btnEnviarComentario não encontrado');
+}
+
     // ==========================================
     // 9. CONFIGURAR BOTÃO DE ABRIR ANEXO
     // ==========================================
     const btnAnexo = document.getElementById('btnAnexoComentario');
-    if (btnAnexo) {
-        const novoBtnAnexo = btnAnexo.cloneNode(true);
-        btnAnexo.parentNode.replaceChild(novoBtnAnexo, btnAnexo);
-        
-        novoBtnAnexo.addEventListener('click', function() {
-            const input = document.getElementById('anexoComentario');
-            if (input) input.click();
-        });
-    }
+if (btnAnexo && !btnAnexo.hasAttribute('data-listener')) {
+    btnAnexo.setAttribute('data-listener', 'true');
+    
+    // Remover onclick do HTML para evitar duplicação
+    btnAnexo.removeAttribute('onclick');
+    
+    // Adicionar evento via JavaScript
+    btnAnexo.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log('🔘 Botão anexo clicado');
+        const input = document.getElementById('anexoComentario');
+        if (input) {
+            input.click();
+        }
+    });
+    console.log('✅ Botão de anexo configurado');
+}
 });
 
 // Limpeza de estado ao sair da página
